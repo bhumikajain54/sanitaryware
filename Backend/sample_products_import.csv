@@ -1,0 +1,11 @@
+Name,Description,Price,DiscountPrice,StockQuantity,MainImage,Category,Brand,Featured,Active
+Modern Bathroom Sink,Contemporary ceramic sink with overflow,150.00,120.00,50,sink-modern.jpg,Bathroom Sinks,AquaLux,true,true
+Classic Toilet Bowl,Premium dual-flush toilet,300.00,250.00,30,toilet-classic.jpg,Toilets,SaniFlow,false,true
+Wall-Mounted Faucet,Chrome finish wall faucet,85.00,75.00,100,faucet-wall.jpg,Faucets,AquaLux,true,true
+Shower Head Deluxe,Rain shower head with adjustable settings,120.00,100.00,75,shower-deluxe.jpg,Shower Fixtures,RainMaster,true,true
+Pedestal Sink,Space-saving pedestal sink,180.00,160.00,40,sink-pedestal.jpg,Bathroom Sinks,ClassicBath,false,true
+Bathtub Freestanding,Luxury freestanding bathtub,1200.00,1000.00,15,bathtub-free.jpg,Bathtubs,LuxuryBath,true,true
+Kitchen Sink Double,Stainless steel double basin sink,250.00,220.00,60,sink-kitchen.jpg,Kitchen Sinks,SteelPro,false,true
+Bidet Attachment,Easy-install bidet attachment,45.00,35.00,200,bidet-attach.jpg,Bidets,HygieneMax,false,true
+Towel Rack Chrome,Modern chrome towel rack,35.00,30.00,150,rack-chrome.jpg,Bathroom Accessories,ChromeStyle,false,true
+Mirror Cabinet,LED mirror with storage cabinet,280.00,240.00,25,mirror-cabinet.jpg,Bathroom Furniture,ModernSpace,true,true

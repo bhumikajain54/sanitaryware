@@ -1,0 +1,106 @@
+# Netlify Build Configuration - Enhanced for SPA Routing
+[build]
+  # Directory to change to before starting a build
+  base = "/"
+  
+  # Directory that contains the deploy-ready HTML files and assets
+  publish = "dist"
+  
+  # Default build command
+  command = "npm run build"
+
+# ============================================
+# SPA ROUTING CONFIGURATION
+# ============================================
+
+# Primary SPA redirect - Catch all routes and serve index.html
+# This ensures React Router handles all routing client-side
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Optional: Explicit admin routes (for clarity and debugging)
+# These are technically covered by the /* rule above, but can help with debugging
+[[redirects]]
+  from = "/admin/*"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/customer/*"
+  to = "/index.html"
+  status = 200
+
+# ============================================
+# SECURITY HEADERS
+# ============================================
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Prevent clickjacking attacks
+    X-Frame-Options = "DENY"
+    
+    # Enable XSS protection
+    X-XSS-Protection = "1; mode=block"
+    
+    # Prevent MIME type sniffing
+    X-Content-Type-Options = "nosniff"
+    
+    # Control referrer information
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    
+    # Permissions policy (disable unnecessary features)
+    Permissions-Policy = "geolocation=(), microphone=(), camera=()"
+
+# ============================================
+# CACHE CONTROL
+# ============================================
+
+# Cache static assets aggressively (they have content hashes)
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Don't cache index.html (ensures users always get latest version)
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Pragma = "no-cache"
+    Expires = "0"
+
+# Cache images for 1 year
+[[headers]]
+  for = "/*.png"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.jpg"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.webp"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# ============================================
+# BUILD SETTINGS (Optional)
+# ============================================
+
+# Environment variables (if needed)
+# [build.environment]
+#   NODE_VERSION = "18"
+#   NPM_VERSION = "9"
+
+# ============================================
+# NOTES
+# ============================================
+# 1. The /* redirect is crucial for React Router to work on Netlify
+# 2. Status 200 means "rewrite" not "redirect" - URL stays the same
+# 3. Cache-Control headers ensure optimal performance
+# 4. Security headers protect against common web vulnerabilities

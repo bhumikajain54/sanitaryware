@@ -1,0 +1,47 @@
+package com.example.sanitary.ware.backend.repositories;
+
+import com.example.sanitary.ware.backend.entities.Product;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+public interface ProductRepository extends JpaRepository<Product, Long> {
+
+        List<Product> findByCategoryId(Long categoryId);
+
+        List<Product> findByBrandId(Long brandId);
+
+        List<Product> findByFeaturedTrue();
+
+        @Query("SELECT p FROM Product p WHERE " +
+                        "(:query IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%'))) "
+                        +
+                        "AND (:categoryId IS NULL OR p.category.id = :categoryId) " +
+                        "AND (:brandId IS NULL OR p.brand.id = :brandId) " +
+                        "AND (:minPrice IS NULL OR p.price >= :minPrice) " +
+                        "AND (:maxPrice IS NULL OR p.price <= :maxPrice)")
+        Page<Product> searchProducts(@Param("query") String query,
+                        @Param("categoryId") Long categoryId,
+                        @Param("brandId") Long brandId,
+                        @Param("minPrice") Double minPrice,
+                        @Param("maxPrice") Double maxPrice,
+                        Pageable pageable);
+
+        @Query("SELECT p FROM Product p WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%'))")
+        List<Product> searchByName(@Param("query") String query);
+
+        java.util.Optional<Product> findByName(String name);
+
+        java.util.Optional<Product> findByNameIgnoreCase(String name);
+
+        @Modifying
+        @Transactional
+        @Query("UPDATE Product p SET p.stockQuantity = :quantity")
+        int updateAllStockQuantity(@Param("quantity") Integer quantity);
+}

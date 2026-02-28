@@ -1,0 +1,7 @@
+# Netlify Redirects Configuration
+# This file serves as a backup to netlify.toml
+# Place this file in the 'public' folder to ensure it's copied to dist during build
+
+# SPA Redirect - Catch all routes and serve index.html
+# This ensures React Router handles all routing client-side
+/*    /index.html   200

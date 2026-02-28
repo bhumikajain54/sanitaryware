@@ -7,18 +7,23 @@ export const login = async (credentials) => {
     });
 
     // Save token and user info if login successful
-    if (response.token || response.userId) {
+    if (response.token || response.userId || response.user) {
+        const user = response.user || {};
+        const role = response.role || user.role || (response.roles && response.roles[0]) || 'customer';
+
         const userData = {
-            id: response.userId,
+            id: response.userId || user.id || response.id,
             token: response.token,
-            email: credentials.email,
-            role: response.role || 'customer'
+            email: credentials.email || response.email || user.email,
+            role: role
         };
+
         localStorage.setItem('user', JSON.stringify(userData));
         localStorage.setItem('userToken', response.token);
-        localStorage.setItem('userId', response.userId);
+        localStorage.setItem('userId', userData.id);
 
-        if (userData.role?.toLowerCase() === 'admin' || userData.role === 'ROLE_ADMIN') {
+        const normalizedRole = String(role).toUpperCase();
+        if (normalizedRole === 'ADMIN' || normalizedRole === 'ROLE_ADMIN' || normalizedRole === 'BRAND_ORGANIZER') {
             localStorage.setItem('adminToken', response.token);
         }
     }
@@ -78,6 +83,37 @@ export const changePassword = async (passwordData) => {
     });
 };
 
+export const socialLogin = async (provider, token) => {
+    const response = await apiCall('/auth/social-login', {
+        method: 'POST',
+        body: { provider, token },
+    });
+    return processAuthResponse(response);
+};
+
+const processAuthResponse = (response) => {
+    if (response.token || response.userId || response.user) {
+        const user = response.user || {};
+        const role = response.role || user.role || (response.roles && response.roles[0]) || 'customer';
+
+        const userData = {
+            id: response.userId || user.id || response.id,
+            token: response.token,
+            email: response.email || user.email,
+            role: role
+        };
+        localStorage.setItem('user', JSON.stringify(userData));
+        localStorage.setItem('userToken', response.token);
+        localStorage.setItem('userId', userData.id);
+
+        const normalizedRole = String(role).toUpperCase();
+        if (normalizedRole === 'ADMIN' || normalizedRole === 'ROLE_ADMIN' || normalizedRole === 'BRAND_ORGANIZER') {
+            localStorage.setItem('adminToken', response.token);
+        }
+    }
+    return response;
+};
+
 export default {
     login,
     logout,
@@ -85,4 +121,5 @@ export default {
     getProfile,
     updateProfile,
     changePassword,
+    socialLogin,
 };

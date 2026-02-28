@@ -10,6 +10,7 @@ import com.example.sanitary.ware.backend.services.CustomerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.lang.NonNull;
 import org.springframework.http.ResponseEntity;
+import com.example.sanitary.ware.backend.dto.SocialLoginRequest;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -28,6 +29,11 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody @NonNull LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
+    }
+
+    @PostMapping("/social-login")
+    public ResponseEntity<AuthResponse> socialLogin(@RequestBody @NonNull SocialLoginRequest request) {
+        return ResponseEntity.ok(authService.socialLogin(request));
     }
 
     @PostMapping("/logout")

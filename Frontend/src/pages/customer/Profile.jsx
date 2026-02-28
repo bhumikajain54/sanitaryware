@@ -5,6 +5,7 @@ import { toast } from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import authService from '../../services/authService';
 import customerService from '../../services/customerService';
+import adminService from '../../services/adminService';
 import { 
   MdPerson, 
   MdEmail, 
@@ -24,7 +25,7 @@ import {
 } from 'react-icons/md';
 
 const Profile = () => {
-  const { user, updateProfile: updateAuthProfile, getProfile } = useAuth();
+  const { user, isAdmin, updateProfile: updateAuthProfile, getProfile } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -51,7 +52,15 @@ const Profile = () => {
   const fetchActivityLogs = async () => {
     setFetchingLogs(true);
     try {
-      const data = await customerService.getActivityLogs();
+      console.log('🔄 Fetching activity logs for role:', user?.role, 'isAdmin:', isAdmin);
+      
+      let data;
+      if (isAdmin) {
+        data = await adminService.getActivityLogs();
+      } else {
+        data = await customerService.getActivityLogs();
+      }
+      
       console.log('🔍 Raw Activity Logs Response:', data);
       
       // Handle various backend response formats
@@ -66,8 +75,11 @@ const Profile = () => {
                data.items || 
                data.list || 
                data.body ||
+               data.logs ||
+               data.activities ||
                data._embedded?.activityLogs ||
                data._embedded?.loginActivities ||
+               data._embedded?.logs ||
                [];
       }
       
@@ -77,7 +89,12 @@ const Profile = () => {
       setActivityLogs(logs);
     } catch (err) {
       console.error('❌ Failed to fetch activity logs:', err);
-      toast.error('Failed to load activity logs');
+      // Only show error if it's not a 404 (which might mean no logs yet)
+      if (err.status !== 404) {
+        toast.error('Failed to load activity logs');
+      } else {
+        setActivityLogs([]);
+      }
     } finally {
       setFetchingLogs(false);
     }

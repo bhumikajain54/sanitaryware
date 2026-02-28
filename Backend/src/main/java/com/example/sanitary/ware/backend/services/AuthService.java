@@ -12,6 +12,8 @@ import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import com.example.sanitary.ware.backend.dto.SocialLoginRequest;
+import java.util.Map;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -78,6 +80,102 @@ public class AuthService {
                                 .firstName(user.getFirstName())
                                 .lastName(user.getLastName())
                                 .build();
+        }
+
+        @org.springframework.beans.factory.annotation.Value("${facebook.api.url:https://graph.facebook.com/me}")
+        private String facebookApiUrl;
+
+        public AuthResponse socialLogin(@NonNull SocialLoginRequest request) {
+                User user;
+                if ("google".equalsIgnoreCase(request.getProvider())) {
+                        user = verifyGoogleToken(request.getToken());
+                } else if ("facebook".equalsIgnoreCase(request.getProvider())) {
+                        user = verifyFacebookToken(request.getToken());
+                } else {
+                        throw new RuntimeException("Unsupported provider: " + request.getProvider());
+                }
+
+                String jwtToken = jwtService.generateToken(user);
+
+                activityLogService.log(user.getId(), user.getEmail(), "SOCIAL_LOGIN", "AUTH",
+                                "Logged in via " + request.getProvider());
+
+                return AuthResponse.builder()
+                                .id(user.getId())
+                                .token(jwtToken)
+                                .email(user.getEmail())
+                                .role(user.getRole())
+                                .firstName(user.getFirstName())
+                                .lastName(user.getLastName())
+                                .build();
+        }
+
+        private User verifyGoogleToken(String token) {
+                try {
+                        String url;
+                        // Heuristic: id_tokens are usually much longer and have 2 dots (JWT)
+                        if (token.contains(".") && token.split("\\.").length == 3) {
+                            url = "https://oauth2.googleapis.com/tokeninfo?id_token=" + token;
+                        } else {
+                            url = "https://www.googleapis.com/oauth2/v3/userinfo?access_token=" + token;
+                        }
+                        
+                        org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
+                        Map<?, ?> response = restTemplate.getForObject(url, Map.class);
+
+                        if (response == null || response.containsKey("error") || response.containsKey("error_description")) {
+                                throw new RuntimeException("Invalid Google token");
+                        }
+
+                        String email = (String) response.get("email");
+                        String firstName = (String) (response.containsKey("given_name") ? response.get("given_name") : response.get("name"));
+                        String lastName = (String) response.get("family_name");
+
+                        return getOrCreateUser(email, firstName, lastName);
+                } catch (Exception e) {
+                        throw new RuntimeException("Google authentication failed: " + e.getMessage());
+                }
+        }
+
+        private User verifyFacebookToken(String token) {
+                try {
+                        String url = facebookApiUrl + "?fields=id,first_name,last_name,email&access_token=" + token;
+                        org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
+                        Map<?, ?> response = restTemplate.getForObject(url, Map.class);
+
+                        if (response == null || response.containsKey("error")) {
+                                throw new RuntimeException("Invalid Facebook token");
+                        }
+
+                        String email = (String) response.get("email");
+                        String firstName = (String) response.get("first_name");
+                        String lastName = (String) response.get("last_name");
+
+                        if (email == null) {
+                                // Some users don't share email on FB
+                                email = (String) response.get("id") + "@facebook.com";
+                        }
+
+                        return getOrCreateUser(email, firstName, lastName);
+                } catch (Exception e) {
+                        throw new RuntimeException("Facebook authentication failed: " + e.getMessage());
+                }
+        }
+
+        private User getOrCreateUser(String email, String firstName, String lastName) {
+                return userRepository.findByEmail(email)
+                                .orElseGet(() -> {
+                                        User newUser = User.builder()
+                                                        .email(email)
+                                                        .firstName(firstName != null ? firstName : "Social")
+                                                        .lastName(lastName != null ? lastName : "User")
+                                                        .password(passwordEncoder
+                                                                        .encode(java.util.UUID.randomUUID().toString()))
+                                                        .role(Role.CUSTOMER)
+                                                        .active(true)
+                                                        .build();
+                                        return userRepository.save(newUser);
+                                });
         }
 
         public boolean isAdminExists() {

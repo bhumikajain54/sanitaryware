@@ -1,5 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
+import { GoogleOAuthProvider, GoogleLogin, useGoogleLogin } from '@react-oauth/google';
+import { FacebookLogin } from 'react-facebook-login-lite';
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { checkAdminExists, registerAdmin } from '../services/authService';
@@ -31,7 +34,7 @@ const CustomerLogin = () => {
     confirmPassword: ''
   });
 
-  const { login, register } = useAuth();
+  const { login, register, checkIsAdmin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const cardRef = useRef(null);
@@ -176,13 +179,13 @@ const CustomerLogin = () => {
       const result = await login(formData.email, formData.password);
       if (result.success) {
         // Redirect based on role
-        if (result.user.role?.toLowerCase() === 'admin' || 
-            result.user.role === 'ROLE_ADMIN' || 
-            result.user.role === 'BRAND_ORGANIZER') {
+        if (checkIsAdmin(result.user?.role)) {
+          console.log('Admin detected, navigating to /admin');
           navigate('/admin', { replace: true });
         } else {
           // If they were trying to reach a specific page, go there; otherwise go to customer dashboard
           const destination = from === '/customer/login' || from === '/login' ? '/customer/dashboard' : from;
+          console.log('Customer detected, navigating to:', destination);
           navigate(destination, { replace: true });
         }
       } else {
@@ -611,19 +614,55 @@ const PasswordStrength = ({ strength, rules, currentStrength, password }) => (
   </motion.div>
 );
 
-const SocialLogins = () => {
+const SocialLoginsInner = () => {
   const { loginWithGoogle, loginWithFacebook } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || '/customer/dashboard';
 
+  const loginGoogle = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      const toastId = toast.loading('Authenticating with Google...');
+      try {
+        const result = await loginWithGoogle(tokenResponse.access_token);
+        if (result.success) {
+          toast.success('Logged in with Google!', { id: toastId });
+          navigate(from, { replace: true });
+        } else {
+          toast.error(result.message || 'Google authentication failed', { id: toastId });
+        }
+      } catch (err) {
+        toast.error('Connection failed', { id: toastId });
+      }
+    },
+    onError: () => toast.error('Google Sign-In failed'),
+  });
+
+  const handleFacebookResponse = async (response) => {
+    if (response.authResponse) {
+      const toastId = toast.loading('Authenticating with Facebook...');
+      try {
+        const result = await loginWithFacebook(response.authResponse.accessToken);
+        if (result.success) {
+          toast.success('Logged in with Facebook!', { id: toastId });
+          navigate(from, { replace: true });
+        } else {
+          toast.error(result.message || 'Facebook login failed', { id: toastId });
+        }
+      } catch (err) {
+        toast.error('Connection failed', { id: toastId });
+      }
+    }
+  };
+
   const handleSocialAction = (provider) => {
-    // Trigger login state without redirection
-    if (provider === 'google') loginWithGoogle();
-    else loginWithFacebook();
-    
-    // Redirection removed as per request
-    console.log(`${provider} authentication initialised.`);
+    if (provider === 'google') {
+      loginGoogle();
+    } else {
+      const fbBtn = document.querySelector('.fb-login-button-hidden button');
+      if (fbBtn) fbBtn.click();
+      else toast.error('Facebook button not initialized');
+    }
   };
 
   return (
@@ -633,25 +672,39 @@ const SocialLogins = () => {
         <span className="text-[6px] md:text-[10px] font-black text-gray-600 uppercase tracking-[0.3em]">Quick Auth</span>
         <div className="flex-grow h-[1px] bg-white/5 group-hover:bg-teal-500/30 transition-colors duration-700"></div>
       </div>
-      <div className="grid grid-cols-2 gap-1.5 md:gap-3">
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-2 md:gap-4">
         <button 
           onClick={() => handleSocialAction('google')}
           type="button" 
-          className="flex items-center justify-center gap-1 md:gap-2 py-1 md:py-2.5 bg-white/5 border border-white/5 rounded-lg md:rounded-xl text-[6px] md:text-[10px] font-black text-white hover:bg-white/10 hover:border-white/10 transition-all active:scale-95 group overflow-hidden relative"
+          className="flex items-center justify-center gap-2 md:gap-3 py-2 md:py-3.5 bg-white/5 border border-white/10 rounded-xl md:rounded-2xl text-[7px] md:text-[11px] font-black text-white hover:bg-white/10 hover:border-white/20 transition-all active:scale-95 group overflow-hidden relative shadow-lg shadow-black/20"
         >
-          <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 z-10" alt="G" /> 
-          <span className="z-10 tracking-widest text-[6px] md:text-[10px]">GOOGLE</span>
-          <div className="absolute inset-0 bg-gradient-to-r from-teal-500/10 to-transparent translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500" />
+          <div className="w-3.5 h-3.5 md:w-5 md:h-5 z-10 bg-white rounded-full flex items-center justify-center p-0.5 md:p-1 flex-shrink-0">
+            <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-full h-full" alt="G" /> 
+          </div>
+          <span className="z-10 tracking-[0.2em] font-black">GOOGLE</span>
+          <div className="absolute inset-0 bg-gradient-to-r from-teal-500/20 to-transparent translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500" />
         </button>
+        
         <button 
           onClick={() => handleSocialAction('facebook')}
           type="button" 
-          className="flex items-center justify-center gap-1 md:gap-2 py-1 md:py-2.5 bg-white/5 border border-white/5 rounded-lg md:rounded-xl text-[6px] md:text-[10px] font-black text-white hover:bg-white/10 hover:border-white/10 transition-all active:scale-95 group overflow-hidden relative"
+          className="flex items-center justify-center gap-2 md:gap-3 py-2 md:py-3.5 bg-[#1877F2]/10 border border-[#1877F2]/20 rounded-xl md:rounded-2xl text-[7px] md:text-[11px] font-black text-white hover:bg-[#1877F2]/20 hover:border-[#1877F2]/40 transition-all active:scale-95 group overflow-hidden relative shadow-lg shadow-black/20"
         >
-          <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 z-10" alt="F" /> 
-          <span className="z-10 tracking-widest text-[6px] md:text-[10px]">FACEBOOK</span>
-          <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-transparent translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500" />
+          <div className="w-3.5 h-3.5 md:w-5 md:h-5 z-10 flex items-center justify-center flex-shrink-0">
+            <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" className="w-full h-full" alt="F" /> 
+          </div>
+          <span className="z-10 tracking-[0.2em] font-black">FACEBOOK</span>
+          <div className="absolute inset-0 bg-gradient-to-r from-[#1877F2]/20 to-transparent translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500" />
         </button>
+
+        <div className="hidden fb-login-button-hidden">
+          <FacebookLogin
+            appId={import.meta.env.VITE_FACEBOOK_APP_ID}
+            version="v18.0"
+            onSuccess={handleFacebookResponse}
+            onFailure={(err) => toast.error('Facebook error')}
+          />
+        </div>
       </div>
       <p className="text-center mt-4 flex items-center justify-center gap-2">
         <Link 
@@ -669,6 +722,14 @@ const SocialLogins = () => {
         </Link>
       </p>
     </div>
+  );
+};
+
+const SocialLogins = () => {
+  return (
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+      <SocialLoginsInner />
+    </GoogleOAuthProvider>
   );
 };
 

@@ -11,6 +11,18 @@ export const useAuth = () => {
   return context;
 };
 
+// Robust helper to check for admin role
+export const checkIsAdmin = (role) => {
+  if (!role) return false;
+  const normalizedRole = String(role).toUpperCase();
+  return (
+    normalizedRole === 'ADMIN' || 
+    normalizedRole === 'ROLE_ADMIN' || 
+    normalizedRole === 'BRAND_ORGANIZER' ||
+    normalizedRole === 'ADMINISTRATOR'
+  );
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -25,11 +37,7 @@ export const AuthProvider = ({ children }) => {
         const userData = JSON.parse(storedUser);
         setUser(userData);
         setIsAuthenticated(true);
-        setIsAdmin(
-          userData.role?.toLowerCase() === 'admin' || 
-          userData.role === 'ROLE_ADMIN' ||
-          userData.role === 'BRAND_ORGANIZER'
-        );
+        setIsAdmin(checkIsAdmin(userData.role));
       } catch (e) {
         console.error("Failed to parse stored user", e);
         localStorage.removeItem('user');
@@ -52,16 +60,12 @@ export const AuthProvider = ({ children }) => {
         firstName: response.firstName || '',
         lastName: response.lastName || '',
         phone: response.phone || response.phoneNumber || '',
-        role: response.role
+        role: response.role || response.user?.role || (response.roles && response.roles[0]) || (response.role === 'admin' ? 'ADMIN' : 'USER')
       };
 
       setUser(userData);
       setIsAuthenticated(true);
-      setIsAdmin(
-        userData.role?.toLowerCase() === 'admin' || 
-        userData.role === 'ROLE_ADMIN' ||
-        userData.role === 'BRAND_ORGANIZER'
-      );
+      setIsAdmin(checkIsAdmin(userData.role));
       
       // authService already saves to localStorage, but we ensure it matches our context state
       localStorage.setItem('user', JSON.stringify(userData));
@@ -107,6 +111,52 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       return { success: false, message: error.message || 'Password change failed' };
     }
+  };
+
+  const loginWithSocialGoogle = async (token) => {
+    try {
+      // Backend expects id_token for Google
+      const response = await authService.socialLogin('google', token);
+      return handleAuthSuccess(response);
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
+  };
+
+  const loginWithSocialFacebook = async (token) => {
+    try {
+      // Backend expects access_token for Facebook
+      const response = await authService.socialLogin('facebook', token);
+      return handleAuthSuccess(response);
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
+  };
+
+  const handleAuthSuccess = (response) => {
+    if (!response || (!response.token && !response.userId)) {
+      throw new Error("Invalid response from server");
+    }
+    
+    const userData = {
+      id: response.userId || response.id,
+      token: response.token,
+      email: response.email,
+      name: response.name || response.fullName || 
+            (response.firstName && response.lastName ? `${response.firstName} ${response.lastName}` : (response.firstName || response.lastName)) || 
+            'Social User',
+      firstName: response.firstName || '',
+      lastName: response.lastName || '',
+      phone: response.phone || response.phoneNumber || '',
+      role: response.role
+    };
+
+    setUser(userData);
+    setIsAuthenticated(true);
+    setIsAdmin(checkIsAdmin(userData.role));
+    
+    localStorage.setItem('user', JSON.stringify(userData));
+    return { success: true, user: userData };
   };
 
   const fetchUserProfile = async () => {
@@ -161,10 +211,13 @@ export const AuthProvider = ({ children }) => {
     loading,
     login,
     register,
+    loginWithGoogle: loginWithSocialGoogle,
+    loginWithFacebook: loginWithSocialFacebook,
     logout,
     changePassword,
     updateProfile: updateUserProfile,
-    getProfile: fetchUserProfile
+    getProfile: fetchUserProfile,
+    checkIsAdmin
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

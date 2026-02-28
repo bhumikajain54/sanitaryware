@@ -63,7 +63,8 @@ public class SecurityConfig {
                                                 .requestMatchers("/api/brand/**").hasAnyRole("BRAND_ORGANIZER", "ADMIN")
 
                                                 // 5. Customer Endpoints (Allow ADMIN as well)
-                                                .requestMatchers("/api/customer/**").hasAnyRole("CUSTOMER", "ADMIN")
+                                                .requestMatchers("/api/customer/**")
+                                                .hasAnyRole("USER", "CUSTOMER", "ADMIN")
 
                                                 // 6. Payment Endpoints (Verify & Status update should be public for
                                                 // callbacks)

@@ -64,4 +64,9 @@ public class AuthController {
         customerService.changePasswordById(user.getId(), request.getOldPassword(), request.getNewPassword());
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/admin/exists")
+    public ResponseEntity<java.util.Map<String, Boolean>> isAdminExists() {
+        return ResponseEntity.ok(java.util.Map.of("exists", authService.isAdminExists()));
+    }
 }

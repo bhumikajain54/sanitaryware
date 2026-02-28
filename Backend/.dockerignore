@@ -1,0 +1,12 @@
+target/
+!target/*.jar
+.git
+.mvn
+mvnw
+mvnw.cmd
+Dockerfile
+.dockerignore
+.idea
+.vscode
+.env
+uploads/

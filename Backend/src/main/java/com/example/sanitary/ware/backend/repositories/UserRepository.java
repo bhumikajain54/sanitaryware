@@ -11,6 +11,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     List<User> findByRole(Role role);
 
+    boolean existsByRole(Role role);
+
     Optional<User> findByPhone(String phone);
 
     long countByCreatedAtAfter(java.time.LocalDateTime date);

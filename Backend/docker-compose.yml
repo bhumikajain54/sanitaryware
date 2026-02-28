@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  backend:
+    # Use the pre-built image from Docker Hub (not a local build)
+    image: bhumikajain504/sanitaryware:latest
+    container_name: sanitaryware-backend
+    ports:
+      - "8081:8080"
+
+    # Load ALL variables from .env file into the container
+    env_file:
+      - .env
+
+    # Explicitly pass each variable (belt-and-suspenders approach)
+    environment:
+      - DATASOURCE_URL=${DATASOURCE_URL}
+      - DATASOURCE_USER=${DATASOURCE_USER}
+      - DATASOURCE_PASSWORD=${DATASOURCE_PASSWORD}
+      - FRONTEND_URL=${FRONTEND_URL}
+
+    # Restart policy
+    restart: unless-stopped
+
+    # Health check - waits until Spring Boot is fully up (~15s startup)
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s

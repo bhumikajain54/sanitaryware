@@ -45,6 +45,21 @@ export const register = async (userData) => {
     });
 };
 
+export const registerAdmin = async (userData) => {
+    return await apiCall('/auth/admin/register', {
+        method: 'POST',
+        body: {
+            ...userData,
+            role: 'ADMIN',
+            active: true,
+        },
+    });
+};
+
+export const checkAdminExists = async () => {
+    return await apiCall('/auth/admin/exists');
+};
+
 export const getProfile = async () => {
     return await apiCall('/auth/profile');
 };

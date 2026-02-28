@@ -35,7 +35,11 @@ public class SecurityConfig {
                                                 // 1. Auth Endpoints
                                                 .requestMatchers("/api/auth/**").permitAll()
 
-                                                // 2. Public Endpoints (Accessible without login)
+                                                // 2. Actuator health check - must be public for Docker/Render health
+                                                // checks
+                                                .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+
+                                                // 3. Public Endpoints (Accessible without login)
                                                 .requestMatchers(
                                                                 "/api/products", "/api/products/**",
                                                                 "/api/categories", "/api/categories/**",
@@ -51,11 +55,11 @@ public class SecurityConfig {
                                                                 "/uploads/**")
                                                 .permitAll()
 
-                                                // 3. Admin Endpoints
+                                                // 4. Admin Endpoints
                                                 .requestMatchers("/api/admin/**", "/api/banners/admin/**")
                                                 .hasRole("ADMIN")
 
-                                                // 4. Brand Organizer Endpoints (Allow ADMIN as well)
+                                                // 5. Brand Organizer Endpoints (Allow ADMIN as well)
                                                 .requestMatchers("/api/brand/**").hasAnyRole("BRAND_ORGANIZER", "ADMIN")
 
                                                 // 5. Customer Endpoints (Allow ADMIN as well)

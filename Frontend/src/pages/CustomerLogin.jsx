@@ -1,7 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import { checkAdminExists, registerAdmin } from '../services/authService';
 import { 
   MdEmail, 
   MdLock, 
@@ -10,11 +11,15 @@ import {
   MdVisibilityOff,
   MdCheckCircle,
   MdArrowBack,
-  MdPhone
+  MdPhone,
+  MdAdminPanelSettings,
+  MdShield
 } from 'react-icons/md';
 
+// mode: 'login' | 'register' | 'adminSetup'
 const CustomerLogin = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [mode, setMode] = useState('login'); // 'login' | 'register' | 'adminSetup'
+  const [adminExists, setAdminExists] = useState(null); // null = checking, true/false
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -30,6 +35,24 @@ const CustomerLogin = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const cardRef = useRef(null);
+
+  // Check if admin already exists on mount
+  useEffect(() => {
+    checkAdminExists()
+      .then((res) => {
+        // Backend returns e.g. { exists: true } or just a boolean
+        const exists = res?.exists ?? res?.adminExists ?? res === true;
+        setAdminExists(exists);
+      })
+      .catch(() => {
+        // If the endpoint fails/doesn't exist, assume admin exists (safe default)
+        setAdminExists(true);
+      });
+  }, []);
+
+  // Keep backward-compat helpers
+  const isLogin = mode === 'login';
+  const isAdminSetup = mode === 'adminSetup';
 
   // 3D Tilt Logic
   const x = useMotionValue(0);
@@ -127,17 +150,51 @@ const CustomerLogin = () => {
       alert('Please enter a valid email address');
       return;
     }
+
+    if (mode === 'adminSetup') {
+      if (formData.password !== formData.confirmPassword) { alert('Passwords do not match!'); return; }
+      if (strength < 3) { alert('Admin password must be Strong (at least 3 criteria)'); return; }
+      try {
+        await registerAdmin({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          password: formData.password,
+          phone: formData.phone,
+        });
+        alert('✅ Admin account created! Please log in.');
+        setAdminExists(true);
+        setMode('login');
+        setFormData({ firstName: '', lastName: '', email: '', phone: '', password: '', confirmPassword: '' });
+      } catch (err) {
+        alert(err.message || 'Admin registration failed');
+      }
+      return;
+    }
+
     if (isLogin) {
       const result = await login(formData.email, formData.password);
-      if (result.success) navigate(from, { replace: true });
-      else alert(result.message || 'Login failed');
+      if (result.success) {
+        // Redirect based on role
+        if (result.user.role?.toLowerCase() === 'admin' || 
+            result.user.role === 'ROLE_ADMIN' || 
+            result.user.role === 'BRAND_ORGANIZER') {
+          navigate('/admin', { replace: true });
+        } else {
+          // If they were trying to reach a specific page, go there; otherwise go to customer dashboard
+          const destination = from === '/customer/login' || from === '/login' ? '/customer/dashboard' : from;
+          navigate(destination, { replace: true });
+        }
+      } else {
+        alert(result.message || 'Login failed');
+      }
     } else {
       if (formData.password !== formData.confirmPassword) { alert('Passwords do not match!'); return; }
       if (strength < 2) { alert('Please use a stronger password'); return; }
       const result = await register(formData.firstName, formData.lastName, formData.email, formData.password, formData.phone);
       if (result.success) {
         alert('Registration successful! Please login.');
-        setIsLogin(true);
+        setMode('login');
       } else {
         alert(result.message || 'Registration failed');
       }
@@ -145,7 +202,7 @@ const CustomerLogin = () => {
   };
 
   const toggleMode = () => {
-    setIsLogin(!isLogin);
+    setMode(mode === 'login' ? 'register' : 'login');
     setFormData({ firstName: '', lastName: '', email: '', phone: '', password: '', confirmPassword: '' });
   };
 
@@ -207,7 +264,43 @@ const CustomerLogin = () => {
         </div>
       </nav>
 
-      <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
+      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-4 gap-4">
+
+        {/* One-Time Admin Setup Banner */}
+        <AnimatePresence>
+          {adminExists === false && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="w-full max-w-5xl"
+            >
+              <button
+                onClick={() => {
+                  setMode('adminSetup');
+                  setFormData({ firstName: '', lastName: '', email: '', phone: '', password: '', confirmPassword: '' });
+                }}
+                className={`w-full flex items-center gap-3 px-4 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-2xl border ${
+                  isAdminSetup
+                    ? 'bg-amber-500/20 border-amber-400/50 text-amber-300'
+                    : 'bg-amber-900/20 border-amber-600/30 text-amber-400 hover:bg-amber-900/30 hover:border-amber-500/50'
+                } transition-all duration-300 group`}
+              >
+                <div className="w-6 h-6 md:w-8 md:h-8 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center flex-shrink-0">
+                  <MdShield className="text-amber-400 text-sm md:text-base" />
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="font-black text-[9px] md:text-xs uppercase tracking-widest">⚡ First-Time System Setup</p>
+                  <p className="text-[7px] md:text-[10px] text-amber-500/70 font-medium">No admin account detected — click to create the System Administrator</p>
+                </div>
+                <div className="text-[7px] md:text-[10px] font-black uppercase tracking-widest opacity-60 group-hover:opacity-100 transition-opacity">
+                  {isAdminSetup ? '● ACTIVE' : 'SETUP →'}
+                </div>
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <motion.div
           ref={cardRef}
           onMouseLeave={handleMouseLeave}
@@ -220,10 +313,13 @@ const CustomerLogin = () => {
             {/* Visual Flare Effect */}
             <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-teal-400/50 to-transparent" />
             <div className="absolute top-0 right-0 h-full w-[1px] bg-gradient-to-b from-transparent via-cyan-400/30 to-transparent" />
+            {isAdminSetup && (
+              <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-amber-400/80 to-transparent z-30" />
+            )}
 
           <div className="flex w-full h-full relative z-10">
-            {/* Forms Sides */}
-            <div className={`w-1/2 h-full flex items-center justify-center p-3 md:p-10 transition-all duration-1000 ease-in-out ${!isLogin ? 'opacity-0 pointer-events-none translate-x-20 scale-95' : 'opacity-100 scale-100'}`}>
+            {/* LOGIN Form */}
+            <div className={`w-1/2 h-full flex items-center justify-center p-3 md:p-10 transition-all duration-1000 ease-in-out ${mode !== 'login' ? 'opacity-0 pointer-events-none translate-x-20 scale-95' : 'opacity-100 scale-100'}`}>
               <div className="w-full max-w-sm">
                 <header className="mb-2 md:mb-6 text-center md:text-left">
                   <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
@@ -273,7 +369,8 @@ const CustomerLogin = () => {
               </div>
             </div>
 
-            <div className={`w-1/2 h-full flex items-center justify-center p-3 md:p-10 absolute right-0 transition-all duration-1000 ease-in-out ${isLogin ? 'opacity-0 pointer-events-none -translate-x-20 scale-95' : 'opacity-100 scale-100'}`}>
+            {/* REGISTER Form */}
+            <div className={`w-1/2 h-full flex items-center justify-center p-3 md:p-10 absolute right-0 transition-all duration-1000 ease-in-out ${mode !== 'register' ? 'opacity-0 pointer-events-none -translate-x-20 scale-95' : 'opacity-100 scale-100'}`}>
               <div className="w-full max-w-sm">
                 <header className="mb-2 md:mb-4 text-center md:text-left">
                   <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
@@ -309,9 +406,60 @@ const CustomerLogin = () => {
                 <SocialLogins />
               </div>
             </div>
+
+            {/* ADMIN SETUP Form — only when no admin exists */}
+            <div className={`w-1/2 h-full flex items-center justify-center p-3 md:p-10 absolute right-0 transition-all duration-1000 ease-in-out ${mode !== 'adminSetup' ? 'opacity-0 pointer-events-none -translate-x-20 scale-95' : 'opacity-100 scale-100'}`}>
+              <div className="w-full max-w-sm">
+                <header className="mb-2 md:mb-4 text-center md:text-left">
+                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+                    <div className="flex items-center gap-2 mb-1 md:mb-3">
+                      <MdAdminPanelSettings className="text-amber-400 text-lg md:text-3xl" />
+                      <h2 className="text-[14px] md:text-4xl font-extrabold text-white tracking-tight leading-tight">
+                        Admin <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-500">Setup.</span>
+                      </h2>
+                    </div>
+                    <p className="text-[6px] md:text-xs text-amber-400/60 font-medium tracking-wide border-l-2 border-amber-500/50 pl-2 md:pl-4">One-time system initialization</p>
+                  </motion.div>
+                </header>
+
+                <form onSubmit={handleSubmit} className="space-y-1.5 md:space-y-3 overflow-y-auto max-h-[220px] md:max-h-[380px] pr-1 md:pr-2 custom-scrollbar">
+                  <div className="grid grid-cols-2 gap-2">
+                    <InputField icon={MdPerson} type="text" name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleChange} accent="amber" />
+                    <InputField icon={MdPerson} type="text" name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleChange} accent="amber" />
+                  </div>
+                  <InputField icon={MdEmail} type="email" name="email" placeholder="Admin Email" value={formData.email} onChange={handleChange} accent="amber" />
+                  <InputField icon={MdPhone} type="tel" name="phone" placeholder="Contact Number" value={formData.phone} onChange={handleChange} accent="amber" />
+                  
+                  <div className="space-y-2 md:space-y-3">
+                    <InputField icon={MdLock} type={showPassword ? 'text' : 'password'} name="password" placeholder="Admin Passphrase" value={formData.password} onChange={handleChange} showPasswordToggle showPassword={showPassword} onTogglePassword={() => setShowPassword(!showPassword)} accent="amber" />
+                    {formData.password && <PasswordStrength strength={strength} rules={rules} currentStrength={currentStrength} password={formData.password} />}
+                    <InputField icon={MdLock} type={showConfirmPassword ? 'text' : 'password'} name="confirmPassword" placeholder="Confirm Passphrase" value={formData.confirmPassword} onChange={handleChange} showPasswordToggle showPassword={showConfirmPassword} onTogglePassword={() => setShowConfirmPassword(!showConfirmPassword)} accent="amber" />
+                  </div>
+
+                  <MagneticButton>
+                    <button type="submit" className="w-full relative overflow-hidden bg-gradient-to-r from-amber-500 to-yellow-600 text-[#0a0f16] py-1.5 md:py-2 rounded-md md:rounded-lg font-black text-[8px] md:text-xs group shadow-[0_20px_40px_rgba(245,158,11,0.3)] active:scale-95 transition-all">
+                        <span className="relative z-10 uppercase flex items-center justify-center gap-1">
+                          <MdShield className="text-[10px] md:text-sm" /> Create Admin
+                        </span>
+                        <div className="absolute inset-0 bg-[#0a0f16] translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+                        <span className="absolute inset-0 flex items-center justify-center text-amber-400 translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-20 font-black text-[8px] md:text-xs uppercase">INITIALIZE SYSTEM</span>
+                    </button>
+                  </MagneticButton>
+
+                  <button
+                    type="button"
+                    onClick={() => setMode('login')}
+                    className="w-full text-center text-[7px] md:text-[10px] text-gray-600 hover:text-gray-400 transition-colors pt-1 uppercase tracking-widest"
+                  >
+                    ← Back to Login
+                  </button>
+                </form>
+              </div>
+            </div>
           </div>
 
-          {/* Sliding Decorative Overlay */}
+          {/* Sliding Decorative Overlay — hidden in adminSetup mode */}
+          {mode !== 'adminSetup' && (
           <motion.div
             animate={{ 
               x: isLogin ? '100.5%' : '0%',
@@ -366,6 +514,7 @@ const CustomerLogin = () => {
               </AnimatePresence>
             </div>
           </motion.div>
+          )}
         </motion.div>
       </div>
 
@@ -376,6 +525,7 @@ const CustomerLogin = () => {
       `}} />
     </div>
   );
+
 };
 
 // --- Sub-Components ---
@@ -404,27 +554,35 @@ const MagneticButton = ({ children }) => {
     );
 };
 
-const InputField = ({ icon: Icon, type, name, placeholder, value, onChange, showPasswordToggle, showPassword, onTogglePassword }) => (
-  <div className="relative group perspective">
-    <div className="absolute left-2 md:left-5 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-teal-400 transition-all duration-500 z-10 group-focus-within:scale-110">
-      <Icon className="text-[12px] md:text-[22px]" />
+const InputField = ({ icon: Icon, type, name, placeholder, value, onChange, showPasswordToggle, showPassword, onTogglePassword, accent }) => {
+  const isAmber = accent === 'amber';
+  
+  return (
+    <div className="relative group perspective">
+      <div className={`absolute left-2 md:left-5 top-1/2 -translate-y-1/2 text-gray-500 transition-all duration-500 z-10 ${
+        isAmber ? 'group-focus-within:text-amber-400' : 'group-focus-within:text-teal-400'
+      } group-focus-within:scale-110`}>
+        <Icon className="text-[12px] md:text-[22px]" />
+      </div>
+      <input
+        type={type}
+        name={name}
+        value={value}
+        onChange={onChange}
+        required
+        placeholder={placeholder}
+        className={`w-full pl-6 md:pl-14 pr-6 md:pr-12 py-1.5 md:py-4 bg-white/5 border border-white/5 rounded-lg md:rounded-2xl outline-none transition-all text-white font-bold tracking-wide placeholder:text-gray-700 placeholder:font-medium text-[8px] md:text-sm ${
+          isAmber ? 'focus:border-amber-500/30 focus:bg-amber-500/5' : 'focus:border-teal-500/30 focus:bg-white/10'
+        }`}
+      />
+      {showPasswordToggle && (
+        <button type="button" onClick={onTogglePassword} className="absolute right-2 md:right-5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-all p-0.5 md:p-1 z-10">
+          {showPassword ? <MdVisibilityOff className="text-[10px] md:text-[20px]" /> : <MdVisibility className="text-[10px] md:text-[20px]" />}
+        </button>
+      )}
     </div>
-    <input
-      type={type}
-      name={name}
-      value={value}
-      onChange={onChange}
-      required
-      placeholder={placeholder}
-      className="w-full pl-6 md:pl-14 pr-6 md:pr-12 py-1.5 md:py-4 bg-white/5 border border-white/5 rounded-lg md:rounded-2xl focus:border-teal-500/30 focus:bg-white/10 outline-none transition-all text-white font-bold tracking-wide placeholder:text-gray-700 placeholder:font-medium text-[8px] md:text-sm"
-    />
-    {showPasswordToggle && (
-      <button type="button" onClick={onTogglePassword} className="absolute right-2 md:right-5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-all p-0.5 md:p-1 z-10">
-        {showPassword ? <MdVisibilityOff className="text-[10px] md:text-[20px]" /> : <MdVisibility className="text-[10px] md:text-[20px]" />}
-      </button>
-    )}
-  </div>
-);
+  );
+};
 
 const PasswordStrength = ({ strength, rules, currentStrength, password }) => (
   <motion.div 

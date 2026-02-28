@@ -79,4 +79,8 @@ public class AuthService {
                                 .lastName(user.getLastName())
                                 .build();
         }
+
+        public boolean isAdminExists() {
+                return userRepository.existsByRole(Role.ADMIN);
+        }
 }

@@ -615,7 +615,7 @@ const PasswordStrength = ({ strength, rules, currentStrength, password }) => (
 );
 
 const SocialLoginsInner = () => {
-  const { loginWithGoogle, loginWithFacebook } = useAuth();
+  const { loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || '/customer/dashboard';
@@ -638,32 +638,13 @@ const SocialLoginsInner = () => {
     onError: () => toast.error('Google Sign-In failed'),
   });
 
-  const handleFacebookResponse = async (response) => {
-    if (response.authResponse) {
-      const toastId = toast.loading('Authenticating with Facebook...');
-      try {
-        const result = await loginWithFacebook(response.authResponse.accessToken);
-        if (result.success) {
-          toast.success('Logged in with Facebook!', { id: toastId });
-          navigate(from, { replace: true });
-        } else {
-          toast.error(result.message || 'Facebook login failed', { id: toastId });
-        }
-      } catch (err) {
-        toast.error('Connection failed', { id: toastId });
-      }
-    }
-  };
-
   const handleSocialAction = (provider) => {
     if (provider === 'google') {
       loginGoogle();
-    } else {
-      const fbBtn = document.querySelector('.fb-login-button-hidden button');
-      if (fbBtn) fbBtn.click();
-      else toast.error('Facebook button not initialized');
     }
   };
+
+  const isGoogleConfigured = !!import.meta.env.VITE_GOOGLE_CLIENT_ID && !import.meta.env.VITE_GOOGLE_CLIENT_ID.includes('123456789012');
 
   return (
     <div className="mt-2 md:mt-4">
@@ -672,39 +653,20 @@ const SocialLoginsInner = () => {
         <span className="text-[6px] md:text-[10px] font-black text-gray-600 uppercase tracking-[0.3em]">Quick Auth</span>
         <div className="flex-grow h-[1px] bg-white/5 group-hover:bg-teal-500/30 transition-colors duration-700"></div>
       </div>
-      <div className="grid grid-cols-2 gap-2 md:grid-cols-2 md:gap-4">
+      <div className="flex justify-center">
         <button 
           onClick={() => handleSocialAction('google')}
           type="button" 
-          className="flex items-center justify-center gap-2 md:gap-3 py-2 md:py-3.5 bg-white/5 border border-white/10 rounded-xl md:rounded-2xl text-[7px] md:text-[11px] font-black text-white hover:bg-white/10 hover:border-white/20 transition-all active:scale-95 group overflow-hidden relative shadow-lg shadow-black/20"
+          className={`w-full max-w-xs flex items-center justify-center gap-2 md:gap-3 py-2 md:py-3.5 bg-white/5 border border-white/10 rounded-xl md:rounded-2xl text-[7px] md:text-[11px] font-black text-white hover:bg-white/10 hover:border-white/20 transition-all active:scale-95 group overflow-hidden relative shadow-lg shadow-black/20 ${!isGoogleConfigured ? 'opacity-40 grayscale' : ''}`}
+          title={!isGoogleConfigured ? "Google ID not configured" : "Sign in with Google"}
         >
           <div className="w-3.5 h-3.5 md:w-5 md:h-5 z-10 bg-white rounded-full flex items-center justify-center p-0.5 md:p-1 flex-shrink-0">
             <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-full h-full" alt="G" /> 
           </div>
-          <span className="z-10 tracking-[0.2em] font-black">GOOGLE</span>
+          <span className="z-10 tracking-[0.2em] font-black uppercase">CONTINUE WITH GOOGLE</span>
+          {!isGoogleConfigured && <span className="absolute top-0 right-0 bg-red-500 text-[5px] px-1 rounded-bl-lg z-20">PENDING</span>}
           <div className="absolute inset-0 bg-gradient-to-r from-teal-500/20 to-transparent translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500" />
         </button>
-        
-        <button 
-          onClick={() => handleSocialAction('facebook')}
-          type="button" 
-          className="flex items-center justify-center gap-2 md:gap-3 py-2 md:py-3.5 bg-[#1877F2]/10 border border-[#1877F2]/20 rounded-xl md:rounded-2xl text-[7px] md:text-[11px] font-black text-white hover:bg-[#1877F2]/20 hover:border-[#1877F2]/40 transition-all active:scale-95 group overflow-hidden relative shadow-lg shadow-black/20"
-        >
-          <div className="w-3.5 h-3.5 md:w-5 md:h-5 z-10 flex items-center justify-center flex-shrink-0">
-            <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" className="w-full h-full" alt="F" /> 
-          </div>
-          <span className="z-10 tracking-[0.2em] font-black">FACEBOOK</span>
-          <div className="absolute inset-0 bg-gradient-to-r from-[#1877F2]/20 to-transparent translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500" />
-        </button>
-
-        <div className="hidden fb-login-button-hidden">
-          <FacebookLogin
-            appId={import.meta.env.VITE_FACEBOOK_APP_ID}
-            version="v18.0"
-            onSuccess={handleFacebookResponse}
-            onFailure={(err) => toast.error('Facebook error')}
-          />
-        </div>
       </div>
       <p className="text-center mt-4 flex items-center justify-center gap-2">
         <Link 
@@ -724,6 +686,7 @@ const SocialLoginsInner = () => {
     </div>
   );
 };
+
 
 const SocialLogins = () => {
   return (

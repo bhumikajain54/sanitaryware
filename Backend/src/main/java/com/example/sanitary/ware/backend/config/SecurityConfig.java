@@ -96,15 +96,27 @@ public class SecurityConfig {
                 return http.build();
         }
 
+        @org.springframework.beans.factory.annotation.Value("${application.security.frontend-url:*}")
+        private String frontendUrl;
+
         @Bean
         public CorsConfigurationSource corsConfigurationSource() {
                 CorsConfiguration configuration = new CorsConfiguration();
-                configuration.setAllowedOriginPatterns(Arrays.asList(
+
+                // Allow specific origins including the environment variable
+                List<String> allowedOrigins = Arrays.asList(
                                 "http://localhost:5173",
                                 "http://localhost:3000",
-                                "http://localhost:5174",
+                                "http://localhost:5174");
+
+                configuration.setAllowedOrigins(allowedOrigins);
+
+                // Use patterns for more flexible matching (e.g. Vercel preview or wildcard)
+                configuration.setAllowedOriginPatterns(Arrays.asList(
+                                frontendUrl,
                                 "http://localhost:*",
                                 "*"));
+
                 configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
                 configuration.setAllowedHeaders(
                                 Arrays.asList("Authorization", "Content-Type", "Accept", "X-Requested-With", "Origin",

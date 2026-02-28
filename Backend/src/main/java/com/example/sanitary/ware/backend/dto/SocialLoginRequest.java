@@ -11,5 +11,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class SocialLoginRequest {
     private String token;
-    private String provider; // "google" or "facebook"
+    private String provider; // 'google' or 'facebook'
 }

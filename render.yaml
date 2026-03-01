@@ -3,7 +3,7 @@ services:
     name: sanitaryware-backend
     env: docker
     repo: https://github.com/bhumikajain54/sanitaryware
-    rootDirectory: Backend
+    rootDir: Backend
     plan: free
     region: oregon
     envVars:

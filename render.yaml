@@ -9,7 +9,7 @@ services:
     envVars:
       - key: DATASOURCE_URL
         sync: false
-        placeholder: "jdbc:mysql://mysql-2aff1a60-jainbhumika54-bdc3.j.aivencloud.com:21772/sanitaryware"
+        placeholder: jdbc:mysql://mysql-2aff1a60-jainbhumika54-bdc3.j.aivencloud.com:21772/sanitaryware
       - key: DATASOURCE_USER
         sync: false
       - key: DATASOURCE_PASSWORD

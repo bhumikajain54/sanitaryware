@@ -10,7 +10,6 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@lombok.extern.slf4j.Slf4j
 public class CMSPageService {
 
     private final CMSPageRepository pageRepository;

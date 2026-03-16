@@ -30,5 +30,5 @@ COPY --from=build /app/target/sanitary-ware-backend-0.0.1-SNAPSHOT.jar app.jar
 # Expose port 8080
 EXPOSE 8080
 
-# Specify the command to run the application
-ENTRYPOINT ["java", "-jar","app.jar"]
+# Specify the command to run the application with dynamic port for Render
+ENTRYPOINT ["sh", "-c", "java -Dserver.port=${PORT:-8080} -jar app.jar"]

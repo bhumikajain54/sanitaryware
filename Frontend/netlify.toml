@@ -13,10 +13,9 @@
 # API PROXY CONFIGURATION
 # ============================================
 # Forward all /api calls to your live backend server
-# Replace the URL below with your actual deployed backend URL (e.g. Render/Railway)
 [[redirects]]
   from = "/api/*"
-  to = "http://localhost:8080/api/:splat" # Change this to your live backend URL later
+  to = "https://sanitaryware-backend.onrender.com/api/:splat"
   status = 200
   force = true
 

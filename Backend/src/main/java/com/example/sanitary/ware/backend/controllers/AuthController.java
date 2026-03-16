@@ -71,6 +71,16 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/admin/register")
+    public ResponseEntity<AuthResponse> registerAdmin(@RequestBody @NonNull RegisterRequest request) {
+        if (authService.isAdminExists()) {
+            throw new RuntimeException("Admin already exists. Only one system administrator can be created.");
+        }
+        // Force role to ADMIN for this endpoint
+        request.setRole(com.example.sanitary.ware.backend.enums.Role.ADMIN);
+        return ResponseEntity.ok(authService.register(request));
+    }
+
     @GetMapping("/admin/exists")
     public ResponseEntity<java.util.Map<String, Boolean>> isAdminExists() {
         return ResponseEntity.ok(java.util.Map.of("exists", authService.isAdminExists()));

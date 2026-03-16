@@ -47,8 +47,9 @@ const CustomerLogin = () => {
         const exists = res?.exists ?? res?.adminExists ?? res === true;
         setAdminExists(exists);
       })
-      .catch(() => {
-        // If the endpoint fails/doesn't exist, assume admin exists (safe default)
+      .catch((err) => {
+        console.error('Failed to check if admin exists:', err);
+        // If the endpoint fails, don't assume admin exists. Let the user see the login page.
         setAdminExists(true);
       });
   }, []);

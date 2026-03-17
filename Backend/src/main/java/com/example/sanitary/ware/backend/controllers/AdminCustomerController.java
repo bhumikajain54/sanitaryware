@@ -36,7 +36,6 @@ public class AdminCustomerController {
 
     @PutMapping("/{id}/status")
     public ResponseEntity<User> updateCustomerStatus(@PathVariable Long id, @RequestParam boolean active) {
-        @SuppressWarnings("null")
         User user = userRepository.findById(id).orElseThrow();
         user.setActive(active);
         return ResponseEntity.ok(userRepository.save(user));
@@ -44,7 +43,6 @@ public class AdminCustomerController {
 
     @PutMapping("/{id}")
     public ResponseEntity<User> updateCustomer(@PathVariable Long id, @RequestBody User userDetails) {
-        @SuppressWarnings("null")
         User user = userRepository.findById(id).orElseThrow();
         if (userDetails.getFirstName() != null) {
             user.setFirstName(userDetails.getFirstName());
@@ -60,9 +58,7 @@ public class AdminCustomerController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCustomer(@PathVariable Long id) {
-        @SuppressWarnings("null")
-        Long customerId = id;
-        userRepository.deleteById(customerId);
+        userRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 

@@ -20,9 +20,7 @@ public class ReviewService {
     private final UserRepository userRepository;
 
     public Review addReview(Long userId, Long productId, Review review) {
-        @SuppressWarnings("null")
         User user = userRepository.findById(userId).orElseThrow();
-        @SuppressWarnings("null")
         Product product = productRepository.findById(productId).orElseThrow();
         review.setUser(user);
         review.setProduct(product);
@@ -42,7 +40,6 @@ public class ReviewService {
     }
 
     public Review updateReview(Long id, Review updatedReview) {
-        @SuppressWarnings("null")
         Review review = reviewRepository.findById(id).orElseThrow();
         review.setRating(updatedReview.getRating());
         review.setComment(updatedReview.getComment());
@@ -54,7 +51,6 @@ public class ReviewService {
     }
 
     public Review approveReview(Long id) {
-        @SuppressWarnings("null")
         Review review = reviewRepository.findById(id).orElseThrow();
         review.setApproved(true);
         return reviewRepository.save(review);

@@ -52,6 +52,7 @@
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
+			<version>42.7.3</version>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
@@ -172,6 +173,7 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
 					<mainClass>com.example.sanitary.ware.backend.SanitaryWareBackendApplication</mainClass>
+					<jvmArguments>--enable-native-access=ALL-UNNAMED</jvmArguments>
 					<excludes>
 						<exclude>
 							<groupId>org.projectlombok</groupId>

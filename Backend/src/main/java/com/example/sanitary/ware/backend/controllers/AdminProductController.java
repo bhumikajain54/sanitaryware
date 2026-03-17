@@ -62,7 +62,6 @@ public class AdminProductController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Product> getProductById(@PathVariable Long id) {
-        @SuppressWarnings("null")
         Product product = productService.getProductById(id);
         return ResponseEntity.ok(product);
     }
@@ -80,15 +79,12 @@ public class AdminProductController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
-        @SuppressWarnings("null")
-        Long productId = id;
-        productService.deleteProduct(productId); // Warning likely in service call
+        productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}/status")
     public ResponseEntity<Product> updateProductStatus(@PathVariable Long id, @RequestParam boolean active) {
-        @SuppressWarnings("null")
         Product product = productService.getProductById(id);
         product.setActive(active);
         return ResponseEntity.ok(productService.updateProduct(id, product));

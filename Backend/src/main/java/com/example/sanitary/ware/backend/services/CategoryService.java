@@ -3,9 +3,6 @@ package com.example.sanitary.ware.backend.services;
 import com.example.sanitary.ware.backend.dto.CategoryCsvDTO;
 import com.example.sanitary.ware.backend.entities.Category;
 import com.example.sanitary.ware.backend.repositories.CategoryRepository;
-import com.opencsv.bean.CsvToBean;
-import com.opencsv.bean.CsvToBeanBuilder;
-import com.opencsv.bean.HeaderColumnNameMappingStrategy;
 import com.opencsv.bean.StatefulBeanToCsv;
 import com.opencsv.bean.StatefulBeanToCsvBuilder;
 import com.lowagie.text.*;
@@ -23,7 +20,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,22 +38,32 @@ public class CategoryService {
     private final ActivityLogService activityLogService;
     private final Validator validator;
 
-    @Transactional
     public List<String> importCategories(MultipartFile file) throws Exception {
         List<String> errors = new ArrayList<>();
         List<Category> categoriesToSave = new ArrayList<>();
 
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
-            HeaderColumnNameMappingStrategy<CategoryCsvDTO> strategy = new HeaderColumnNameMappingStrategy<>();
-            strategy.setType(CategoryCsvDTO.class);
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8));
+             com.opencsv.CSVReader csvReader = new com.opencsv.CSVReader(reader)) {
+            
+            String[] headers = csvReader.readNext();
+            if (headers == null) return errors;
 
-            CsvToBean<CategoryCsvDTO> csvToBean = new CsvToBeanBuilder<CategoryCsvDTO>(reader)
-                    .withMappingStrategy(strategy)
-                    .withIgnoreEmptyLine(true)
-                    .withThrowExceptions(false)
-                    .build();
+            Map<String, Integer> headerMap = new HashMap<>();
+            for (int i = 0; i < headers.length; i++) {
+                if (headers[i] != null) headerMap.put(headers[i].trim().toLowerCase(), i);
+            }
 
-            List<CategoryCsvDTO> dtos = csvToBean.parse();
+            List<CategoryCsvDTO> dtos = new ArrayList<>();
+            String[] line;
+            int fileLine = 1;
+            while ((line = csvReader.readNext()) != null) {
+                fileLine++;
+                CategoryCsvDTO dto = new CategoryCsvDTO();
+                dto.setName(getLineValue(line, headerMap, "name", "category", "categoryname", "title"));
+                dto.setDescription(getLineValue(line, headerMap, "description", "desc", "info"));
+                dto.setImage(getLineValue(line, headerMap, "image", "img", "thumbnail", "photo"));
+                dtos.add(dto);
+            }
 
             // Pre-fetch all categories for performance
             List<Category> allCategories = categoryRepository.findAll();
@@ -92,7 +101,7 @@ public class CategoryService {
                     categoriesToSave.add(category);
 
                 } catch (Exception e) {
-                    errors.add("Row " + rowIndex + ": " + e.getMessage());
+                    errors.add("Row " + fileLine + ": " + e.getMessage());
                 }
             }
 
@@ -102,10 +111,19 @@ public class CategoryService {
                         "Imported " + categoriesToSave.size() + " categories");
             }
 
-            csvToBean.getCapturedExceptions()
-                    .forEach(e -> errors.add("Line " + e.getLineNumber() + ": " + e.getMessage()));
         }
         return errors;
+    }
+
+    private String getLineValue(String[] line, Map<String, Integer> headerMap, String... keys) {
+        for (String key : keys) {
+            Integer index = headerMap.get(key.toLowerCase());
+            if (index != null && index < line.length) {
+                String val = line[index];
+                return (val != null && !val.trim().isEmpty()) ? val.trim() : null;
+            }
+        }
+        return null;
     }
 
     public void exportCategories(Writer writer) throws Exception {
@@ -188,7 +206,6 @@ public class CategoryService {
     }
 
     public Category updateCategory(Long id, Category category) {
-        @SuppressWarnings("null")
         Category existingCategory = getCategoryById(id);
         if (category.getName() != null) {
             existingCategory.setName(category.getName());

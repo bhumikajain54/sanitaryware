@@ -39,17 +39,12 @@ public class DashboardService {
                 long totalCustomers;
 
                 if (days > 0) {
-                        LocalDateTime startDate = LocalDate.now().minusDays(days - 1).atStartOfDay(); // Include today?
-                                                                                                      // Usually yes.
-                                                                                                      // "Last 7 days"
-                                                                                                      // includes today.
-                        // Adjust to cover full period implies from (now - days)
-                        // But typical "7 days" means last 7 days including today.
-                        // Using logic from trends: startDate = now().minusDays(days-1)
+                        LocalDateTime startDate = LocalDate.now().minusDays(days - 1).atStartOfDay();
                         orders = orderRepository.findByCreatedAtAfter(startDate);
                         totalCustomers = userRepository.countByCreatedAtAfter(startDate);
                 } else {
-                        orders = orderRepository.findAllByOrderByCreatedAtDesc();
+                        // For global dashboard, still limit to last 500 for performance
+                        orders = orderRepository.findTop500ByOrderByCreatedAtDesc();
                         totalCustomers = userRepository.count();
                 }
 
@@ -62,10 +57,7 @@ public class DashboardService {
 
                 long totalProducts = productRepository.count();
 
-                @SuppressWarnings("null")
-                long lowStockCount = productRepository.findAll().stream()
-                                .filter(p -> p.getStockQuantity() != null && p.getStockQuantity() < 10)
-                                .count();
+                long lowStockCount = productRepository.countByStockQuantityLessThan(10);
 
                 List<Object[]> topProducts = orderItemRepository.findTopSellingProducts();
                 List<Product> top5Products = topProducts.stream()
@@ -76,15 +68,13 @@ public class DashboardService {
                 // recent
                 List<Order> recentOrders;
                 if (days > 0) {
-                        recentOrders = orders.stream() // Already filtered by date
-                                        // Sort by Date Descending not guaranteed by findByCreatedAtAfter unless repo
-                                        // method orders it.
-                                        // Repo method findByCreatedAtAfter usually doesn't sort.
-                                        // But we want "Recent".
+                        recentOrders = orders.stream()
                                         .sorted((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt()))
+                                        .limit(50) // Limit to 50 for the dashboard UI
                                         .collect(Collectors.toList());
                 } else {
-                        recentOrders = orderRepository.findAllByOrderByCreatedAtDesc().stream()
+                        recentOrders = orders.stream()
+                                        .limit(50) // Limit to 50 for the dashboard UI
                                         .collect(Collectors.toList());
                 }
 

@@ -6,9 +6,6 @@ import org.springframework.cache.annotation.CacheEvict;
 import com.example.sanitary.ware.backend.dto.BrandCsvDTO;
 import com.example.sanitary.ware.backend.entities.Brand;
 import com.example.sanitary.ware.backend.repositories.BrandRepository;
-import com.opencsv.bean.CsvToBean;
-import com.opencsv.bean.CsvToBeanBuilder;
-import com.opencsv.bean.HeaderColumnNameMappingStrategy;
 import com.opencsv.bean.StatefulBeanToCsv;
 import com.opencsv.bean.StatefulBeanToCsvBuilder;
 import com.lowagie.text.*;
@@ -26,7 +23,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -43,22 +42,32 @@ public class BrandService {
     private final Validator validator;
     private final ActivityLogService activityLogService;
 
-    @Transactional
     public List<String> importBrands(MultipartFile file) throws Exception {
         List<String> errors = new ArrayList<>();
         List<Brand> brandsToSave = new ArrayList<>();
 
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
-            HeaderColumnNameMappingStrategy<BrandCsvDTO> strategy = new HeaderColumnNameMappingStrategy<>();
-            strategy.setType(BrandCsvDTO.class);
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8));
+             com.opencsv.CSVReader csvReader = new com.opencsv.CSVReader(reader)) {
+            
+            String[] headers = csvReader.readNext();
+            if (headers == null) return errors;
 
-            CsvToBean<BrandCsvDTO> csvToBean = new CsvToBeanBuilder<BrandCsvDTO>(reader)
-                    .withMappingStrategy(strategy)
-                    .withIgnoreEmptyLine(true)
-                    .withThrowExceptions(false)
-                    .build();
+            Map<String, Integer> headerMap = new HashMap<>();
+            for (int i = 0; i < headers.length; i++) {
+                if (headers[i] != null) headerMap.put(headers[i].trim().toLowerCase(), i);
+            }
 
-            List<BrandCsvDTO> dtos = csvToBean.parse();
+            List<BrandCsvDTO> dtos = new ArrayList<>();
+            String[] line;
+            while ((line = csvReader.readNext()) != null) {
+                BrandCsvDTO dto = new BrandCsvDTO();
+                dto.setName(getLineValue(line, headerMap, "brandname", "name", "brand", "make"));
+                dto.setCode(getLineValue(line, headerMap, "brandcode", "code", "id"));
+                dto.setDescription(getLineValue(line, headerMap, "description", "desc", "info"));
+                dto.setCountry(getLineValue(line, headerMap, "country", "origin"));
+                dto.setStatus(getLineValue(line, headerMap, "status", "active", "enabled"));
+                dtos.add(dto);
+            }
 
             // Pre-fetch all brands for performance
             List<Brand> allBrands = brandRepository.findAll();
@@ -68,16 +77,16 @@ public class BrandService {
             Map<String, Brand> nameMap = allBrands.stream()
                     .collect(Collectors.toMap(b -> b.getName().toLowerCase(), b -> b, (e1, e2) -> e1));
 
-            int rowIndex = 1;
+            int itemIndex = 1;
             for (BrandCsvDTO dto : dtos) {
-                rowIndex++;
-                if (dto == null)
+                itemIndex++;
+                if (dto == null || dto.getName() == null)
                     continue;
 
                 try {
                     Set<ConstraintViolation<BrandCsvDTO>> violations = validator.validate(dto);
                     if (!violations.isEmpty()) {
-                        errors.add("Row " + rowIndex + ": " + violations.iterator().next().getMessage());
+                        errors.add("Item " + itemIndex + ": " + violations.iterator().next().getMessage());
                         continue;
                     }
 
@@ -109,7 +118,7 @@ public class BrandService {
                     brandsToSave.add(brand);
 
                 } catch (Exception e) {
-                    errors.add("Row " + rowIndex + ": " + e.getMessage());
+                    errors.add("Item " + itemIndex + ": " + e.getMessage());
                 }
             }
 
@@ -119,10 +128,19 @@ public class BrandService {
                         "Imported " + brandsToSave.size() + " brands");
             }
 
-            csvToBean.getCapturedExceptions()
-                    .forEach(e -> errors.add("Line " + e.getLineNumber() + ": " + e.getMessage()));
         }
         return errors;
+    }
+
+    private String getLineValue(String[] line, Map<String, Integer> headerMap, String... keys) {
+        for (String key : keys) {
+            Integer index = headerMap.get(key.toLowerCase());
+            if (index != null && index < line.length) {
+                String val = line[index];
+                return (val != null && !val.trim().isEmpty()) ? val.trim() : null;
+            }
+        }
+        return null;
     }
 
     public void exportBrands(Writer writer) throws Exception {
@@ -241,7 +259,6 @@ public class BrandService {
     }
 
     public Brand updateBrand(Long id, Brand brand) {
-        @SuppressWarnings("null")
         Brand existingBrand = getBrandById(id);
         if (brand.getName() != null) {
             existingBrand.setName(brand.getName());

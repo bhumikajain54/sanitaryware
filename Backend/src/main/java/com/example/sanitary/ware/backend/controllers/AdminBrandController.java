@@ -25,7 +25,6 @@ public class AdminBrandController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Brand> getBrandById(@PathVariable Long id) {
-        @SuppressWarnings("null")
         Brand brand = brandService.getBrandById(id);
         return ResponseEntity.ok(brand);
     }
@@ -62,9 +61,7 @@ public class AdminBrandController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBrand(@PathVariable Long id) {
-        @SuppressWarnings("null")
-        Long brandId = id;
-        brandService.deleteBrand(brandId); // Warning likely in service call
+        brandService.deleteBrand(id);
         return ResponseEntity.noContent().build();
     }
 }

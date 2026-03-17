@@ -44,14 +44,12 @@ public class AdminCategoryController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Category> getCategoryById(@PathVariable Long id) {
-        @SuppressWarnings("null")
         Category category = categoryService.getCategoryById(id);
         return ResponseEntity.ok(category);
     }
 
     @PostMapping
     public ResponseEntity<Category> createCategory(@RequestBody Category category) {
-        @SuppressWarnings("null")
         Category created = categoryService.createCategory(category);
         return ResponseEntity.ok(created);
     }
@@ -63,9 +61,7 @@ public class AdminCategoryController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
-        @SuppressWarnings("null")
-        Long categoryId = id;
-        categoryService.deleteCategory(categoryId); // Warning likely in service call
+        categoryService.deleteCategory(id);
         return ResponseEntity.noContent().build();
     }
 }

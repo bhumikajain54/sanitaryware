@@ -33,9 +33,7 @@ public class CartService {
             item.setQuantity(item.getQuantity() + quantity);
             cartRepository.save(item);
         } else {
-            @SuppressWarnings("null")
             User user = userRepository.findById(userId).orElseThrow();
-            @SuppressWarnings("null")
             Product product = productRepository.findById(productId).orElseThrow();
             CartItem item = CartItem.builder()
                     .user(user)
@@ -47,7 +45,6 @@ public class CartService {
     }
 
     public void updateQuantity(@NonNull Long itemId, Integer quantity) {
-        @SuppressWarnings("null")
         CartItem item = cartRepository.findById(itemId).orElseThrow();
         item.setQuantity(quantity);
         cartRepository.save(item);

@@ -40,7 +40,6 @@ public class AuthService {
                                 .active(true)
                                 .build();
 
-                @SuppressWarnings("null")
                 User savedUser = userRepository.save(user);
 
                 String jwtToken = jwtService.generateToken(savedUser);

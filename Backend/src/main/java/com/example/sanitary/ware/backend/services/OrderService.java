@@ -61,9 +61,7 @@ public class OrderService {
             throw new RuntimeException("Cart is empty");
         }
 
-        @SuppressWarnings("null")
         Address address = addressRepository.findById(request.getAddressId()).orElseThrow();
-        @SuppressWarnings("null")
         User user = userRepository.findById(userId).orElseThrow();
 
         Double totalAmount = cartItems.stream()
@@ -80,7 +78,6 @@ public class OrderService {
                 .shippingAddress(address)
                 .build();
 
-        @SuppressWarnings("null")
         Order savedOrder = orderRepository.save(order);
 
         List<OrderItem> orderItems = cartItems.stream()

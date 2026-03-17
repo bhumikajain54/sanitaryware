@@ -11,9 +11,6 @@ import com.example.sanitary.ware.backend.entities.Category;
 import com.example.sanitary.ware.backend.repositories.ProductRepository;
 import com.example.sanitary.ware.backend.repositories.BrandRepository;
 import com.example.sanitary.ware.backend.repositories.CategoryRepository;
-import com.opencsv.bean.CsvToBean;
-import com.opencsv.bean.CsvToBeanBuilder;
-import com.opencsv.bean.HeaderColumnNameMappingStrategy;
 import com.opencsv.bean.StatefulBeanToCsv;
 import com.opencsv.bean.StatefulBeanToCsvBuilder;
 import com.lowagie.text.Document;
@@ -60,6 +57,7 @@ public class ProductService {
     private final BrandRepository brandRepository;
     private final CategoryRepository categoryRepository;
     private final ActivityLogService activityLogService;
+    private final jakarta.validation.Validator validator;
 
     // Convert Product entity to DTO
     @SuppressWarnings("unused")
@@ -79,7 +77,6 @@ public class ProductService {
                 .build();
     }
 
-    @Transactional
     public List<String> importProducts(MultipartFile file) throws Exception {
         String filename = file.getOriginalFilename();
         logger.info("🚀 Starting optimized product import from file: {}", filename);
@@ -104,6 +101,10 @@ public class ProductService {
             dtos = parseCsvToDtos(file, errors);
         }
 
+        // 2.5 Pre-fetch all product names for optimized lookup
+        Map<String, Product> productMap = productRepository.findAll().stream()
+                .collect(Collectors.toMap(p -> p.getName().toLowerCase(), p -> p, (e1, e2) -> e1));
+
         logger.info("📦 Parsed {} items. Starting batch processing...", dtos.size());
 
         // 3. Process DTOs in a single pass
@@ -112,7 +113,7 @@ public class ProductService {
         for (ProductCsvDTO dto : dtos) {
             rowIndex++;
             try {
-                processProductDtoOptimized(dto, rowIndex, errors, productsToSave, brandMap, categoryMap);
+                processProductDtoOptimized(dto, rowIndex, errors, productsToSave, brandMap, categoryMap, productMap);
             } catch (Exception e) {
                 errors.add("Item " + rowIndex + ": Processing failed - " + e.getMessage());
             }
@@ -121,6 +122,8 @@ public class ProductService {
         // 4. Batch Save Products (Huge performance boost)
         if (!productsToSave.isEmpty()) {
             productRepository.saveAll(productsToSave);
+            activityLogService.log(1L, "admin@example.com", "IMPORT_PRODUCTS", "PRODUCTS",
+                    "Imported/Updated " + productsToSave.size() + " products from " + filename);
             logger.info("✅ Batch saved {} products.", productsToSave.size());
         }
 
@@ -204,14 +207,24 @@ public class ProductService {
 
     private void processProductDtoOptimized(ProductCsvDTO dto, int rowIndex, List<String> errors,
             List<Product> productsToSave, Map<String, Brand> brandMap,
-            Map<String, Category> categoryMap) {
-        if (dto == null || dto.getName() == null || dto.getName().trim().isEmpty())
+            Map<String, Category> categoryMap, Map<String, Product> productMap) {
+        if (dto == null) return;
+
+        // Validation
+        java.util.Set<jakarta.validation.ConstraintViolation<ProductCsvDTO>> violations = validator.validate(dto);
+        if (!violations.isEmpty()) {
+            errors.add("Item " + rowIndex + ": " + violations.iterator().next().getMessage());
             return;
+        }
 
         String name = dto.getName().trim();
-        Product product = productRepository.findByNameIgnoreCase(name).orElse(new Product());
+        Product product = productMap.get(name.toLowerCase());
+        if (product == null) {
+            product = new Product();
+            product.setName(name);
+            productMap.put(name.toLowerCase(), product);
+        }
 
-        product.setName(name);
         product.setPrice(cleanAndParsePrice(dto.getPrice()));
 
         int stock = 0;
@@ -234,9 +247,9 @@ public class ProductService {
             Brand brand = brandMap.computeIfAbsent(bName, k -> {
                 Brand nb = new Brand();
                 nb.setName(dto.getBrand().trim());
-                nb.setCode(dto.getBrand().trim().substring(0, Math.min(3, dto.getBrand().trim().length())).toUpperCase()
-                        + "-" + (int) (Math.random() * 900));
-                return brandRepository.save(nb); // Save immediate to get ID, but only for NEW brands
+                String prefix = dto.getBrand().trim().substring(0, Math.min(3, dto.getBrand().trim().length())).toUpperCase();
+                nb.setCode(prefix + "-" + System.currentTimeMillis() % 1000 + (int)(Math.random() * 100));
+                return brandRepository.save(nb); 
             });
             product.setBrand(brand);
         }
@@ -259,17 +272,54 @@ public class ProductService {
     private List<ProductCsvDTO> parseCsvToDtos(MultipartFile file, List<String> errors) throws Exception {
         List<ProductCsvDTO> dtos = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
-            HeaderColumnNameMappingStrategy<ProductCsvDTO> strategy = new HeaderColumnNameMappingStrategy<>();
-            strategy.setType(ProductCsvDTO.class);
-            CsvToBean<ProductCsvDTO> csvToBean = new CsvToBeanBuilder<ProductCsvDTO>(reader)
-                    .withMappingStrategy(strategy)
-                    .withIgnoreEmptyLine(true)
-                    .withThrowExceptions(false)
-                    .build();
-            csvToBean.forEach(dtos::add);
+                new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8));
+             com.opencsv.CSVReader csvReader = new com.opencsv.CSVReader(reader)) {
+            
+            String[] headers = csvReader.readNext();
+            if (headers == null) return dtos;
+
+            Map<String, Integer> headerMap = new HashMap<>();
+            for (int i = 0; i < headers.length; i++) {
+                if (headers[i] != null) {
+                    headerMap.put(headers[i].trim().toLowerCase(), i);
+                }
+            }
+
+            String[] line;
+            int lineNum = 1;
+            while ((line = csvReader.readNext()) != null) {
+                lineNum++;
+                try {
+                    ProductCsvDTO dto = new ProductCsvDTO();
+                    dto.setName(getLineValue(line, headerMap, "name", "product", "product name", "item name"));
+                    dto.setPrice(getLineValue(line, headerMap, "price", "mrp", "cost", "rate"));
+                    dto.setStockQuantity(getLineValue(line, headerMap, "stock", "quantity", "stockquantity", "qty"));
+                    dto.setMainImage(getLineValue(line, headerMap, "image", "mainimage", "img", "photo"));
+                    dto.setCategory(getLineValue(line, headerMap, "category", "cat", "group"));
+                    dto.setBrand(getLineValue(line, headerMap, "brand", "make", "company"));
+                    dto.setActive(getLineValue(line, headerMap, "active", "status", "enabled"));
+                    dto.setFeatured(getLineValue(line, headerMap, "featured", "isfeatured", "highlight"));
+                    
+                    if (dto.getName() != null && !dto.getName().trim().isEmpty()) {
+                        dtos.add(dto);
+                    }
+                } catch (Exception e) {
+                    errors.add("Line " + lineNum + ": Skipping due to unexpected error - " + e.getMessage());
+                }
+            }
         }
         return dtos;
+    }
+
+    private String getLineValue(String[] line, Map<String, Integer> headerMap, String... keys) {
+        for (String key : keys) {
+            Integer index = headerMap.get(key.toLowerCase());
+            if (index != null && index < line.length) {
+                String val = line[index];
+                return (val != null && !val.trim().isEmpty()) ? val.trim() : null;
+            }
+        }
+        return null;
     }
 
     private List<ProductCsvDTO> parseExcelToDtos(MultipartFile file, List<String> errors) throws Exception {
@@ -512,7 +562,8 @@ public class ProductService {
     public Page<Product> getAllProducts(String query, Long categoryId, Long brandId, Double minPrice, Double maxPrice,
             int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return productRepository.searchProducts(query, categoryId, brandId, minPrice, maxPrice, pageable);
+        String searchPattern = (query != null && !query.trim().isEmpty()) ? query.trim() : null;
+        return productRepository.searchProducts(searchPattern, categoryId, brandId, minPrice, maxPrice, pageable);
     }
 
     public Product getProductById(@NonNull Long id) {
@@ -535,11 +586,13 @@ public class ProductService {
     }
 
     public List<Product> searchProductsByName(String query) {
-        return productRepository.searchByName(query);
+        String searchPattern = (query != null && !query.trim().isEmpty()) ? query.trim() : null;
+        return productRepository.searchByName(searchPattern);
     }
 
     public List<com.example.sanitary.ware.backend.dto.ProductSuggestionDTO> getProductSuggestions(String query) {
-        List<Product> products = productRepository.searchByName(query);
+        String searchPattern = (query != null && !query.trim().isEmpty()) ? query.trim() : null;
+        List<Product> products = productRepository.searchByName(searchPattern);
         return products.stream().map(p -> com.example.sanitary.ware.backend.dto.ProductSuggestionDTO.builder()
                 .id(p.getId())
                 .name(p.getName())

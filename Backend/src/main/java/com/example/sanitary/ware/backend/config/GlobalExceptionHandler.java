@@ -14,13 +14,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, Object>> handleRuntimeException(RuntimeException ex) {
-        ex.printStackTrace(); // Added for debugging
+        ex.printStackTrace();
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
         body.put("message", ex.getMessage());
-        body.put("status", HttpStatus.BAD_REQUEST.value());
+        body.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
 
-        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)

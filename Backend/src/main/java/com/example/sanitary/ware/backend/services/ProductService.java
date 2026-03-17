@@ -23,8 +23,6 @@ import com.lowagie.text.pdf.PdfWriter;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -39,14 +37,11 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.PushbackInputStream;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -61,9 +56,6 @@ public class ProductService {
     private final BrandRepository brandRepository;
     private final CategoryRepository categoryRepository;
     private final ActivityLogService activityLogService;
-    private final Validator validator;
-    private final CategoryService categoryService;
-    private final BrandService brandService;
 
     // Convert Product entity to DTO
     @SuppressWarnings("unused")
@@ -83,119 +75,210 @@ public class ProductService {
                 .build();
     }
 
+    @Transactional
     public List<String> importProducts(MultipartFile file) throws Exception {
-        int initialCount = (int) productRepository.count();
         String filename = file.getOriginalFilename();
-        logger.info("Starting product import from file: {}", filename);
+        logger.info("🚀 Starting optimized product import from file: {}", filename);
+        
+        // 1. Pre-cache Brands and Categories to avoid thousands of DB calls
+        Map<String, Brand> brandMap = new HashMap<>();
+        brandRepository.findAll().forEach(b -> brandMap.put(b.getName().toUpperCase(), b));
+        
+        Map<String, Category> categoryMap = new HashMap<>();
+        categoryRepository.findAll().forEach(c -> categoryMap.put(c.getName().toUpperCase(), c));
 
-        List<String> results;
+        List<String> errors = new ArrayList<>();
+        List<ProductCsvDTO> dtos = new ArrayList<>();
+        
+        // 2. Parse file into DTOs first (Memory efficient for typical catalogues)
         if (filename != null && filename.toLowerCase().endsWith(".pdf")) {
-            results = importProductsFromPdf(file);
-        } else if (filename != null
-                && (filename.toLowerCase().endsWith(".xls") || filename.toLowerCase().endsWith(".xlsx"))) {
-            results = importProductsFromExcel(file);
+            dtos = parsePdfToDtos(file, errors);
+        } else if (filename != null && (filename.toLowerCase().endsWith(".xls") || filename.toLowerCase().endsWith(".xlsx"))) {
+            dtos = parseExcelToDtos(file, errors);
         } else {
-            results = importProductsFromCsv(file);
+            dtos = parseCsvToDtos(file, errors);
         }
 
-        int finalCount = (int) productRepository.count();
-        int imported = finalCount - initialCount;
-        results.add(0, "SUCCESS: " + imported + " products created/updated successfully.");
-        return results;
+        logger.info("📦 Parsed {} items. Starting batch processing...", dtos.size());
+
+        // 3. Process DTOs in a single pass
+        List<Product> productsToSave = new ArrayList<>();
+        int rowIndex = 0;
+        for (ProductCsvDTO dto : dtos) {
+            rowIndex++;
+            try {
+                processProductDtoOptimized(dto, rowIndex, errors, productsToSave, brandMap, categoryMap);
+            } catch (Exception e) {
+                errors.add("Item " + rowIndex + ": Processing failed - " + e.getMessage());
+            }
+        }
+
+        // 4. Batch Save Products (Huge performance boost)
+        if (!productsToSave.isEmpty()) {
+            productRepository.saveAll(productsToSave);
+            logger.info("✅ Batch saved {} products.", productsToSave.size());
+        }
+
+        errors.add(0, "SUCCESS: " + productsToSave.size() + " products created/updated successfully.");
+        return errors;
     }
 
-    private List<String> importProductsFromPdf(MultipartFile file) throws Exception {
-        List<String> errors = new ArrayList<>();
+    private List<ProductCsvDTO> parsePdfToDtos(MultipartFile file, List<String> errors) throws Exception {
+        List<ProductCsvDTO> dtos = new ArrayList<>();
         try (PDDocument document = PDDocument.load(file.getInputStream())) {
             PDFTextStripper stripper = new PDFTextStripper();
             String text = stripper.getText(document);
             String[] lines = text.split("\\r?\\n");
 
-            String inferredBrand = "";
-            // 1. Look for Brand/Catalogue header in the first few lines
-            for (int i = 0; i < Math.min(20, lines.length); i++) {
-                String line = lines[i].toUpperCase();
-                if (line.contains("CERA"))
-                    inferredBrand = "CERA";
-                else if (line.contains("AQUARIUM"))
-                    inferredBrand = "AQUARIUM";
-                else if (line.contains("AQUAGOLD"))
-                    inferredBrand = "AQUAGOLD";
-                else if (line.contains("PLASTO"))
-                    inferredBrand = "PLASTO";
-                else if (line.contains("WATERFLO"))
-                    inferredBrand = "WATERFLO";
-                if (!inferredBrand.isEmpty())
-                    break;
-            }
+            String inferredBrand = inferBrand(lines, file.getOriginalFilename());
 
-            // 2. If still not found, check filename
-            if (inferredBrand.isEmpty() && file.getOriginalFilename() != null) {
-                String fn = file.getOriginalFilename().toUpperCase();
-                if (fn.contains("CERA"))
-                    inferredBrand = "CERA";
-                else if (fn.contains("AQUARIUM"))
-                    inferredBrand = "AQUARIUM";
-                else if (fn.contains("AQUAGOLD"))
-                    inferredBrand = "AQUAGOLD";
-                else if (fn.contains("PLASTO"))
-                    inferredBrand = "PLASTO";
-                else if (fn.contains("WATERFLO"))
-                    inferredBrand = "WATERFLO";
-            }
-
-            if (!inferredBrand.isEmpty()) {
-                logger.info("Identified brand '{}' for PDF import.", inferredBrand);
-            } else {
-                logger.warn("No specific brand identified for PDF: {}", file.getOriginalFilename());
-            }
-
-            int rowIndex = 0;
             for (String line : lines) {
-                rowIndex++;
                 String trimmedLine = line.trim();
+                if (isNoiseLine(trimmedLine)) continue;
 
-                // SKIP CRITICAL NON-PRODUCT LINES (Noise Reduction)
-                if (trimmedLine.isEmpty() ||
-                        trimmedLine.contains("@") || // Skip emails
-                        trimmedLine.matches(".*\\d{10,}.*") || // Skip phone numbers
-                        trimmedLine.toLowerCase().contains("showroom") ||
-                        trimmedLine.toLowerCase().contains("office") ||
-                        trimmedLine.toLowerCase().contains("tel:") ||
-                        trimmedLine.toLowerCase().contains("fax:") ||
-                        trimmedLine.toLowerCase().contains("e-mail") ||
-                        trimmedLine.toLowerCase().contains("website") ||
-                        trimmedLine.toLowerCase().contains("address")) {
-                    continue;
-                }
-
-                try {
-                    String[] parts = trimmedLine.split("[,\\t]|  +");
-                    if (parts.length >= 1) {
-                        ProductCsvDTO dto = new ProductCsvDTO();
-                        dto.setBrand(inferredBrand);
-
-                        // Smarter Data Extraction
-                        distributePdfParts(parts, dto);
-
-                        // Skip if we couldn't even find a name
-                        if (dto.getName() == null || dto.getName().length() < 3) {
-                            continue;
-                        }
-
-                        // Reuse the central processing logic (ID -> SKU -> Name)
-                        processProductDto(dto, rowIndex, errors);
+                String[] parts = trimmedLine.split("[,\\t]|  +");
+                if (parts.length >= 1) {
+                    ProductCsvDTO dto = new ProductCsvDTO();
+                    dto.setBrand(inferredBrand);
+                    distributePdfParts(parts, dto);
+                    if (dto.getName() != null && dto.getName().length() >= 3) {
+                        dtos.add(dto);
                     }
-                } catch (Exception e) {
-                    errors.add("Line " + rowIndex + ": " + e.getMessage());
                 }
             }
         }
-        return errors;
+        return dtos;
     }
 
+    private String inferBrand(String[] lines, String filename) {
+        for (int i = 0; i < Math.min(30, lines.length); i++) {
+            String line = lines[i].toUpperCase();
+            if (line.contains("CERA")) return "CERA";
+            if (line.contains("AQUARIUM")) return "AQUARIUM";
+            if (line.contains("AQUAGOLD")) return "AQUAGOLD";
+            if (line.contains("PLASTO")) return "PLASTO";
+            if (line.contains("WATERFLO")) return "WATERFLO";
+            if (line.contains("HINDWARE")) return "HINDWARE";
+            if (line.contains("JAQUAR")) return "JAQUAR";
+            if (line.contains("PARRYWARE")) return "PARRYWARE";
+        }
+        if (filename != null) {
+            String fn = filename.toUpperCase();
+            if (fn.contains("CERA")) return "CERA";
+            if (fn.contains("AQUARIUM")) return "AQUARIUM";
+            if (fn.contains("AQUAGOLD")) return "AQUAGOLD";
+            if (fn.contains("PLASTO")) return "PLASTO";
+            if (fn.contains("WATERFLO")) return "WATERFLO";
+        }
+        return "";
+    }
+
+    private boolean isNoiseLine(String line) {
+        if (line.isEmpty()) return true;
+        String l = line.toLowerCase();
+        return l.contains("@") || l.matches(".*\\d{10,}.*") || 
+               l.contains("showroom") || l.contains("office") || l.contains("tel:") || 
+               l.contains("fax:") || l.contains("e-mail") || l.contains("website") || 
+               l.contains("address") || l.contains("page ") || l.contains("price list");
+    }
+
+    private void processProductDtoOptimized(ProductCsvDTO dto, int rowIndex, List<String> errors, 
+                                          List<Product> productsToSave, Map<String, Brand> brandMap, 
+                                          Map<String, Category> categoryMap) {
+        if (dto == null || dto.getName() == null || dto.getName().trim().isEmpty()) return;
+
+        String name = dto.getName().trim();
+        Product product = productRepository.findByNameIgnoreCase(name).orElse(new Product());
+        
+        product.setName(name);
+        product.setPrice(cleanAndParsePrice(dto.getPrice()));
+        
+        int stock = 0;
+        if (dto.getStockQuantity() != null && !dto.getStockQuantity().trim().isEmpty()) {
+            try { stock = Integer.parseInt(dto.getStockQuantity().trim()); } catch (Exception e) {}
+        }
+        product.setStockQuantity(stock);
+
+        if (dto.getMainImage() != null) product.setMainImage(dto.getMainImage().trim());
+        product.setActive(dto.getActive() == null || Boolean.parseBoolean(dto.getActive().trim()));
+        product.setFeatured(Boolean.parseBoolean(dto.getFeatured() != null ? dto.getFeatured().trim() : "false"));
+
+        // Resolve Brand from Cache
+        if (dto.getBrand() != null && !dto.getBrand().trim().isEmpty()) {
+            String bName = dto.getBrand().trim().toUpperCase();
+            Brand brand = brandMap.computeIfAbsent(bName, k -> {
+                Brand nb = new Brand();
+                nb.setName(dto.getBrand().trim());
+                nb.setCode(dto.getBrand().trim().substring(0, Math.min(3, dto.getBrand().trim().length())).toUpperCase() + "-" + (int)(Math.random()*900));
+                return brandRepository.save(nb); // Save immediate to get ID, but only for NEW brands
+            });
+            product.setBrand(brand);
+        }
+
+        // Resolve Category from Cache
+        String catName = (dto.getCategory() != null && !dto.getCategory().trim().isEmpty()) 
+                        ? dto.getCategory().trim() 
+                        : inferCategoryFromName(name);
+        String catKey = catName.toUpperCase();
+        Category category = categoryMap.computeIfAbsent(catKey, k -> {
+            Category nc = new Category();
+            nc.setName(catName);
+            return categoryRepository.save(nc);
+        });
+        product.setCategory(category);
+
+        productsToSave.add(product);
+    }
+
+    private List<ProductCsvDTO> parseCsvToDtos(MultipartFile file, List<String> errors) throws Exception {
+        List<ProductCsvDTO> dtos = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
+            HeaderColumnNameMappingStrategy<ProductCsvDTO> strategy = new HeaderColumnNameMappingStrategy<>();
+            strategy.setType(ProductCsvDTO.class);
+            CsvToBean<ProductCsvDTO> csvToBean = new CsvToBeanBuilder<ProductCsvDTO>(reader)
+                    .withMappingStrategy(strategy)
+                    .withIgnoreEmptyLine(true)
+                    .withThrowExceptions(false)
+                    .build();
+            csvToBean.forEach(dtos::add);
+        }
+        return dtos;
+    }
+
+    private List<ProductCsvDTO> parseExcelToDtos(MultipartFile file, List<String> errors) throws Exception {
+        List<ProductCsvDTO> dtos = new ArrayList<>();
+        try (InputStream is = file.getInputStream();
+             org.apache.poi.ss.usermodel.Workbook workbook = org.apache.poi.ss.usermodel.WorkbookFactory.create(is)) {
+            org.apache.poi.ss.usermodel.Sheet sheet = workbook.getSheetAt(0);
+            org.apache.poi.ss.usermodel.Row headerRow = sheet.getRow(0);
+            if (headerRow == null) return dtos;
+
+            Map<String, Integer> headerMap = new HashMap<>();
+            for (org.apache.poi.ss.usermodel.Cell cell : headerRow) {
+                headerMap.put(cell.getStringCellValue().trim().toLowerCase(), cell.getColumnIndex());
+            }
+
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                org.apache.poi.ss.usermodel.Row row = sheet.getRow(i);
+                if (row == null) continue;
+                ProductCsvDTO dto = new ProductCsvDTO();
+                dto.setName(getCellValue(row, headerMap.get("name")));
+                if (dto.getName() == null) dto.setName(getCellValue(row, headerMap.get("product name")));
+                
+                dto.setPrice(getCellValue(row, headerMap.get("price")));
+                dto.setStockQuantity(getCellValue(row, headerMap.get("stock")));
+                if (dto.getStockQuantity() == null) dto.setStockQuantity(getCellValue(row, headerMap.get("quantity")));
+                
+                dto.setCategory(getCellValue(row, headerMap.get("category")));
+                dto.setBrand(getCellValue(row, headerMap.get("brand")));
+                dtos.add(dto);
+            }
+        }
+        return dtos;
+    }
+
+
     private void distributePdfParts(String[] parts, ProductCsvDTO dto) {
-        // 1. Identify Price (usually the last numeric token)
         int priceIndex = -1;
         for (int i = parts.length - 1; i >= 0; i--) {
             String p = parts[i].trim();
@@ -205,29 +288,22 @@ public class ProductService {
                 break;
             }
         }
-
-        // 2. Collect remaining tokens
         List<String> others = new ArrayList<>();
         for (int i = 0; i < parts.length; i++) {
             if (i != priceIndex && !parts[i].trim().isEmpty()) {
                 others.add(parts[i].trim());
             }
         }
-
         if (!others.isEmpty()) {
             dto.setName(String.join(" ", others));
         }
     }
 
     private boolean isLikelyPrice(String s) {
-        if (s == null || s.isEmpty())
-            return false;
+        if (s == null || s.isEmpty()) return false;
         String cleaned = s.trim().replaceAll("[₹, ]", "");
-        if (cleaned.isEmpty())
-            return false;
+        if (cleaned.isEmpty()) return false;
         try {
-            Double.parseDouble(cleaned);
-            // Sane price check: prices are usually > 0
             double p = Double.parseDouble(cleaned);
             return p > 0;
         } catch (NumberFormatException e) {
@@ -235,275 +311,40 @@ public class ProductService {
         }
     }
 
-    private List<String> importProductsFromCsv(MultipartFile file) throws Exception {
-        List<String> errors = new ArrayList<>();
-        InputStream is = file.getInputStream();
-        PushbackInputStream pbis = new PushbackInputStream(is, 3);
-        byte[] bom = new byte[3];
-        int n = pbis.read(bom, 0, bom.length);
-        if (n == 3 && bom[0] == (byte) 0xEF && bom[1] == (byte) 0xBB && bom[2] == (byte) 0xBF) {
-            // Found BOM, skip it (already read)
-        } else if (n > 0) {
-            pbis.unread(bom, 0, n);
-        }
-
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(pbis, StandardCharsets.UTF_8))) {
-            HeaderColumnNameMappingStrategy<ProductCsvDTO> strategy = new HeaderColumnNameMappingStrategy<>();
-            strategy.setType(ProductCsvDTO.class);
-
-            CsvToBean<ProductCsvDTO> csvToBean = new CsvToBeanBuilder<ProductCsvDTO>(reader)
-                    .withMappingStrategy(strategy)
-                    .withIgnoreEmptyLine(true)
-                    .withThrowExceptions(false)
-                    .build();
-
-            Iterator<ProductCsvDTO> iterator = csvToBean.iterator();
-
-            int rowIndex = 1;
-            while (iterator.hasNext()) {
-                rowIndex++;
-                ProductCsvDTO dto = null;
-                try {
-                    dto = iterator.next();
-                } catch (Exception e) {
-                    errors.add("Row " + rowIndex + ": Parsing error - " + e.getMessage());
-                    continue;
-                }
-                processProductDto(dto, rowIndex, errors);
-            }
-            csvToBean.getCapturedExceptions()
-                    .forEach(e -> errors.add("Line " + e.getLineNumber() + ": " + e.getMessage()));
-        }
-        return errors;
-    }
-
-    private void processProductDto(ProductCsvDTO dto, int rowIndex, List<String> errors) {
-        if (dto == null)
-            return;
-
-        Set<ConstraintViolation<ProductCsvDTO>> violations = validator.validate(dto);
-        if (!violations.isEmpty()) {
-            String errorMessage = violations.stream()
-                    .map(ConstraintViolation::getMessage)
-                    .collect(Collectors.joining(", "));
-            errors.add("Row " + rowIndex + ": " + errorMessage);
-            return;
-        }
-
-        try {
-            Optional<Product> productOpt = Optional.empty();
-
-            // 1. Try matching by ID first if provided
-            if (dto.getId() != null && !dto.getId().trim().isEmpty()) {
-                try {
-                    Long id = Long.parseLong(dto.getId().trim());
-                    productOpt = productRepository.findById(id);
-                } catch (NumberFormatException e) {
-                    logger.warn("Invalid product ID in import: {}", dto.getId());
-                }
-            }
-
-            // 2. Fallback to matching by Name (Case-Insensitive)
-            if (productOpt.isEmpty() && dto.getName() != null && !dto.getName().trim().isEmpty()) {
-                productOpt = productRepository.findByNameIgnoreCase(dto.getName().trim());
-            }
-
-            Product product = productOpt.orElse(new Product());
-
-            // 3. Update fields ONLY if provided in the DTO (Partial Update / Merge)
-            if (dto.getName() != null && !dto.getName().trim().isEmpty()) {
-                product.setName(dto.getName().trim());
-            }
-
-            if (dto.getPrice() != null && !dto.getPrice().trim().isEmpty()) {
-                product.setPrice(cleanAndParsePrice(dto.getPrice()));
-            } else if (product.getId() == null) {
-                // New product without price info gets 0.0
-                product.setPrice(0.0);
-            }
-
-            if (dto.getStockQuantity() != null && !dto.getStockQuantity().trim().isEmpty()) {
-                try {
-                    product.setStockQuantity(Integer.parseInt(dto.getStockQuantity().trim()));
-                } catch (NumberFormatException e) {
-                    errors.add("Row " + rowIndex + ": Invalid Stock format - " + dto.getStockQuantity());
-                }
-            } else if (product.getId() == null) {
-                // New product without stock info gets 0
-                product.setStockQuantity(0);
-            }
-
-            if (dto.getMainImage() != null && !dto.getMainImage().trim().isEmpty()) {
-                product.setMainImage(dto.getMainImage().trim());
-            }
-
-            if (dto.getActive() != null && !dto.getActive().trim().isEmpty()) {
-                product.setActive(Boolean.parseBoolean(dto.getActive().trim()));
-            }
-
-            if (dto.getFeatured() != null && !dto.getFeatured().trim().isEmpty()) {
-                product.setFeatured(Boolean.parseBoolean(dto.getFeatured().trim()));
-            }
-
-            // Auto-create/resolve brand
-            if (dto.getBrand() != null && !dto.getBrand().trim().isEmpty()) {
-                Brand brand = brandService.getOrCreateByName(dto.getBrand().trim());
-                product.setBrand(brand);
-            }
-
-            // Auto-create/resolve category
-            if (dto.getCategory() != null && !dto.getCategory().trim().isEmpty()) {
-                product.setCategory(categoryService.getOrCreateByName(dto.getCategory().trim()));
-            } else if (product.getCategory() == null) {
-                // Smart Inference
-                String inferred = inferCategoryFromName(product.getName());
-                product.setCategory(categoryService.getOrCreateByName(inferred));
-            }
-
-            // Validate and save
-            if (product.getName() == null || product.getName().isEmpty()) {
-                errors.add("Row " + rowIndex + ": Product name is missing and could not be resolved.");
-                return;
-            }
-
-            productRepository.save(product);
-        } catch (Exception e) {
-            errors.add("Row " + rowIndex + ": Unexpected error - " + e.getMessage());
-            logger.error("Error processing import row {}: ", rowIndex, e);
-        }
-    }
-
-    private List<String> importProductsFromExcel(MultipartFile file) throws Exception {
-        List<String> errors = new ArrayList<>();
-        try (InputStream is = file.getInputStream();
-                org.apache.poi.ss.usermodel.Workbook workbook = org.apache.poi.ss.usermodel.WorkbookFactory
-                        .create(is)) {
-            org.apache.poi.ss.usermodel.Sheet sheet = workbook.getSheetAt(0);
-            org.apache.poi.ss.usermodel.Row headerRow = sheet.getRow(0);
-            if (headerRow == null) {
-                errors.add("Excel file is empty");
-                return errors;
-            }
-
-            Map<String, Integer> headerMap = new HashMap<>();
-            for (org.apache.poi.ss.usermodel.Cell cell : headerRow) {
-                headerMap.put(cell.getStringCellValue().trim(), cell.getColumnIndex());
-            }
-
-            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
-                org.apache.poi.ss.usermodel.Row row = sheet.getRow(i);
-                if (row == null)
-                    continue;
-
-                ProductCsvDTO dto = new ProductCsvDTO();
-                dto.setName(getCellValue(row, findHeader(headerMap, "Name", "name", "Product Name")));
-                dto.setPrice(getCellValue(row, findHeader(headerMap, "Price", "price", "Rate")));
-                dto.setStockQuantity(getCellValue(row,
-                        findHeader(headerMap, "StockQuantity", "Stock", "Quantity", "stock", "quantity")));
-                dto.setMainImage(getCellValue(row, findHeader(headerMap, "MainImage", "Main Image", "image")));
-                dto.setCategory(getCellValue(row, findHeader(headerMap, "Category", "category")));
-                dto.setBrand(getCellValue(row, findHeader(headerMap, "Brand", "brand")));
-                dto.setActive(getCellValue(row, findHeader(headerMap, "Active", "active")));
-                dto.setFeatured(getCellValue(row, findHeader(headerMap, "Featured", "featured", "isFeatured")));
-
-                if (dto.getName() == null || dto.getName().isEmpty())
-                    continue;
-
-                processProductDto(dto, i + 1, errors);
-            }
-        }
-        return errors;
-    }
-
-    private Integer findHeader(Map<String, Integer> headerMap, String... names) {
-        if (headerMap == null)
-            return null;
-        for (String name : names) {
-            // Try exact match
-            if (headerMap.containsKey(name))
-                return headerMap.get(name);
-            // Try case-insensitive match
-            for (String key : headerMap.keySet()) {
-                if (key.equalsIgnoreCase(name))
-                    return headerMap.get(key);
-            }
-        }
-        return null;
-    }
-
     private String inferCategoryFromName(String name) {
-        if (name == null)
-            return "General";
+        if (name == null) return "General";
         String n = name.toUpperCase();
-        if (n.contains("EWC") || n.contains("TOILET") || n.contains("ONE PIECE") || n.contains("WALL HUNG"))
-            return "EWC / Toilet";
-        if (n.contains("WASH BASIN") || n.contains("BASIN") || n.contains("SINK"))
-            return "Wash Basin";
-        if (n.contains("FAUCET") || n.contains("MIXER") || n.contains("TAP") || n.contains("COCK"))
-            return "Faucets";
-        if (n.contains("SHOWER") || n.contains("HAND SHOWER"))
-            return "Showers";
-        if (n.contains("URINAL"))
-            return "Urinals";
-        if (n.contains("CISTERN"))
-            return "Cisterns";
-        if (n.contains("SEAT COVER"))
-            return "Seat Covers";
-        if (n.contains("MIRROR"))
-            return "Mirrors";
-        if (n.contains("BATH TUB"))
-            return "Bath Tubs";
+        if (n.contains("EWC") || n.contains("TOILET") || n.contains("ONE PIECE") || n.contains("WALL HUNG")) return "EWC / Toilet";
+        if (n.contains("WASH BASIN") || n.contains("BASIN") || n.contains("SINK")) return "Wash Basin";
+        if (n.contains("FAUCET") || n.contains("MIXER") || n.contains("TAP") || n.contains("COCK")) return "Faucets";
+        if (n.contains("SHOWER") || n.contains("HAND SHOWER")) return "Showers";
+        if (n.contains("URINAL")) return "Urinals";
+        if (n.contains("CISTERN")) return "Cisterns";
+        if (n.contains("SEAT COVER")) return "Seat Covers";
+        if (n.contains("MIRROR")) return "Mirrors";
+        if (n.contains("BATH TUB")) return "Bath Tubs";
         return "Sanitaryware";
     }
 
     private Double cleanAndParsePrice(String priceStr) {
-        if (priceStr == null || priceStr.trim().isEmpty() || priceStr.trim().equalsIgnoreCase("NULL")
-                || priceStr.trim().equalsIgnoreCase("N/A") || priceStr.trim().equalsIgnoreCase("NIL"))
-            return 0.0;
+        if (priceStr == null || priceStr.trim().isEmpty() || priceStr.trim().equalsIgnoreCase("NULL")) return 0.0;
         try {
-            // Remove ₹, commas, and any non-numeric characters except the decimal point
             String cleaned = priceStr.trim().replaceAll("[₹, ]", "");
-            if (cleaned.isEmpty())
-                return 0.0;
-            return Double.parseDouble(cleaned);
-        } catch (NumberFormatException e) {
-            logger.warn("Could not parse price value: {}", priceStr);
+            return cleaned.isEmpty() ? 0.0 : Double.parseDouble(cleaned);
+        } catch (Exception e) {
             return 0.0;
         }
     }
 
     private String getCellValue(org.apache.poi.ss.usermodel.Row row, Integer columnIndex) {
-        if (columnIndex == null)
-            return null;
+        if (columnIndex == null) return null;
         org.apache.poi.ss.usermodel.Cell cell = row.getCell(columnIndex);
-        if (cell == null)
-            return null;
-
+        if (cell == null) return null;
         switch (cell.getCellType()) {
-            case STRING:
-                return cell.getStringCellValue();
-            case NUMERIC:
-                if (org.apache.poi.ss.usermodel.DateUtil.isCellDateFormatted(cell)) {
-                    return cell.getDateCellValue().toString();
-                } else {
-                    double val = cell.getNumericCellValue();
-                    if (val == (long) val) {
-                        return String.valueOf((long) val);
-                    }
-                    return String.valueOf(val);
-                }
-            case BOOLEAN:
-                return String.valueOf(cell.getBooleanCellValue());
-            case FORMULA:
-                try {
-                    return String.valueOf(cell.getNumericCellValue());
-                } catch (Exception e) {
-                    return cell.getCellFormula();
-                }
-            case BLANK:
-                return "";
-            default:
-                return null;
+            case STRING: return cell.getStringCellValue();
+            case NUMERIC: return String.valueOf(cell.getNumericCellValue());
+            case BOOLEAN: return String.valueOf(cell.getBooleanCellValue());
+            default: return "";
         }
     }
 

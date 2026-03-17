@@ -11,12 +11,7 @@ import com.opencsv.bean.CsvToBeanBuilder;
 import com.opencsv.bean.HeaderColumnNameMappingStrategy;
 import com.opencsv.bean.StatefulBeanToCsv;
 import com.opencsv.bean.StatefulBeanToCsvBuilder;
-import com.lowagie.text.Document;
-import com.lowagie.text.Font;
-import com.lowagie.text.FontFactory;
-import com.lowagie.text.PageSize;
-import com.lowagie.text.Paragraph;
-import com.lowagie.text.Phrase;
+import com.lowagie.text.*;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
@@ -52,7 +47,7 @@ public class BrandService {
     public List<String> importBrands(MultipartFile file) throws Exception {
         List<String> errors = new ArrayList<>();
         List<Brand> brandsToSave = new ArrayList<>();
-        
+
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
             HeaderColumnNameMappingStrategy<BrandCsvDTO> strategy = new HeaderColumnNameMappingStrategy<>();
             strategy.setType(BrandCsvDTO.class);
@@ -64,7 +59,7 @@ public class BrandService {
                     .build();
 
             List<BrandCsvDTO> dtos = csvToBean.parse();
-            
+
             // Pre-fetch all brands for performance
             List<Brand> allBrands = brandRepository.findAll();
             Map<String, Brand> codeMap = allBrands.stream()
@@ -76,7 +71,8 @@ public class BrandService {
             int rowIndex = 1;
             for (BrandCsvDTO dto : dtos) {
                 rowIndex++;
-                if (dto == null) continue;
+                if (dto == null)
+                    continue;
 
                 try {
                     Set<ConstraintViolation<BrandCsvDTO>> violations = validator.validate(dto);
@@ -119,10 +115,12 @@ public class BrandService {
 
             if (!brandsToSave.isEmpty()) {
                 brandRepository.saveAll(brandsToSave);
-                activityLogService.log(1L, "admin@example.com", "IMPORT_BRANDS", "BRANDS", "Imported " + brandsToSave.size() + " brands");
+                activityLogService.log(1L, "admin@example.com", "IMPORT_BRANDS", "BRANDS",
+                        "Imported " + brandsToSave.size() + " brands");
             }
 
-            csvToBean.getCapturedExceptions().forEach(e -> errors.add("Line " + e.getLineNumber() + ": " + e.getMessage()));
+            csvToBean.getCapturedExceptions()
+                    .forEach(e -> errors.add("Line " + e.getLineNumber() + ": " + e.getMessage()));
         }
         return errors;
     }

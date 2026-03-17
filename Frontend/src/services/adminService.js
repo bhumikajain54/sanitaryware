@@ -46,8 +46,7 @@ export const importProducts = (file) => {
     formData.append('file', file);
     return apiCall('/admin/products/import', {
         method: 'POST',
-        body: formData,
-        headers: { 'Content-Type': undefined }
+        body: formData
     });
 };
 
@@ -59,7 +58,7 @@ export const toggleProductStatus = (id, active) => apiCall(`/admin/products/${id
     params: { active }
 });
 
-export const bulkStockUpdate = (quantity) => apiCall('/admin/products/bulk/stock-update', {
+export const bulkStockUpdate = (quantity) => apiCall('/admin/products/bulk-update', {
     method: 'POST',
     params: { quantity }
 });
@@ -91,8 +90,7 @@ export const deleteBrand = (id) => apiCall(`/admin/brands/${id}`, {
 
 export const importBrands = (formData) => apiCall('/admin/brands/import', {
     method: 'POST',
-    body: formData,
-    headers: { 'Content-Type': undefined }
+    body: formData
 });
 
 export const exportBrands = () => apiCall('/admin/brands/export', { responseType: 'blob' });
@@ -123,8 +121,7 @@ export const importCategories = (file) => {
     formData.append('file', file);
     return apiCall('/admin/categories/import', {
         method: 'POST',
-        body: formData,
-        headers: { 'Content-Type': undefined }
+        body: formData
     });
 };
 
@@ -171,8 +168,7 @@ export const importCustomers = (file) => {
     formData.append('file', file);
     return apiCall('/admin/users/import', {
         method: 'POST',
-        body: formData,
-        headers: { 'Content-Type': undefined }
+        body: formData
     });
 };
 
@@ -207,14 +203,12 @@ export const deleteInquiry = (id) => apiCall(`/contact/admin/contact-messages/${
 export const getMediaFiles = () => apiCall('/media');
 export const uploadMedia = (formData) => apiCall('/media/upload', {
     method: 'POST',
-    body: formData,
-    headers: { 'Content-Type': undefined }
+    body: formData
 });
 
 export const uploadMultipleMedia = (formData) => apiCall('/media/upload-multiple', {
     method: 'POST',
-    body: formData,
-    headers: { 'Content-Type': undefined }
+    body: formData
 });
 
 export const deleteMedia = (id) => apiCall(`/media/${id}`, { method: 'DELETE' });
@@ -257,8 +251,7 @@ export const importTestimonials = (file) => {
     formData.append('file', file);
     return apiCall('/testimonials/admin/import', {
         method: 'POST',
-        body: formData,
-        headers: { 'Content-Type': undefined }
+        body: formData
     });
 };
 
@@ -287,8 +280,7 @@ export const importBanners = (file) => {
     formData.append('file', file);
     return apiCall('/banners/admin/import', {
         method: 'POST',
-        body: formData,
-        headers: { 'Content-Type': undefined }
+        body: formData
     });
 };
 

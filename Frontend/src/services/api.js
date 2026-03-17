@@ -41,7 +41,9 @@ api.interceptors.request.use(
         }
 
         // 4. Handle Content-Type for non-FormData objects
-        if (config.data && !(config.data instanceof FormData) && typeof config.data === 'object') {
+        if (config.data instanceof FormData) {
+            delete config.headers['Content-Type'];
+        } else if (config.data && typeof config.data === 'object' && Object.keys(config.data).length > 0) {
             config.headers['Content-Type'] = 'application/json';
         }
 

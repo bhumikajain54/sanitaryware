@@ -23,7 +23,7 @@ public class AdminCategoryController {
     }
 
     @PostMapping("/import")
-    public ResponseEntity<List<String>> importCategories(@RequestParam("file") MultipartFile file) throws Exception {
+    public ResponseEntity<List<String>> importCategories(@RequestPart("file") MultipartFile file) throws Exception {
         List<String> errors = categoryService.importCategories(file);
         return ResponseEntity.ok(errors);
     }

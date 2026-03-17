@@ -26,7 +26,8 @@ public class AdminProductController {
     }
 
     @PostMapping("/import")
-    public ResponseEntity<List<String>> importProducts(@RequestParam("file") MultipartFile file) throws Exception {
+    public ResponseEntity<List<String>> importProducts(@RequestPart("file") MultipartFile file) throws Exception {
+        log.info("📥 Received product import request for file: {}", file.getOriginalFilename());
         List<String> errors = productService.importProducts(file);
         return ResponseEntity.ok(errors);
     }

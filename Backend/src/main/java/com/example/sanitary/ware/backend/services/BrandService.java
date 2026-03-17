@@ -11,7 +11,12 @@ import com.opencsv.bean.CsvToBeanBuilder;
 import com.opencsv.bean.HeaderColumnNameMappingStrategy;
 import com.opencsv.bean.StatefulBeanToCsv;
 import com.opencsv.bean.StatefulBeanToCsvBuilder;
-import com.lowagie.text.*;
+import com.lowagie.text.Document;
+import com.lowagie.text.Font;
+import com.lowagie.text.FontFactory;
+import com.lowagie.text.PageSize;
+import com.lowagie.text.Paragraph;
+import com.lowagie.text.Phrase;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
@@ -27,8 +32,8 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -43,8 +48,11 @@ public class BrandService {
     private final Validator validator;
     private final ActivityLogService activityLogService;
 
+    @Transactional
     public List<String> importBrands(MultipartFile file) throws Exception {
         List<String> errors = new ArrayList<>();
+        List<Brand> brandsToSave = new ArrayList<>();
+        
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
             HeaderColumnNameMappingStrategy<BrandCsvDTO> strategy = new HeaderColumnNameMappingStrategy<>();
             strategy.setType(BrandCsvDTO.class);
@@ -55,74 +63,66 @@ public class BrandService {
                     .withThrowExceptions(false)
                     .build();
 
-            Iterator<BrandCsvDTO> iterator = csvToBean.iterator();
+            List<BrandCsvDTO> dtos = csvToBean.parse();
+            
+            // Pre-fetch all brands for performance
+            List<Brand> allBrands = brandRepository.findAll();
+            Map<String, Brand> codeMap = allBrands.stream()
+                    .filter(b -> b.getCode() != null)
+                    .collect(Collectors.toMap(Brand::getCode, b -> b, (e1, e2) -> e1));
+            Map<String, Brand> nameMap = allBrands.stream()
+                    .collect(Collectors.toMap(b -> b.getName().toLowerCase(), b -> b, (e1, e2) -> e1));
 
-            int rowIndex = 1; // Header is line 1
-            while (iterator.hasNext()) {
+            int rowIndex = 1;
+            for (BrandCsvDTO dto : dtos) {
                 rowIndex++;
-                BrandCsvDTO dto = null;
-                try {
-                    dto = iterator.next();
-                } catch (Exception e) {
-                    errors.add("Row " + rowIndex + ": Parsing error - " + e.getMessage());
-                    continue;
-                }
-
-                if (dto == null)
-                    continue;
+                if (dto == null) continue;
 
                 try {
                     Set<ConstraintViolation<BrandCsvDTO>> violations = validator.validate(dto);
                     if (!violations.isEmpty()) {
-                        String errorMessage = violations.stream()
-                                .map(ConstraintViolation::getMessage)
-                                .collect(Collectors.joining(", "));
-                        errors.add("Row " + rowIndex + ": " + errorMessage);
+                        errors.add("Row " + rowIndex + ": " + violations.iterator().next().getMessage());
                         continue;
                     }
 
-                    final BrandCsvDTO currentDto = dto;
                     String normalizedName = dto.getName().trim();
-                    String normalizedCode = dto.getCode().trim();
+                    String normalizedCode = dto.getCode() != null ? dto.getCode().trim() : generateCode(normalizedName);
 
-                    // Check by code first, then by name (ignore case)
-                    Optional<Brand> existingByCode = brandRepository.findByCode(normalizedCode);
-                    Optional<Brand> existingByName = existingByCode.isEmpty()
-                            ? brandRepository.findByNameIgnoreCase(normalizedName)
-                            : Optional.empty();
+                    Brand brand = codeMap.get(normalizedCode);
+                    if (brand == null) {
+                        brand = nameMap.get(normalizedName.toLowerCase());
+                    }
 
-                    if (existingByCode.isPresent()) {
-                        Brand existing = existingByCode.get();
-                        existing.setName(normalizedName);
-                        existing.setDescription(currentDto.getDescription());
-                        existing.setCountry(currentDto.getCountry());
-                        existing.setStatus(currentDto.getStatus());
-                        brandRepository.save(existing);
-                    } else if (existingByName.isPresent()) {
-                        Brand existing = existingByName.get();
-                        existing.setCode(normalizedCode);
-                        existing.setDescription(currentDto.getDescription());
-                        existing.setCountry(currentDto.getCountry());
-                        existing.setStatus(currentDto.getStatus());
-                        brandRepository.save(existing);
+                    if (brand != null) {
+                        brand.setName(normalizedName);
+                        brand.setDescription(dto.getDescription());
+                        brand.setCountry(dto.getCountry());
+                        brand.setStatus(dto.getStatus());
                     } else {
-                        Brand newBrand = Brand.builder()
+                        brand = Brand.builder()
                                 .name(normalizedName)
                                 .code(normalizedCode)
-                                .description(currentDto.getDescription())
-                                .country(currentDto.getCountry())
-                                .status(currentDto.getStatus())
+                                .description(dto.getDescription())
+                                .country(dto.getCountry())
+                                .status(dto.getStatus())
                                 .build();
-                        brandRepository.save(newBrand);
+                        // Add to maps so subsequent rows can find it
+                        nameMap.put(normalizedName.toLowerCase(), brand);
+                        codeMap.put(normalizedCode, brand);
                     }
+                    brandsToSave.add(brand);
+
                 } catch (Exception e) {
                     errors.add("Row " + rowIndex + ": " + e.getMessage());
                 }
             }
 
-            // Capture any remaining exceptions from the bean builder itself
-            csvToBean.getCapturedExceptions()
-                    .forEach(e -> errors.add("Line " + e.getLineNumber() + ": " + e.getMessage()));
+            if (!brandsToSave.isEmpty()) {
+                brandRepository.saveAll(brandsToSave);
+                activityLogService.log(1L, "admin@example.com", "IMPORT_BRANDS", "BRANDS", "Imported " + brandsToSave.size() + " brands");
+            }
+
+            csvToBean.getCapturedExceptions().forEach(e -> errors.add("Line " + e.getLineNumber() + ": " + e.getMessage()));
         }
         return errors;
     }

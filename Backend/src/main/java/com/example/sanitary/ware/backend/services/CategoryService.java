@@ -24,8 +24,8 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.transaction.annotation.Propagation;
@@ -39,8 +39,11 @@ public class CategoryService {
     private final ActivityLogService activityLogService;
     private final Validator validator;
 
+    @Transactional
     public List<String> importCategories(MultipartFile file) throws Exception {
         List<String> errors = new ArrayList<>();
+        List<Category> categoriesToSave = new ArrayList<>();
+
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
             HeaderColumnNameMappingStrategy<CategoryCsvDTO> strategy = new HeaderColumnNameMappingStrategy<>();
             strategy.setType(CategoryCsvDTO.class);
@@ -51,41 +54,54 @@ public class CategoryService {
                     .withThrowExceptions(false)
                     .build();
 
-            Iterator<CategoryCsvDTO> iterator = csvToBean.iterator();
+            List<CategoryCsvDTO> dtos = csvToBean.parse();
+
+            // Pre-fetch all categories for performance
+            List<Category> allCategories = categoryRepository.findAll();
+            Map<String, Category> nameMap = allCategories.stream()
+                    .collect(Collectors.toMap(c -> c.getName().toLowerCase(), c -> c, (e1, e2) -> e1));
 
             int rowIndex = 1;
-            while (iterator.hasNext()) {
+            for (CategoryCsvDTO dto : dtos) {
                 rowIndex++;
-                CategoryCsvDTO dto = null;
-                try {
-                    dto = iterator.next();
-                } catch (Exception e) {
-                    errors.add("Row " + rowIndex + ": Parsing error - " + e.getMessage());
-                    continue;
-                }
-
                 if (dto == null)
                     continue;
 
-                Set<ConstraintViolation<CategoryCsvDTO>> violations = validator.validate(dto);
-                if (!violations.isEmpty()) {
-                    String errorMessage = violations.stream()
-                            .map(ConstraintViolation::getMessage)
-                            .collect(Collectors.joining(", "));
-                    errors.add("Row " + rowIndex + ": " + errorMessage);
-                    continue;
-                }
-
                 try {
-                    Category category = categoryRepository.findByName(dto.getName()).orElse(new Category());
-                    category.setName(dto.getName());
-                    category.setDescription(dto.getDescription());
-                    category.setImage(dto.getImage());
-                    categoryRepository.save(category);
+                    Set<ConstraintViolation<CategoryCsvDTO>> violations = validator.validate(dto);
+                    if (!violations.isEmpty()) {
+                        errors.add("Row " + rowIndex + ": " + violations.iterator().next().getMessage());
+                        continue;
+                    }
+
+                    String normalizedName = dto.getName().trim();
+                    Category category = nameMap.get(normalizedName.toLowerCase());
+
+                    if (category != null) {
+                        category.setName(normalizedName);
+                        category.setDescription(dto.getDescription());
+                        category.setImage(dto.getImage());
+                    } else {
+                        category = new Category();
+                        category.setName(normalizedName);
+                        category.setDescription(dto.getDescription());
+                        category.setImage(dto.getImage());
+                        // Add to map so subsequent rows can find it
+                        nameMap.put(normalizedName.toLowerCase(), category);
+                    }
+                    categoriesToSave.add(category);
+
                 } catch (Exception e) {
                     errors.add("Row " + rowIndex + ": " + e.getMessage());
                 }
             }
+
+            if (!categoriesToSave.isEmpty()) {
+                categoryRepository.saveAll(categoriesToSave);
+                activityLogService.log(1L, "admin@example.com", "IMPORT_CATEGORIES", "CATEGORIES",
+                        "Imported " + categoriesToSave.size() + " categories");
+            }
+
             csvToBean.getCapturedExceptions()
                     .forEach(e -> errors.add("Line " + e.getLineNumber() + ": " + e.getMessage()));
         }

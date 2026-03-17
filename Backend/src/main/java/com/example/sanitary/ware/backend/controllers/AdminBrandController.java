@@ -31,7 +31,7 @@ public class AdminBrandController {
     }
 
     @PostMapping("/import")
-    public ResponseEntity<List<String>> importBrands(@RequestParam("file") MultipartFile file) throws Exception {
+    public ResponseEntity<List<String>> importBrands(@RequestPart("file") MultipartFile file) throws Exception {
         List<String> errors = brandService.importBrands(file);
         return ResponseEntity.ok(errors);
     }

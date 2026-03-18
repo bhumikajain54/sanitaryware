@@ -1,20 +1,20 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  MdSearch, 
-  MdRefresh, 
-  MdFilterList, 
-  MdMail, 
+import {
+  MdSearch,
+  MdRefresh,
+  MdFilterList,
+  MdMail,
   MdPhone,
   MdPeople,
   MdCheckCircle,
   MdCancel,
   MdFileUpload
 } from 'react-icons/md';
-import { 
-  useAdminFetch, 
-  useAdminSearch, 
-  useAdminPagination, 
+import {
+  useAdminFetch,
+  useAdminSearch,
+  useAdminPagination,
   useAdminToast,
   useAdminModal
 } from '../../hooks/useAdmin';
@@ -28,7 +28,7 @@ const AdminCustomers = () => {
   const navigate = useNavigate();
   const { success, error } = useAdminToast();
   const { isOpen, modalData, openModal, closeModal } = useAdminModal();
-  
+
   // Data fetching
   const fetchCustomers = useCallback(() => adminService.getAdminCustomers(), []);
   const { data: initialCustomers, loading, refetch } = useAdminFetch(
@@ -39,46 +39,46 @@ const AdminCustomers = () => {
   // Data normalization and filtering only for customers
   const customerList = useMemo(() => {
     if (!initialCustomers) return [];
-    
+
     // DEBUG: Log the full raw response for inspection
     console.log('📦 AdminCustomers Raw Data Received:', initialCustomers);
 
     let list = [];
     if (Array.isArray(initialCustomers)) {
-        list = initialCustomers;
+      list = initialCustomers;
     } else if (initialCustomers && typeof initialCustomers === 'object') {
-        // Support a wide variety of backend response wrappers
-        list = initialCustomers.users || 
-               initialCustomers.content || 
-               initialCustomers.data || 
-               initialCustomers.items || 
-               initialCustomers.list ||
-               initialCustomers.body ||
-               (initialCustomers._embedded && (initialCustomers._embedded.users || initialCustomers._embedded.customers)) ||
-               [];
-               
-        // If still empty but object has keys, try to find ANY array in the object
-        if (list.length === 0) {
-            const possibleList = Object.values(initialCustomers).find(val => Array.isArray(val));
-            if (possibleList) list = possibleList;
-        }
+      // Support a wide variety of backend response wrappers
+      list = initialCustomers.users ||
+        initialCustomers.content ||
+        initialCustomers.data ||
+        initialCustomers.items ||
+        initialCustomers.list ||
+        initialCustomers.body ||
+        (initialCustomers._embedded && (initialCustomers._embedded.users || initialCustomers._embedded.customers)) ||
+        [];
+
+      // If still empty but object has keys, try to find ANY array in the object
+      if (list.length === 0) {
+        const possibleList = Object.values(initialCustomers).find(val => Array.isArray(val));
+        if (possibleList) list = possibleList;
+      }
     }
 
     if (list.length > 0) {
-        console.log(`✅ Found ${list.length} total users. Filtering for customers...`);
+      console.log(`✅ Found ${list.length} total users. Filtering for customers...`);
     } else {
-        console.warn('⚠️ User list is empty after checking all common keys.', initialCustomers);
+      console.warn('⚠️ User list is empty after checking all common keys.', initialCustomers);
     }
-    
+
     // Strict filter to only show CUSTOMERS on this page
     const filtered = list.filter(user => {
       const role = String(user.role || '').toUpperCase().trim();
-      return role === 'CUSTOMER' || role === 'ROLE_CUSTOMER' || role.includes('CUSTOMER') || 
-             role === 'USER' || role === 'ROLE_USER';
+      return role === 'CUSTOMER' || role === 'ROLE_CUSTOMER' || role.includes('CUSTOMER') ||
+        role === 'USER' || role === 'ROLE_USER';
     });
 
     console.log(`👤 Identified ${filtered.length} customers from the list.`);
-    
+
     // Log a sample customer to see the exact structure
     if (filtered.length > 0) {
       console.log('📋 Sample Customer Object (with backend stats):', filtered[0]);
@@ -88,7 +88,7 @@ const AdminCustomers = () => {
       console.log('� Last Order Date:', filtered[0].lastOrderDate);
       console.log('🏠 Address Count:', filtered[0].addressCount);
     }
-    
+
     return filtered;
   }, [initialCustomers]);
 
@@ -142,12 +142,12 @@ const AdminCustomers = () => {
   } = useAdminFilter(searchedCustomers, filterConfig);
 
   // Pagination - use filtered customers
-  const { 
-    currentItems: customers, 
-    currentPage, 
-    totalPages, 
-    goToPage, 
-    nextPage, 
+  const {
+    currentItems: customers,
+    currentPage,
+    totalPages,
+    goToPage,
+    nextPage,
     prevPage,
     hasNextPage,
     hasPrevPage,
@@ -212,7 +212,7 @@ const AdminCustomers = () => {
               <MdFileUpload className="text-lg sm:text-xl" />
               <span className="hidden sm:inline">Import</span>
             </label>
-             <button
+            <button
               onClick={handleExport}
               className="inline-flex items-center gap-1 sm:gap-2 px-2.5 py-1.5 sm:px-6 sm:py-2.5 bg-[var(--admin-bg-secondary)] border-2 border-[var(--border-main)] text-[var(--admin-text-secondary)] font-bold rounded-lg sm:rounded-xl hover:bg-[var(--admin-bg-primary)] transition-all text-[9px] sm:text-xs uppercase tracking-widest whitespace-nowrap shadow-sm active:scale-95"
             >
@@ -233,9 +233,9 @@ const AdminCustomers = () => {
               className="w-full pl-7 sm:pl-11 pr-2 sm:pr-4 py-1.5 sm:py-3 bg-[var(--admin-bg-primary)] border-2 border-transparent focus:border-teal-500 dark:focus:border-teal-500 rounded-lg sm:rounded-xl outline-none transition-all dark:text-white text-[10px] sm:text-sm font-medium"
             />
           </div>
-          
+
           <div className="flex items-center gap-1.5 sm:gap-3">
-            <button 
+            <button
               onClick={toggleFilters}
               className="flex items-center justify-center gap-1 sm:gap-2 px-2.5 py-1.5 sm:px-5 sm:py-3 border-2 border-[var(--border-subtle)] text-[var(--admin-text-secondary)] font-bold rounded-lg sm:rounded-xl hover:bg-[var(--admin-bg-primary)] transition-all text-[9px] sm:text-xs uppercase tracking-widest shadow-sm relative"
             >
@@ -293,42 +293,42 @@ const AdminCustomers = () => {
                       {/* Customer Info with Image */}
                       <td className="px-4 sm:px-6 py-4 sm:py-6 text-left whitespace-nowrap">
                         <div className="flex items-center gap-2 sm:gap-4">
-                           <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-tr from-teal-400 to-cyan-500 rounded-2xl flex items-center justify-center text-white font-black text-sm sm:text-lg shadow-lg shadow-teal-500/30 group-hover:scale-105 transition-transform duration-300">
-                             {/* Placeholder icon if no image */}
-                             {customer.image ? (
-                               <img src={customer.image} alt="" className="w-full h-full object-cover rounded-2xl" />
-                             ) : (
-                               (() => {
-                                 const firstName = customer.firstName || '';
-                                 const fullName = customer.name || customer.fullName || '';
-                                 const email = customer.email || customer.username || '';
-                                 
-                                 if (firstName) return firstName.charAt(0).toUpperCase();
-                                 if (fullName) return fullName.charAt(0).toUpperCase();
-                                 if (email) return email.charAt(0).toUpperCase();
-                                 return 'U';
-                               })()
-                             )}
-                           </div>
-                           <div className="flex flex-col">
-                             <span className="font-extrabold text-[var(--admin-text-primary)] text-xs sm:text-sm uppercase tracking-tight group-hover:text-teal-600 transition-colors">
-                               {(() => {
-                                 const firstName = customer.firstName || '';
-                                 const lastName = customer.lastName || '';
-                                 const fullName = customer.name || customer.fullName || '';
-                                 const email = customer.email || customer.username || '';
-                                 
-                                 // Build display name with priority
-                                 if (firstName || lastName) {
-                                   return `${firstName} ${lastName}`.trim() || 'Unknown User';
-                                 }
-                                 if (fullName) return fullName;
-                                 if (email) return email.split('@')[0];
-                                 return 'Unknown User';
-                               })()}
-                             </span>
-                             <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Customer</span>
-                           </div>
+                          <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-tr from-teal-400 to-cyan-500 rounded-2xl flex items-center justify-center text-white font-black text-sm sm:text-lg shadow-lg shadow-teal-500/30 group-hover:scale-105 transition-transform duration-300">
+                            {/* Placeholder icon if no image */}
+                            {customer.image ? (
+                              <img src={customer.image} alt="" className="w-full h-full object-cover rounded-2xl" />
+                            ) : (
+                              (() => {
+                                const firstName = customer.firstName || '';
+                                const fullName = customer.name || customer.fullName || '';
+                                const email = customer.email || customer.username || '';
+
+                                if (firstName) return firstName.charAt(0).toUpperCase();
+                                if (fullName) return fullName.charAt(0).toUpperCase();
+                                if (email) return email.charAt(0).toUpperCase();
+                                return 'U';
+                              })()
+                            )}
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="font-extrabold text-[var(--admin-text-primary)] text-xs sm:text-sm uppercase tracking-tight group-hover:text-teal-600 transition-colors">
+                              {(() => {
+                                const firstName = customer.firstName || '';
+                                const lastName = customer.lastName || '';
+                                const fullName = customer.name || customer.fullName || '';
+                                const email = customer.email || customer.username || '';
+
+                                // Build display name with priority
+                                if (firstName || lastName) {
+                                  return `${firstName} ${lastName}`.trim() || 'Unknown User';
+                                }
+                                if (fullName) return fullName;
+                                if (email) return email.split('@')[0];
+                                return 'Unknown User';
+                              })()}
+                            </span>
+                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Customer</span>
+                          </div>
                         </div>
                       </td>
 
@@ -336,16 +336,16 @@ const AdminCustomers = () => {
                       <td className="px-4 sm:px-6 py-4 sm:py-6 whitespace-nowrap">
                         <div className="flex flex-col gap-1.5">
                           <div className="flex items-center gap-2.5 group/link">
-                             <div className="w-5 h-5 rounded-md bg-teal-50 dark:bg-teal-900/20 flex items-center justify-center">
-                               <MdMail className="text-teal-500 text-[10px] sm:text-xs" />
-                             </div>
-                             <span className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 lowercase">{customer.email}</span>
+                            <div className="w-5 h-5 rounded-md bg-teal-50 dark:bg-teal-900/20 flex items-center justify-center">
+                              <MdMail className="text-teal-500 text-[10px] sm:text-xs" />
+                            </div>
+                            <span className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 lowercase">{customer.email}</span>
                           </div>
                           <div className="flex items-center gap-2.5 group/link">
-                             <div className="w-5 h-5 rounded-md bg-cyan-50 dark:bg-cyan-900/20 flex items-center justify-center">
-                               <MdPhone className="text-cyan-500 text-[10px] sm:text-xs" />
-                             </div>
-                             <span className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400">{customer.phone || 'No phone'}</span>
+                            <div className="w-5 h-5 rounded-md bg-cyan-50 dark:bg-cyan-900/20 flex items-center justify-center">
+                              <MdPhone className="text-cyan-500 text-[10px] sm:text-xs" />
+                            </div>
+                            <span className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400">{customer.phone || 'No phone'}</span>
                           </div>
                         </div>
                       </td>
@@ -355,12 +355,12 @@ const AdminCustomers = () => {
                         <span className="inline-flex items-center px-3 py-1.5 bg-teal-50/80 dark:bg-teal-900/10 text-teal-600 dark:text-teal-400 rounded-xl text-[10px] font-black uppercase tracking-widest border border-teal-100/50 dark:border-teal-800/30">
                           {(() => {
                             // Try multiple possible field names for order count
-                            const orderCount = customer.orders || 
-                                             customer.totalOrders || 
-                                             customer.orderCount || 
-                                             customer.order_count || 
-                                             customer.total_orders || 
-                                             0;
+                            const orderCount = customer.orders ||
+                              customer.totalOrders ||
+                              customer.orderCount ||
+                              customer.order_count ||
+                              customer.total_orders ||
+                              0;
                             return `${orderCount} ORDER${orderCount !== 1 ? 'S' : ''}`;
                           })()}
                         </span>
@@ -371,12 +371,12 @@ const AdminCustomers = () => {
                         <span className="font-black text-slate-700 dark:text-slate-300 text-xs sm:text-sm">
                           {(() => {
                             // Try multiple possible field names for total spent
-                            const spent = customer.totalSpent || 
-                                        customer.total_spent || 
-                                        customer.totalAmount || 
-                                        customer.total_amount || 
-                                        0;
-                            
+                            const spent = customer.totalSpent ||
+                              customer.total_spent ||
+                              customer.totalAmount ||
+                              customer.total_amount ||
+                              0;
+
                             // Format as currency if it's a number
                             if (typeof spent === 'number') {
                               return `₹${spent.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -388,25 +388,24 @@ const AdminCustomers = () => {
 
                       {/* Status */}
                       <td className="px-4 sm:px-6 py-4 sm:py-6 whitespace-nowrap">
-                         {(() => {
-                            const status = String(customer.status || '').toLowerCase().trim();
-                            const isActive = status === 'active' || customer.active === true || (!customer.status && customer.active !== false);
-                            
-                            return (
-                              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all ${
-                                isActive 
-                                ? 'bg-green-50 dark:bg-green-900/20 text-green-600 border-green-100/50 font-black' 
+                        {(() => {
+                          const status = String(customer.status || '').toLowerCase().trim();
+                          const isActive = status === 'active' || customer.active === true || (!customer.status && customer.active !== false);
+
+                          return (
+                            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all ${isActive
+                                ? 'bg-green-50 dark:bg-green-900/20 text-green-600 border-green-100/50 font-black'
                                 : 'bg-red-50 dark:bg-red-900/10 text-red-500 border-red-100/50 font-black'
                               }`}>
-                                {isActive ? (
-                                  <MdCheckCircle className="text-sm" />
-                                ) : (
-                                  <MdCancel className="text-sm" />
-                                )}
-                                <span className="text-[10px] uppercase tracking-widest">{isActive ? 'Active' : 'Inactive'}</span>
-                              </div>
-                            );
-                         })()}
+                              {isActive ? (
+                                <MdCheckCircle className="text-sm" />
+                              ) : (
+                                <MdCancel className="text-sm" />
+                              )}
+                              <span className="text-[10px] uppercase tracking-widest">{isActive ? 'Active' : 'Inactive'}</span>
+                            </div>
+                          );
+                        })()}
                       </td>
 
                       {/* Joined Date */}
@@ -418,7 +417,7 @@ const AdminCustomers = () => {
 
                       {/* Manage Button */}
                       <td className="px-4 sm:px-6 py-4 sm:py-6 text-right whitespace-nowrap">
-                        <button 
+                        <button
                           onClick={() => openModal(customer)}
                           className="px-6 py-2.5 bg-teal-600 text-white font-black rounded-xl hover:bg-teal-700 transition-all text-[10px] uppercase tracking-widest shadow-lg shadow-teal-500/20 active:scale-95 leading-none"
                         >

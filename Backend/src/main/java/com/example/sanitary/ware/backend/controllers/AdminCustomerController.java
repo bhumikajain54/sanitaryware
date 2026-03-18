@@ -22,7 +22,7 @@ public class AdminCustomerController {
 
     @GetMapping
     public ResponseEntity<List<CustomerDetailDTO>> getAllCustomers() {
-        List<User> users = userRepository.findByRole(Role.CUSTOMER);
+        List<User> users = userRepository.findByRoleIn(java.util.Arrays.asList(Role.USER, Role.CUSTOMER));
         List<CustomerDetailDTO> customerDetails = users.stream()
                 .map(user -> customerService.getCustomerDetails(user.getId()))
                 .collect(Collectors.toList());

@@ -48,10 +48,12 @@ public class Address {
     @JsonProperty("isDefault")
     private Boolean isDefaultAddress = false;
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public Boolean isDefault() {
         return Boolean.TRUE.equals(this.isDefaultAddress);
     }
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public void setIsDefault(Boolean isDefault) {
         this.isDefaultAddress = isDefault;
     }

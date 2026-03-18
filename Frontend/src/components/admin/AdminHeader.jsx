@@ -45,7 +45,7 @@ const AdminHeader = ({ toggleSidebar }) => {
 
   const handleLogout = () => {
     logout();
-    navigate('/customer/login');
+    navigate('/');
   };
 
   // Fetch notifications

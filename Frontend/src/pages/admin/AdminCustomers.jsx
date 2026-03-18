@@ -73,7 +73,8 @@ const AdminCustomers = () => {
     // Strict filter to only show CUSTOMERS on this page
     const filtered = list.filter(user => {
       const role = String(user.role || '').toUpperCase().trim();
-      return role === 'CUSTOMER' || role === 'ROLE_CUSTOMER' || role.includes('CUSTOMER');
+      return role === 'CUSTOMER' || role === 'ROLE_CUSTOMER' || role.includes('CUSTOMER') || 
+             role === 'USER' || role === 'ROLE_USER';
     });
 
     console.log(`👤 Identified ${filtered.length} customers from the list.`);

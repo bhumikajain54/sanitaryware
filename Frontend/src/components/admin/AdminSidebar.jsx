@@ -88,7 +88,7 @@ const AdminSidebar = ({ isMobileOpen, onMobileClose, onMobileToggle }) => {
 
   const handleLogout = () => {
     logout();
-    navigate('/customer/login');
+    navigate('/');
   };
 
   const isExpanded = (isDesktop && isHovered) || isMobileOpen;

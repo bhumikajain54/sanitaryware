@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   MdHome, 
@@ -20,6 +20,7 @@ import { useAuth } from '../../context/AuthContext';
 const CustomerSidebar = ({ isMobileOpen, onMobileClose, onMobileToggle }) => {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
 
@@ -32,6 +33,11 @@ const CustomerSidebar = ({ isMobileOpen, onMobileClose, onMobileToggle }) => {
   useEffect(() => {
     if (isMobileOpen) onMobileClose();
   }, [location.pathname]);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   const prefetchRoute = (path) => {
     const routes = {
@@ -142,7 +148,7 @@ const CustomerSidebar = ({ isMobileOpen, onMobileClose, onMobileToggle }) => {
       {/* Logout / Bottom Action */}
       <div className="p-4 border-t border-[var(--border-subtle)]">
         <button
-          onClick={logout}
+          onClick={handleLogout}
           className={`w-full flex items-center gap-4 ${isExpanded ? 'px-4' : 'px-0 justify-center'} py-3 rounded-xl text-[var(--text-muted)] hover:bg-rose-500/10 hover:text-rose-600 transition-all group`}
         >
           <MdLogout className="text-xl shrink-0" />

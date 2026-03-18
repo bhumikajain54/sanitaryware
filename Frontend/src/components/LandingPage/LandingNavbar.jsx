@@ -123,7 +123,10 @@ const LandingNavbar = () => {
                       Dashboard
                     </Link>
                     <button
-                      onClick={logout}
+                      onClick={() => {
+                        logout();
+                        navigate('/');
+                      }}
                       className="text-[10px] md:text-sm text-red-600 font-semibold hover:underline"
                     >
                       Logout
@@ -193,6 +196,7 @@ const LandingNavbar = () => {
                       onClick={() => {
                         logout();
                         setIsMenuOpen(false);
+                        navigate('/');
                       }}
                       className="w-full px-4 py-3 bg-red-50 text-red-600 rounded-xl font-bold"
                     >

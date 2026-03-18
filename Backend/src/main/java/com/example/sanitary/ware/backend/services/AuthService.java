@@ -109,21 +109,33 @@ public class AuthService {
 
         private User verifyGoogleToken(String token) {
                 try {
+                        System.out.println("🔍 Verifying Google token: " + (token.length() > 20 ? token.substring(0, 20) + "..." : token));
                         String url;
                         // id_tokens are usually JWTs (3 parts)
                         if (token.contains(".") && token.split("\\.").length == 3) {
+                                System.out.println("✅ Detected ID Token format");
                                 url = "https://oauth2.googleapis.com/tokeninfo?id_token=" + token;
                         } else {
+                                System.out.println("📝 Detected Access Token format");
                                 url = "https://www.googleapis.com/oauth2/v3/userinfo?access_token=" + token;
                         }
+                        
+                        System.out.println("🔗 Calling Google API URL: " + url.split("\\?")[0]);
 
                         org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
                         java.util.Map<?, ?> response = restTemplate.getForObject(url, java.util.Map.class);
 
-                        if (response == null || response.containsKey("error")) {
-                                throw new RuntimeException("Invalid Google token");
+                        if (response == null) {
+                                System.out.println("❌ Google API returned null response");
+                                throw new RuntimeException("Empty response from Google");
+                        }
+                        
+                        if (response.containsKey("error")) {
+                                System.out.println("❌ Google API error: " + response.get("error"));
+                                throw new RuntimeException("Invalid Google token: " + response.get("error"));
                         }
 
+                        System.out.println("✅ Google Auth Successful for: " + response.get("email"));
                         String email = (String) response.get("email");
                         String firstName = (String) (response.containsKey("given_name") ? response.get("given_name")
                                         : response.get("name"));
@@ -131,6 +143,7 @@ public class AuthService {
 
                         return getOrCreateUser(email, firstName, lastName);
                 } catch (Exception e) {
+                        System.out.println("❌ Google Auth Exception: " + e.getMessage());
                         throw new RuntimeException("Google authentication failed: " + e.getMessage());
                 }
         }

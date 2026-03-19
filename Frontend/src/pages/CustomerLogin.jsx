@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { GoogleOAuthProvider, GoogleLogin, useGoogleLogin } from '@react-oauth/google';
-import { FacebookLogin } from 'react-facebook-login-lite';
+import { GoogleOAuthProvider, useGoogleLogin } from '@react-oauth/google';
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { checkAdminExists, registerAdmin } from '../services/authService';
@@ -12,15 +11,187 @@ import {
   MdPerson, 
   MdVisibility, 
   MdVisibilityOff,
-  MdCheckCircle,
   MdArrowBack,
   MdPhone,
   MdAdminPanelSettings,
   MdShield
 } from 'react-icons/md';
 
-// mode: 'login' | 'register' | 'adminSetup'
+// --- Sub-Components ---
+
+const MagneticButton = ({ children }) => {
+    const x = useMotionValue(0);
+    const y = useMotionValue(0);
+    const springX = useSpring(x, { stiffness: 150, damping: 15 });
+    const springY = useSpring(y, { stiffness: 150, damping: 15 });
+
+    const handleMouseMove = (e) => {
+        const { clientX, clientY, currentTarget } = e;
+        const { width, height, left, top } = currentTarget.getBoundingClientRect();
+        const middleX = clientX - (left + width / 2);
+        const middleY = clientY - (top + height / 2);
+        x.set(middleX * 0.2);
+        y.set(middleY * 0.2);
+    };
+
+    const handleMouseLeave = () => { x.set(0); y.set(0); };
+
+    return (
+        <motion.div onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} style={{ x: springX, y: springY }}>
+            {children}
+        </motion.div>
+    );
+};
+
+const InputField = ({ icon: Icon, type, name, placeholder, value, onChange, showPasswordToggle, showPassword, onTogglePassword, accent }) => {
+  const isAmber = accent === 'amber';
+  
+  return (
+    <div className="relative group perspective">
+      <div className={`absolute left-2 md:left-5 top-1/2 -translate-y-1/2 text-gray-500 transition-all duration-500 z-10 ${
+        isAmber ? 'group-focus-within:text-amber-400' : 'group-focus-within:text-teal-400'
+      } group-focus-within:scale-110`}>
+        <Icon className="text-[12px] md:text-[22px]" />
+      </div>
+      <input
+        type={type}
+        name={name}
+        value={value}
+        onChange={onChange}
+        required
+        placeholder={placeholder}
+        className={`w-full pl-6 md:pl-14 pr-6 md:pr-12 py-1.5 md:py-4 bg-white/5 border border-white/5 rounded-lg md:rounded-2xl outline-none transition-all text-white font-bold tracking-wide placeholder:text-gray-700 placeholder:font-medium text-[8px] md:text-sm ${
+          isAmber ? 'focus:border-amber-500/30 focus:bg-amber-500/5' : 'focus:border-teal-500/30 focus:bg-white/10'
+        }`}
+      />
+      {showPasswordToggle && (
+        <button type="button" onClick={onTogglePassword} className="absolute right-2 md:right-5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-all p-0.5 md:p-1 z-10">
+          {showPassword ? <MdVisibilityOff className="text-[10px] md:text-[20px]" /> : <MdVisibility className="text-[10px] md:text-[20px]" />}
+        </button>
+      )}
+    </div>
+  );
+};
+
+const PasswordStrength = ({ strength, rules, currentStrength, password }) => (
+  <motion.div 
+    initial={{ opacity: 0, x: -20 }}
+    animate={{ opacity: 1, x: 0 }}
+    className="px-2 md:px-4 py-2 md:py-4 bg-white/5 rounded-xl md:rounded-3xl space-y-2 md:space-y-4 border border-white/5 backdrop-blur-md"
+  >
+    <div className="flex justify-between items-center text-[5px] md:text-[10px] font-black uppercase tracking-[0.2em]">
+      <span className="text-gray-500">Security Index</span>
+      <span className={`${currentStrength.text} transition-colors duration-500`}>{currentStrength.label}</span>
+    </div>
+    <div className="h-0.5 md:h-1.5 w-full bg-black/40 rounded-full overflow-hidden">
+      <motion.div initial={{ width: 0 }} animate={{ width: (strength + 1) * 20 + '%' }} className={`h-full ${currentStrength.color} transition-all duration-700`} />
+    </div>
+    <div className="grid grid-cols-2 gap-x-2 md:gap-x-4 gap-y-1 md:gap-y-2">
+      {rules.map((rule, i) => {
+        const passed = rule.test(password);
+        return (
+          <div key={i} className="flex items-center gap-1 md:gap-3">
+            <div className={`w-1 h-1 md:w-2 md:h-2 rounded-full transition-all duration-500 ${passed ? "bg-teal-500 shadow-[0_0_8px_rgba(20,184,166,0.8)]" : "bg-white/10"}`} />
+            <span className={`text-[5px] md:text-[9px] font-bold uppercase tracking-wider transition-colors duration-500 ${passed ? "text-teal-300" : "text-gray-600"}`}>{rule.label}</span>
+          </div>
+        );
+      })}
+    </div>
+  </motion.div>
+);
+
+const SocialLogins = () => {
+  const { loginWithGoogle } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || '/customer/dashboard';
+
+  const loginGoogle = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      console.log('Google login success, token received:', tokenResponse.access_token ? 'Extracted' : 'Missing');
+      
+      if (!tokenResponse?.access_token) {
+        toast.error('Google failed to provide an access token');
+        console.error('Missing access token in tokenResponse:', tokenResponse);
+        return;
+      }
+
+      const toastId = toast.loading('Authenticating with Google...');
+      try {
+        const result = await loginWithGoogle(tokenResponse.access_token);
+        if (result.success) {
+          toast.success('Logged in with Google!', { id: toastId });
+          navigate(from, { replace: true });
+        } else {
+          console.error('Backend Google auth failed:', result.message);
+          toast.error(result.message || 'Google authentication failed', { id: toastId });
+        }
+      } catch (err) {
+        console.error('Google login connection error:', err);
+        toast.error('Connection failed', { id: toastId });
+      }
+    },
+    onError: (error) => {
+      console.error('Google Login Hook Error:', error);
+      toast.error('Google Sign-In failed');
+    },
+    scope: 'email profile openid',
+  });
+
+  const isGoogleConfigured = !!import.meta.env.VITE_GOOGLE_CLIENT_ID && 
+                           !import.meta.env.VITE_GOOGLE_CLIENT_ID.includes('123456789012');
+
+  return (
+    <div className="mt-2 md:mt-4 w-full">
+      <div className="flex items-center gap-2 md:gap-6 mb-1 md:mb-2 group">
+        <div className="flex-grow h-[1px] bg-white/5 group-hover:bg-teal-500/30 transition-colors duration-700"></div>
+        <span className="text-[6px] md:text-[10px] font-black text-gray-600 uppercase tracking-[0.3em]">Quick Auth</span>
+        <div className="flex-grow h-[1px] bg-white/5 group-hover:bg-teal-500/30 transition-colors duration-700"></div>
+      </div>
+      <div className="flex justify-center">
+        <button 
+          onClick={() => {
+            if (!isGoogleConfigured) {
+              toast.error('Google Client ID not configured');
+              return;
+            }
+            loginGoogle();
+          }}
+          type="button" 
+          className={`w-full max-w-xs flex items-center justify-center gap-2 md:gap-3 py-2 md:py-3.5 bg-white/5 border border-white/10 rounded-xl md:rounded-2xl text-[7px] md:text-[11px] font-black text-white hover:bg-white/10 hover:border-white/20 transition-all active:scale-95 group overflow-hidden relative shadow-lg shadow-black/20 ${!isGoogleConfigured ? 'opacity-40 grayscale cursor-not-allowed' : ''}`}
+          title={!isGoogleConfigured ? "Google ID not configured" : "Sign in with Google"}
+        >
+          <div className="w-3.5 h-3.5 md:w-5 md:h-5 z-10 bg-white rounded-full flex items-center justify-center p-0.5 md:p-1 flex-shrink-0">
+            <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-full h-full" alt="G" /> 
+          </div>
+          <span className="z-10 tracking-[0.2em] font-black uppercase">CONTINUE WITH GOOGLE</span>
+          {!isGoogleConfigured && <span className="absolute top-0 right-0 bg-red-500 text-[5px] px-1 rounded-bl-lg z-20">PENDING</span>}
+          <div className="absolute inset-0 bg-gradient-to-r from-teal-500/20 to-transparent translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500" />
+        </button>
+      </div>
+      <p className="text-center mt-4 flex items-center justify-center gap-2">
+        <Link 
+          to="/terms" 
+          className="text-[9px] font-bold text-gray-500 hover:text-white transition-all tracking-[0.2em] underline underline-offset-4 decoration-gray-800 hover:decoration-teal-500"
+        >
+          TERMS OF SERVICE
+        </Link>
+        <span className="text-[9px] font-bold text-gray-700">&</span>
+        <Link 
+          to="/privacy" 
+          className="text-[9px] font-bold text-gray-500 hover:text-white transition-all tracking-[0.2em] underline underline-offset-4 decoration-gray-800 hover:decoration-teal-500"
+        >
+          PRIVACY POLICY
+        </Link>
+      </p>
+    </div>
+  );
+};
+
+// --- Main Page Component ---
+
 const CustomerLogin = () => {
+
   const [mode, setMode] = useState('login'); // 'login' | 'register' | 'adminSetup'
   const [adminExists, setAdminExists] = useState(null); // null = checking, true/false
   const [showPassword, setShowPassword] = useState(false);
@@ -532,169 +703,22 @@ const CustomerLogin = () => {
 
 };
 
-// --- Sub-Components ---
 
-const MagneticButton = ({ children }) => {
-    const x = useMotionValue(0);
-    const y = useMotionValue(0);
-    const springX = useSpring(x, { stiffness: 150, damping: 15 });
-    const springY = useSpring(y, { stiffness: 150, damping: 15 });
-
-    const handleMouseMove = (e) => {
-        const { clientX, clientY, currentTarget } = e;
-        const { width, height, left, top } = currentTarget.getBoundingClientRect();
-        const middleX = clientX - (left + width / 2);
-        const middleY = clientY - (top + height / 2);
-        x.set(middleX * 0.2);
-        y.set(middleY * 0.2);
-    };
-
-    const handleMouseLeave = () => { x.set(0); y.set(0); };
+// --- Wrap the main component with the Provider ---
+const WrappedCustomerLogin = (props) => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    
+    if (!clientId) {
+        return <CustomerLogin {...props} />;
+    }
 
     return (
-        <motion.div onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} style={{ x: springX, y: springY }}>
-            {children}
-        </motion.div>
+        <GoogleOAuthProvider clientId={clientId}>
+            <CustomerLogin {...props} />
+        </GoogleOAuthProvider>
     );
 };
 
-const InputField = ({ icon: Icon, type, name, placeholder, value, onChange, showPasswordToggle, showPassword, onTogglePassword, accent }) => {
-  const isAmber = accent === 'amber';
-  
-  return (
-    <div className="relative group perspective">
-      <div className={`absolute left-2 md:left-5 top-1/2 -translate-y-1/2 text-gray-500 transition-all duration-500 z-10 ${
-        isAmber ? 'group-focus-within:text-amber-400' : 'group-focus-within:text-teal-400'
-      } group-focus-within:scale-110`}>
-        <Icon className="text-[12px] md:text-[22px]" />
-      </div>
-      <input
-        type={type}
-        name={name}
-        value={value}
-        onChange={onChange}
-        required
-        placeholder={placeholder}
-        className={`w-full pl-6 md:pl-14 pr-6 md:pr-12 py-1.5 md:py-4 bg-white/5 border border-white/5 rounded-lg md:rounded-2xl outline-none transition-all text-white font-bold tracking-wide placeholder:text-gray-700 placeholder:font-medium text-[8px] md:text-sm ${
-          isAmber ? 'focus:border-amber-500/30 focus:bg-amber-500/5' : 'focus:border-teal-500/30 focus:bg-white/10'
-        }`}
-      />
-      {showPasswordToggle && (
-        <button type="button" onClick={onTogglePassword} className="absolute right-2 md:right-5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-all p-0.5 md:p-1 z-10">
-          {showPassword ? <MdVisibilityOff className="text-[10px] md:text-[20px]" /> : <MdVisibility className="text-[10px] md:text-[20px]" />}
-        </button>
-      )}
-    </div>
-  );
-};
-
-const PasswordStrength = ({ strength, rules, currentStrength, password }) => (
-  <motion.div 
-    initial={{ opacity: 0, x: -20 }}
-    animate={{ opacity: 1, x: 0 }}
-    className="px-2 md:px-4 py-2 md:py-4 bg-white/5 rounded-xl md:rounded-3xl space-y-2 md:space-y-4 border border-white/5 backdrop-blur-md"
-  >
-    <div className="flex justify-between items-center text-[5px] md:text-[10px] font-black uppercase tracking-[0.2em]">
-      <span className="text-gray-500">Security Index</span>
-      <span className={`${currentStrength.text} transition-colors duration-500`}>{currentStrength.label}</span>
-    </div>
-    <div className="h-0.5 md:h-1.5 w-full bg-black/40 rounded-full overflow-hidden">
-      <motion.div initial={{ width: 0 }} animate={{ width: (strength + 1) * 20 + '%' }} className={`h-full ${currentStrength.color} transition-all duration-700`} />
-    </div>
-    <div className="grid grid-cols-2 gap-x-2 md:gap-x-4 gap-y-1 md:gap-y-2">
-      {rules.map((rule, i) => {
-        const passed = rule.test(password);
-        return (
-          <div key={i} className="flex items-center gap-1 md:gap-3">
-            <div className={`w-1 h-1 md:w-2 md:h-2 rounded-full transition-all duration-500 ${passed ? "bg-teal-500 shadow-[0_0_8px_rgba(20,184,166,0.8)]" : "bg-white/10"}`} />
-            <span className={`text-[5px] md:text-[9px] font-bold uppercase tracking-wider transition-colors duration-500 ${passed ? "text-teal-300" : "text-gray-600"}`}>{rule.label}</span>
-          </div>
-        );
-      })}
-    </div>
-  </motion.div>
-);
-
-const SocialLoginsInner = () => {
-  const { loginWithGoogle } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const from = location.state?.from?.pathname || '/customer/dashboard';
-
-  const loginGoogle = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      const toastId = toast.loading('Authenticating with Google...');
-      try {
-        const result = await loginWithGoogle(tokenResponse.access_token);
-        if (result.success) {
-          toast.success('Logged in with Google!', { id: toastId });
-          navigate(from, { replace: true });
-        } else {
-          toast.error(result.message || 'Google authentication failed', { id: toastId });
-        }
-      } catch (err) {
-        toast.error('Connection failed', { id: toastId });
-      }
-    },
-    onError: () => toast.error('Google Sign-In failed'),
-  });
-
-  const handleSocialAction = (provider) => {
-    if (provider === 'google') {
-      loginGoogle();
-    }
-  };
-
-  const isGoogleConfigured = !!import.meta.env.VITE_GOOGLE_CLIENT_ID && !import.meta.env.VITE_GOOGLE_CLIENT_ID.includes('123456789012');
-
-  return (
-    <div className="mt-2 md:mt-4">
-      <div className="flex items-center gap-2 md:gap-6 mb-1 md:mb-2 group">
-        <div className="flex-grow h-[1px] bg-white/5 group-hover:bg-teal-500/30 transition-colors duration-700"></div>
-        <span className="text-[6px] md:text-[10px] font-black text-gray-600 uppercase tracking-[0.3em]">Quick Auth</span>
-        <div className="flex-grow h-[1px] bg-white/5 group-hover:bg-teal-500/30 transition-colors duration-700"></div>
-      </div>
-      <div className="flex justify-center">
-        <button 
-          onClick={() => handleSocialAction('google')}
-          type="button" 
-          className={`w-full max-w-xs flex items-center justify-center gap-2 md:gap-3 py-2 md:py-3.5 bg-white/5 border border-white/10 rounded-xl md:rounded-2xl text-[7px] md:text-[11px] font-black text-white hover:bg-white/10 hover:border-white/20 transition-all active:scale-95 group overflow-hidden relative shadow-lg shadow-black/20 ${!isGoogleConfigured ? 'opacity-40 grayscale' : ''}`}
-          title={!isGoogleConfigured ? "Google ID not configured" : "Sign in with Google"}
-        >
-          <div className="w-3.5 h-3.5 md:w-5 md:h-5 z-10 bg-white rounded-full flex items-center justify-center p-0.5 md:p-1 flex-shrink-0">
-            <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-full h-full" alt="G" /> 
-          </div>
-          <span className="z-10 tracking-[0.2em] font-black uppercase">CONTINUE WITH GOOGLE</span>
-          {!isGoogleConfigured && <span className="absolute top-0 right-0 bg-red-500 text-[5px] px-1 rounded-bl-lg z-20">PENDING</span>}
-          <div className="absolute inset-0 bg-gradient-to-r from-teal-500/20 to-transparent translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500" />
-        </button>
-      </div>
-      <p className="text-center mt-4 flex items-center justify-center gap-2">
-        <Link 
-          to="/terms" 
-          className="text-[9px] font-bold text-gray-500 hover:text-white transition-all tracking-[0.2em] underline underline-offset-4 decoration-gray-800 hover:decoration-teal-500"
-        >
-          TERMS OF SERVICE
-        </Link>
-        <span className="text-[9px] font-bold text-gray-700">&</span>
-        <Link 
-          to="/privacy" 
-          className="text-[9px] font-bold text-gray-500 hover:text-white transition-all tracking-[0.2em] underline underline-offset-4 decoration-gray-800 hover:decoration-teal-500"
-        >
-          PRIVACY POLICY
-        </Link>
-      </p>
-    </div>
-  );
-};
+export default WrappedCustomerLogin;
 
 
-const SocialLogins = () => {
-  return (
-    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-      <SocialLoginsInner />
-    </GoogleOAuthProvider>
-  );
-};
-
-export default CustomerLogin;

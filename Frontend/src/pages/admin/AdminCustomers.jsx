@@ -394,8 +394,8 @@ const AdminCustomers = () => {
 
                           return (
                             <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all ${isActive
-                                ? 'bg-green-50 dark:bg-green-900/20 text-green-600 border-green-100/50 font-black'
-                                : 'bg-red-50 dark:bg-red-900/10 text-red-500 border-red-100/50 font-black'
+                              ? 'bg-green-50 dark:bg-green-900/20 text-green-600 border-green-100/50 font-black'
+                              : 'bg-red-50 dark:bg-red-900/10 text-red-500 border-red-100/50 font-black'
                               }`}>
                               {isActive ? (
                                 <MdCheckCircle className="text-sm" />

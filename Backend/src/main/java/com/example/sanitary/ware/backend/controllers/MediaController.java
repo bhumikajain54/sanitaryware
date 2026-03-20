@@ -3,6 +3,7 @@ package com.example.sanitary.ware.backend.controllers;
 import com.example.sanitary.ware.backend.entities.User;
 import com.example.sanitary.ware.backend.services.FileStorageService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -11,8 +12,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Files;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,6 +24,7 @@ import com.example.sanitary.ware.backend.services.ActivityLogService;
 @RestController
 @RequestMapping("/api/media")
 @RequiredArgsConstructor
+@Slf4j
 public class MediaController {
 
     private final FileStorageService fileStorageService;
@@ -55,45 +57,64 @@ public class MediaController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Map<String, String>>> getAllMedia() {
-        List<String> filenames = fileStorageService.getAllFiles();
-        Map<String, String> uniqueFiles = new HashMap<>();
-
-        for (String filename : filenames) {
-            String originalName = filename;
-            int underscoreIndex = filename.indexOf('_');
-            if (underscoreIndex != -1) {
-                originalName = filename.substring(underscoreIndex + 1);
-            }
-            // Keep keys unique by original name, ensuring only one copy (the first found)
-            // is shown
-            uniqueFiles.putIfAbsent(originalName, filename);
-        }
-
-        List<Map<String, String>> response = new ArrayList<>();
-        for (String filename : uniqueFiles.values()) {
-            Map<String, String> fileInfo = new HashMap<>();
-            fileInfo.put("filename", filename);
-            fileInfo.put("url", "http://localhost:8080/api/media/" + filename);
-            response.add(fileInfo);
-        }
-        return ResponseEntity.ok(response);
+    public ResponseEntity<List<String>> listFiles() {
+        return ResponseEntity.ok(fileStorageService.getAllFiles());
     }
 
+    /**
+     * Serves images securely with proper MIME types (Requirement 4).
+     * Handles URL decoding for filenames with spaces/brackets (Requirement 2).
+     */
     @GetMapping("/{filename:.+}")
-    public ResponseEntity<Resource> getFile(@PathVariable @org.springframework.lang.NonNull String filename) {
-        Resource file = fileStorageService.load(filename);
-
-        String contentType = "application/octet-stream";
+    public ResponseEntity<Resource> getFile(@PathVariable String filename) {
         try {
-            contentType = Files.probeContentType(file.getFile().toPath());
-        } catch (IOException e) {
-            // Fallback to octet-stream
-        }
+            // 1. Decode URL (Requirement 2)
+            String decodedName = URLDecoder.decode(filename, StandardCharsets.UTF_8);
+            log.debug("Fetching media: {}", decodedName);
 
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(contentType != null ? contentType : "application/octet-stream"))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + file.getFilename() + "\"")
-                .body(file);
+            // 2. Load Resource
+            Resource file = fileStorageService.load(decodedName);
+
+            // 3. 404 Handling (Requirement 1)
+            if (file == null) {
+                log.warn("File not found: {}", decodedName);
+                return ResponseEntity.notFound().build();
+            }
+
+            // 4. Safe MIME detection (Requirement 4)
+            String contentType = determineContentType(decodedName);
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + file.getFilename() + "\"")
+                    .body(file);
+
+        } catch (Exception e) {
+            log.error("Error serving file: {}", filename, e);
+            return ResponseEntity.status(500).build();
+        }
+    }
+
+    private String determineContentType(String filename) {
+        String lower = filename.toLowerCase();
+        if (lower.endsWith(".png"))
+            return "image/png";
+        if (lower.endsWith(".jpg") || lower.endsWith(".jpeg"))
+            return "image/jpeg";
+        if (lower.endsWith(".gif"))
+            return "image/gif";
+        if (lower.endsWith(".webp"))
+            return "image/webp";
+        if (lower.endsWith(".svg"))
+            return "image/svg+xml";
+        return "application/octet-stream";
+    }
+
+    /**
+     * Explicit error handler for this controller (Requirement 7).
+     */
+    @ExceptionHandler(SecurityException.class)
+    public ResponseEntity<String> handleSecurity(SecurityException e) {
+        return ResponseEntity.status(403).body("Access Denied: " + e.getMessage());
     }
 }

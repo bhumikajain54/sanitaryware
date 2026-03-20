@@ -1,10 +1,10 @@
 import { useState, useCallback, useMemo } from 'react';
-import { 
-  MdSearch, 
-  MdAdd, 
-  MdReceipt, 
-  MdFileDownload, 
-  MdSync, 
+import {
+  MdSearch,
+  MdAdd,
+  MdReceipt,
+  MdFileDownload,
+  MdSync,
   MdVisibility,
   MdFilterList,
   MdRefresh,
@@ -14,9 +14,9 @@ import {
   MdInfo,
   MdSend
 } from 'react-icons/md';
-import { 
-  useAdminFetch, 
-  useAdminSearch, 
+import {
+  useAdminFetch,
+  useAdminSearch,
   useAdminToast,
   useAdminModal,
   useAdminPagination
@@ -59,16 +59,16 @@ const AdminBilling = () => {
       const data = await getAllInvoices();
       const list = Array.isArray(data) ? data : [];
       return list.map(inv => ({
-          ...inv,
-          synced: localSyncedInvoices.has(inv.id) || inv.tallySynced || inv.synced,
-          invoiceNo: inv.invoiceNumber || inv.invoiceNo,
-          customer: inv.customerName || inv.customer,
-          // Robust Money Formatting
-          totalValue: inv.totalAmount || inv.total || 0,
-          total: (inv.totalAmount || inv.total || 0).toLocaleString('en-IN', { style: 'currency', currency: 'INR' }),
-          taxValue: inv.taxTotal || inv.gst || 0,
-          tax: (inv.taxTotal || inv.gst || 0).toLocaleString('en-IN', { style: 'currency', currency: 'INR' }),
-          date: inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('en-IN') : inv.date
+        ...inv,
+        synced: localSyncedInvoices.has(inv.id) || inv.tallySynced || inv.synced,
+        invoiceNo: inv.invoiceNumber || inv.invoiceNo,
+        customer: inv.customerName || inv.customer,
+        // Robust Money Formatting
+        totalValue: inv.totalAmount || inv.total || 0,
+        total: (inv.totalAmount || inv.total || 0).toLocaleString('en-IN', { style: 'currency', currency: 'INR' }),
+        taxValue: inv.taxTotal || inv.gst || 0,
+        tax: (inv.taxTotal || inv.gst || 0).toLocaleString('en-IN', { style: 'currency', currency: 'INR' }),
+        date: inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('en-IN') : inv.date
       }));
     } catch (err) {
       console.error('Failed to load invoices:', err);
@@ -84,23 +84,23 @@ const AdminBilling = () => {
     []
   );
 
-  const { 
-    searchTerm, 
-    setSearchTerm, 
-    filteredItems: searchedInvoices 
+  const {
+    searchTerm,
+    setSearchTerm,
+    filteredItems: searchedInvoices
   } = useAdminSearch(rawInvoices || [], ['invoiceNo', 'customer']);
 
   // Filter configuration
   const filterConfig = useMemo(() => ({
     synced: {
-        label: 'Sync Status',
-        field: 'synced',
-        type: 'boolean',
-        placeholder: 'All Status',
-        options: [
-            { value: 'true', label: 'Synced to Tally' },
-            { value: 'false', label: 'Pending Sync' }
-        ]
+      label: 'Sync Status',
+      field: 'synced',
+      type: 'boolean',
+      placeholder: 'All Status',
+      options: [
+        { value: 'true', label: 'Synced to Tally' },
+        { value: 'false', label: 'Pending Sync' }
+      ]
     }
   }), []);
 
@@ -161,7 +161,7 @@ const AdminBilling = () => {
 
   const handleGenerateFromOrder = async () => {
     if (!generateOrderId) return;
-    
+
     info(`Generating invoice for Order #${generateOrderId}...`);
     try {
       await adminService.generateInvoice(generateOrderId);
@@ -207,7 +207,7 @@ const AdminBilling = () => {
 
     setSaving(true);
     info('Recording transaction & preparing Tally XML...');
-    
+
     try {
       const payload = {
         customerName,
@@ -223,7 +223,7 @@ const AdminBilling = () => {
       await adminService.createInvoice(payload);
       await new Promise(resolve => setTimeout(resolve, 1500));
       success('Invoice generated and pushed to Tally ERP');
-      
+
       // Reset form
       setCustomerName('');
       setGstin('');
@@ -238,24 +238,24 @@ const AdminBilling = () => {
       setSaving(false);
     }
   };
-   const handleDownloadPDF = (inv) => {
+  const handleDownloadPDF = (inv) => {
     info(`Generating official PDF for ${inv.invoiceNo}...`);
     try {
-        generateInvoicePDF(inv, 'download');
-        success('Invoice PDF saved to downloads');
+      generateInvoicePDF(inv, 'download');
+      success('Invoice PDF saved to downloads');
     } catch (err) {
-        error('PDF generation failed');
-        console.error(err);
+      error('PDF generation failed');
+      console.error(err);
     }
   };
 
   const handlePrintInvoice = (inv) => {
     info(`Preparing print session for ${inv.invoiceNo}...`);
     try {
-        generateInvoicePDF(inv, 'print');
-        success('Print preview opened in new tab');
+      generateInvoicePDF(inv, 'print');
+      success('Print preview opened in new tab');
     } catch (err) {
-        error('Print session failed');
+      error('Print session failed');
     }
   };
 
@@ -264,12 +264,12 @@ const AdminBilling = () => {
     return (
       <div className="min-h-screen bg-[var(--admin-bg-primary)] transition-colors duration-300">
         <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-12 py-6 sm:py-10">
-          
+
           {/* Header */}
           <div className="flex items-center justify-between gap-6 mb-8 sm:mb-12">
             <div>
-              <button 
-                onClick={() => setViewMode('list')} 
+              <button
+                onClick={() => setViewMode('list')}
                 className="flex items-center gap-2 text-teal-600 hover:text-teal-700 font-bold text-sm sm:text-base mb-2 transition-all"
               >
                 <span className="text-xl">←</span>
@@ -287,7 +287,7 @@ const AdminBilling = () => {
           <div className="grid grid-cols-12 gap-6 sm:gap-8">
             {/* Left Column - Form */}
             <div className="col-span-12 lg:col-span-8 space-y-6 sm:space-y-8">
-              
+
               {/* Customer Details */}
               <div className="bg-[var(--admin-bg-secondary)] border border-[var(--border-main)] rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-lg">
                 <div className="flex items-center gap-3 mb-6">
@@ -296,16 +296,16 @@ const AdminBilling = () => {
                   </div>
                   <h3 className="text-lg sm:text-xl font-bold text-[var(--admin-text-primary)]">Customer Details</h3>
                 </div>
-                
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   <div>
                     <label className="text-xs sm:text-sm font-bold text-[var(--admin-text-secondary)] uppercase tracking-wider ml-1 mb-2 block">
                       Customer Name
                     </label>
-                    <input 
-                      type="text" 
-                      className="w-full h-12 sm:h-14 px-4 sm:px-5 bg-[var(--admin-bg-primary)] border-2 border-[var(--border-main)] focus:border-teal-500 rounded-xl sm:rounded-2xl transition-all text-sm font-bold text-[var(--admin-text-primary)] outline-none" 
-                      placeholder="Customer Name" 
+                    <input
+                      type="text"
+                      className="w-full h-12 sm:h-14 px-4 sm:px-5 bg-[var(--admin-bg-primary)] border-2 border-[var(--border-main)] focus:border-teal-500 rounded-xl sm:rounded-2xl transition-all text-sm font-bold text-[var(--admin-text-primary)] outline-none"
+                      placeholder="Customer Name"
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
                     />
@@ -314,10 +314,10 @@ const AdminBilling = () => {
                     <label className="text-xs sm:text-sm font-bold text-[var(--admin-text-secondary)] uppercase tracking-wider ml-1 mb-2 block">
                       GSTIN (Optional)
                     </label>
-                    <input 
-                      type="text" 
-                      className="w-full h-12 sm:h-14 px-4 sm:px-5 bg-[var(--admin-bg-primary)] border-2 border-[var(--border-main)] focus:border-teal-500 rounded-xl sm:rounded-2xl transition-all text-sm font-bold text-[var(--admin-text-primary)] uppercase outline-none" 
-                      placeholder="GSTIN No." 
+                    <input
+                      type="text"
+                      className="w-full h-12 sm:h-14 px-4 sm:px-5 bg-[var(--admin-bg-primary)] border-2 border-[var(--border-main)] focus:border-teal-500 rounded-xl sm:rounded-2xl transition-all text-sm font-bold text-[var(--admin-text-primary)] uppercase outline-none"
+                      placeholder="GSTIN No."
                       value={gstin}
                       onChange={(e) => setGstin(e.target.value)}
                     />
@@ -326,8 +326,8 @@ const AdminBilling = () => {
                     <label className="text-xs sm:text-sm font-bold text-[var(--admin-text-secondary)] uppercase tracking-wider ml-1 mb-2 block">
                       Billing Address
                     </label>
-                    <textarea 
-                      className="w-full h-24 sm:h-24 p-4 bg-[var(--admin-bg-primary)] border-2 border-[var(--border-main)] focus:border-teal-500 rounded-xl sm:rounded-2xl transition-all text-sm font-bold text-[var(--admin-text-primary)] resize-none outline-none" 
+                    <textarea
+                      className="w-full h-24 sm:h-24 p-4 bg-[var(--admin-bg-primary)] border-2 border-[var(--border-main)] focus:border-teal-500 rounded-xl sm:rounded-2xl transition-all text-sm font-bold text-[var(--admin-text-primary)] resize-none outline-none"
                       placeholder="Street, City, PIN..."
                       value={billingAddress}
                       onChange={(e) => setBillingAddress(e.target.value)}
@@ -343,15 +343,15 @@ const AdminBilling = () => {
                     <MdAdd className="text-xl sm:text-2xl text-teal-600" />
                     <h3 className="font-bold text-teal-800 dark:text-teal-400 text-sm sm:text-base uppercase tracking-wider">Invoice Items</h3>
                   </div>
-                  <button 
+                  <button
                     type="button"
-                    onClick={addItem} 
+                    onClick={addItem}
                     className="text-xs sm:text-sm font-black bg-teal-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl hover:bg-teal-700 transition active:scale-95 uppercase tracking-wider"
                   >
                     + Add Item
                   </button>
                 </div>
-                
+
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="bg-[var(--admin-bg-primary)]">
@@ -368,34 +368,34 @@ const AdminBilling = () => {
                       {invoiceItems.map((item, i) => (
                         <tr key={item.id} className="hover:bg-[var(--admin-bg-primary)] transition-colors border-t border-[var(--border-subtle)]">
                           <td className="p-4">
-                            <input 
-                              type="text" 
-                              className="w-full bg-transparent border-b border-transparent focus:border-teal-500 rounded-none text-sm font-bold text-[var(--admin-text-primary)] p-1 outline-none transition-colors" 
-                              placeholder="Item name" 
+                            <input
+                              type="text"
+                              className="w-full bg-transparent border-b border-transparent focus:border-teal-500 rounded-none text-sm font-bold text-[var(--admin-text-primary)] p-1 outline-none transition-colors"
+                              placeholder="Item name"
                               value={item.name}
                               onChange={(e) => updateItem(i, 'name', e.target.value)}
                             />
                           </td>
                           <td className="p-4 text-center">
-                            <input 
-                              type="number" 
-                              className="w-16 bg-transparent border border-[var(--border-subtle)] rounded-lg text-sm font-bold text-center text-[var(--admin-text-primary)] p-1.5 outline-none focus:border-teal-500" 
-                              value={item.qty} 
+                            <input
+                              type="number"
+                              className="w-16 bg-transparent border border-[var(--border-subtle)] rounded-lg text-sm font-bold text-center text-[var(--admin-text-primary)] p-1.5 outline-none focus:border-teal-500"
+                              value={item.qty}
                               onChange={(e) => updateItem(i, 'qty', +e.target.value)}
                             />
                           </td>
                           <td className="p-4 text-right">
-                            <input 
-                              type="number" 
-                              className="w-24 bg-transparent border border-[var(--border-subtle)] rounded-lg text-sm font-bold text-right text-[var(--admin-text-primary)] p-1.5 outline-none focus:border-teal-500" 
-                              value={item.rate} 
+                            <input
+                              type="number"
+                              className="w-24 bg-transparent border border-[var(--border-subtle)] rounded-lg text-sm font-bold text-right text-[var(--admin-text-primary)] p-1.5 outline-none focus:border-teal-500"
+                              value={item.rate}
                               onChange={(e) => updateItem(i, 'rate', +e.target.value)}
                             />
                           </td>
                           <td className="p-4 text-center">
-                            <select 
-                              className="bg-transparent border border-[var(--border-subtle)] rounded-lg text-xs font-black uppercase tracking-wider cursor-pointer text-teal-700 dark:text-teal-400 p-1.5 outline-none focus:border-teal-500" 
-                              value={item.tax} 
+                            <select
+                              className="bg-transparent border border-[var(--border-subtle)] rounded-lg text-xs font-black uppercase tracking-wider cursor-pointer text-teal-700 dark:text-teal-400 p-1.5 outline-none focus:border-teal-500"
+                              value={item.tax}
                               onChange={(e) => updateItem(i, 'tax', +e.target.value)}
                             >
                               <option value={0}>0%</option>
@@ -409,8 +409,8 @@ const AdminBilling = () => {
                             ₹{(item.qty * item.rate * (1 + item.tax / 100)).toLocaleString()}
                           </td>
                           <td className="p-4">
-                            <button 
-                              onClick={() => removeItem(item.id)} 
+                            <button
+                              onClick={() => removeItem(item.id)}
                               className="w-8 h-8 flex items-center justify-center text-[var(--admin-text-secondary)] hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-all text-lg"
                             >
                               ×
@@ -433,7 +433,7 @@ const AdminBilling = () => {
                   </div>
                   <h3 className="text-lg sm:text-xl font-bold text-[var(--admin-text-primary)]">Summary</h3>
                 </div>
-                
+
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-bold text-[var(--admin-text-secondary)]">Subtotal</span>
@@ -450,7 +450,7 @@ const AdminBilling = () => {
                 </div>
 
                 <div className="mt-8 space-y-3">
-                  <button 
+                  <button
                     type="button"
                     onClick={handleSaveInvoice}
                     disabled={saving}
@@ -461,8 +461,8 @@ const AdminBilling = () => {
                       {saving ? 'Saving...' : 'Save Invoice'}
                     </span>
                   </button>
-                  
-                  <button 
+
+                  <button
                     type="button"
                     onClick={() => setViewMode('list')}
                     className="w-full bg-[var(--admin-bg-primary)] border-2 border-[var(--border-main)] text-[var(--admin-text-secondary)] hover:text-[var(--admin-text-primary)] py-3 rounded-xl sm:rounded-2xl font-black uppercase tracking-wider text-xs transition-all"
@@ -482,18 +482,18 @@ const AdminBilling = () => {
     <div className="min-h-screen bg-[var(--admin-bg-primary)] transition-colors duration-300">
       {/* Standard Desktop Layout */}
       <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-12 py-6 sm:py-10">
-        
+
         {/* Page Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-8 sm:mb-12">
-          <div>
-            <h1 className="text-3xl sm:text-6xl font-black bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent leading-tight tracking-tight mb-2">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 sm:mb-12">
+          <div className="text-center lg:text-left w-full lg:w-auto">
+            <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent leading-tight tracking-tight mb-2">
               Invoicing & Billing
             </h1>
-            <p className="text-sm sm:text-base text-[var(--admin-text-secondary)] font-semibold uppercase tracking-wider">
+            <p className="text-[10px] sm:text-xs md:text-sm lg:text-base text-[var(--admin-text-secondary)] font-semibold uppercase tracking-wider">
               Taxation & Synchronization
             </p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center justify-center lg:justify-end gap-3 sm:gap-4 w-full lg:w-auto">
             {billingStats?.unsyncedBills > 0 && (
               <button
                 onClick={async () => {
@@ -506,25 +506,25 @@ const AdminBilling = () => {
                     error('Batch sync failed');
                   }
                 }}
-                className="hidden sm:inline-flex items-center gap-3 px-6 py-4 bg-orange-500/10 text-orange-600 border border-orange-500/20 font-bold rounded-xl sm:rounded-2xl shadow-sm hover:bg-orange-500/20 transition-all active:scale-95 text-sm whitespace-nowrap"
+                className="flex items-center gap-2 px-4 py-2.5 sm:px-6 sm:py-4 bg-orange-500/10 text-orange-600 border border-orange-500/20 font-bold rounded-xl sm:rounded-2xl shadow-sm hover:bg-orange-500/20 transition-all active:scale-95 text-[10px] sm:text-xs md:text-sm whitespace-nowrap"
               >
-                <MdRefresh className="text-xl sm:text-2xl" />
+                <MdRefresh className="text-lg sm:text-2xl" />
                 <span className="uppercase tracking-wider">Sync All ({billingStats.unsyncedBills})</span>
               </button>
             )}
             <button
               onClick={() => setShowGenerateModal(true)}
-              className="inline-flex items-center gap-3 px-6 py-4 bg-white border-2 border-teal-600 text-teal-600 font-bold rounded-xl sm:rounded-2xl shadow-sm hover:bg-teal-50 transition-all active:scale-95 text-sm whitespace-nowrap"
+              className="flex items-center gap-2 px-4 py-2.5 sm:px-6 sm:py-4 bg-white border-2 border-teal-600 text-teal-600 font-bold rounded-xl sm:rounded-2xl shadow-sm hover:bg-teal-50 transition-all active:scale-95 text-[10px] sm:text-xs md:text-sm whitespace-nowrap"
             >
-              <MdReceipt className="text-xl sm:text-2xl" />
+              <MdReceipt className="text-lg sm:text-2xl" />
               <span className="uppercase tracking-wider">From Order</span>
             </button>
             <button
               onClick={() => setViewMode('create')}
-              className="inline-flex items-center gap-3 px-6 py-4 bg-gradient-to-r from-teal-600 to-cyan-600 text-white font-bold rounded-xl sm:rounded-2xl shadow-xl shadow-teal-500/20 hover:shadow-2xl hover:shadow-teal-500/30 transition-all active:scale-95 text-sm whitespace-nowrap"
+              className="flex items-center gap-2 px-4 py-2.5 sm:px-6 sm:py-4 bg-gradient-to-r from-teal-600 to-cyan-600 text-white font-bold rounded-xl sm:rounded-2xl shadow-xl shadow-teal-500/20 hover:shadow-2xl hover:shadow-teal-500/30 transition-all active:scale-95 text-[10px] sm:text-xs md:text-sm whitespace-nowrap"
             >
-              <MdAdd className="text-xl sm:text-2xl" />
-              <span className="uppercase tracking-wider">Generate Invoice</span>
+              <MdAdd className="text-lg sm:text-2xl" />
+              <span className="uppercase tracking-wider">Invoice</span>
             </button>
           </div>
         </div>
@@ -547,7 +547,7 @@ const AdminBilling = () => {
                   ₹{(billingStats?.totalSalesToday || 0).toLocaleString()}
                 </h3>
               </div>
-              
+
               <div className="bg-[var(--admin-bg-secondary)] border border-[var(--border-main)] rounded-2xl sm:rounded-3xl p-8 sm:p-10 shadow-lg hover:shadow-xl transition-all">
                 <p className="text-xs sm:text-sm font-bold text-[var(--admin-text-secondary)] uppercase tracking-widest mb-3">
                   Unsynced Bills
@@ -556,7 +556,7 @@ const AdminBilling = () => {
                   {billingStats?.unsyncedBills || 0} Pending
                 </h3>
               </div>
-              
+
               <div className="bg-[var(--admin-bg-secondary)] border border-[var(--border-main)] rounded-2xl sm:rounded-3xl p-8 sm:p-10 shadow-lg hover:shadow-xl transition-all">
                 <p className="text-xs sm:text-sm font-bold text-[var(--admin-text-secondary)] uppercase tracking-widest mb-3">
                   Tally Handshake
@@ -576,16 +576,16 @@ const AdminBilling = () => {
         <div className="bg-[var(--admin-bg-secondary)] border border-[var(--border-main)] rounded-2xl sm:rounded-3xl p-6 flex flex-col sm:flex-row items-center gap-6 mb-8 sm:mb-12 shadow-lg">
           <div className="relative flex-1 w-full">
             <MdSearch className="absolute left-5 top-1/2 -translate-y-1/2 text-teal-600 text-2xl" />
-            <input 
-              type="text" 
+            <input
+              type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search by Invoice No. or Customer Name..." 
+              placeholder="Search by Invoice No. or Customer Name..."
               className="w-full bg-[var(--admin-bg-primary)] border-2 border-transparent focus:border-teal-500 rounded-xl sm:rounded-2xl h-14 sm:h-16 pl-14 pr-4 text-sm sm:text-base text-[var(--admin-text-primary)] placeholder:text-[var(--admin-text-secondary)] transition-all outline-none font-medium"
             />
           </div>
           <div className="flex items-center gap-4 w-full sm:w-auto">
-            <button 
+            <button
               onClick={toggleFilters}
               className="flex-1 sm:flex-none flex items-center justify-center gap-3 px-6 py-4 bg-[var(--admin-bg-primary)] border-2 border-[var(--border-main)] text-[var(--admin-text-secondary)] hover:text-teal-600 hover:border-teal-500 rounded-xl sm:rounded-2xl transition-all font-bold text-sm uppercase tracking-wider whitespace-nowrap relative"
             >
@@ -655,9 +655,9 @@ const AdminBilling = () => {
                     </td>
                     {/* NEW CELL: Tax */}
                     <td className="px-6 py-6 hidden md:table-cell">
-                       <span className="text-xs sm:text-sm font-bold text-[var(--admin-text-secondary)]">
-                          {inv.tax}
-                       </span>
+                      <span className="text-xs sm:text-sm font-bold text-[var(--admin-text-secondary)]">
+                        {inv.tax}
+                      </span>
                     </td>
                     <td className="px-6 py-6">
                       <span className="font-black text-teal-600 text-sm sm:text-xl">
@@ -675,40 +675,40 @@ const AdminBilling = () => {
                     <td className="px-6 py-6">
                       <div className="flex items-center justify-end gap-2 sm:gap-3">
                         {!inv.synced && (
-                          <button 
-                            onClick={() => handleSyncInvoice(inv.id)} 
+                          <button
+                            onClick={() => handleSyncInvoice(inv.id)}
                             disabled={syncingId === inv.id}
-                            className="p-3 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-xl transition-all hover:scale-110" 
+                            className="p-3 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-xl transition-all hover:scale-110"
                             title="Sync to Tally"
                           >
                             <MdSync className={`text-xl sm:text-2xl ${syncingId === inv.id ? 'animate-spin' : ''}`} />
                           </button>
                         )}
-                        <button 
-                             onClick={() => handleSendWhatsApp(inv.id)}
-                             disabled={sendingId === inv.id}
-                             className="p-3 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-xl transition-all hover:scale-110"
-                             title="Send via WhatsApp"
-                          >
-                             <MdSend className={`text-xl sm:text-2xl ${sendingId === inv.id ? 'animate-pulse' : ''}`} />
-                          </button>
-                        <button 
+                        <button
+                          onClick={() => handleSendWhatsApp(inv.id)}
+                          disabled={sendingId === inv.id}
+                          className="p-3 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-xl transition-all hover:scale-110"
+                          title="Send via WhatsApp"
+                        >
+                          <MdSend className={`text-xl sm:text-2xl ${sendingId === inv.id ? 'animate-pulse' : ''}`} />
+                        </button>
+                        <button
                           onClick={() => handleViewInvoice(inv)}
-                          className="p-3 text-[var(--admin-text-secondary)] hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-900/20 rounded-xl transition-all hover:scale-110" 
+                          className="p-3 text-[var(--admin-text-secondary)] hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-900/20 rounded-xl transition-all hover:scale-110"
                           title="View Details"
                         >
                           <MdVisibility className="text-xl sm:text-2xl" />
                         </button>
-                        <button 
+                        <button
                           onClick={() => handlePrintInvoice(inv)}
-                          className="p-3 text-[var(--admin-text-secondary)] hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-900/20 rounded-xl transition-all hover:scale-110" 
+                          className="p-3 text-[var(--admin-text-secondary)] hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-900/20 rounded-xl transition-all hover:scale-110"
                           title="Print Invoice"
                         >
                           <MdPrint className="text-xl sm:text-2xl" />
                         </button>
-                        <button 
-                          onClick={() => handleDownloadPDF(inv)}  
-                          className="p-3 text-[var(--admin-text-secondary)] hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl transition-all hover:scale-110" 
+                        <button
+                          onClick={() => handleDownloadPDF(inv)}
+                          className="p-3 text-[var(--admin-text-secondary)] hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl transition-all hover:scale-110"
                           title="Download PDF"
                         >
                           <MdFileDownload className="text-xl sm:text-2xl" />
@@ -740,35 +740,35 @@ const AdminBilling = () => {
       {/* Generate From Order Modal */}
       {showGenerateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-           <div className="bg-[var(--admin-bg-secondary)] rounded-3xl shadow-2xl p-8 max-w-md w-full border border-[var(--border-main)]">
-              <h3 className="text-2xl font-black text-[var(--admin-text-primary)] mb-4">Generate Invoice</h3>
-              <p className="text-[var(--admin-text-secondary)] mb-6 text-sm">Enter the Order ID to automatically generate a tax invoice.</p>
-              
-              <input 
-                  type="text" 
-                  autoFocus
-                  placeholder="Order ID (e.g. 1001)"
-                  className="w-full h-14 px-5 bg-[var(--admin-bg-primary)] border-2 border-[var(--border-main)] focus:border-teal-500 rounded-2xl text-lg font-bold outline-none mb-6"
-                  value={generateOrderId}
-                  onChange={(e) => setGenerateOrderId(e.target.value)}
-              />
-              
-              <div className="flex gap-4">
-                 <button 
-                  onClick={() => setShowGenerateModal(false)}
-                  className="flex-1 py-4 bg-[var(--admin-bg-primary)] border-2 border-[var(--border-main)] text-[var(--admin-text-secondary)] rounded-2xl font-bold uppercase tracking-wider"
-                 >
-                   Cancel
-                 </button>
-                 <button 
-                  onClick={handleGenerateFromOrder}
-                  disabled={!generateOrderId}
-                  className="flex-1 py-4 bg-teal-600 text-white rounded-2xl font-bold uppercase tracking-wider shadow-lg hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                 >
-                   Generate
-                 </button>
-              </div>
-           </div>
+          <div className="bg-[var(--admin-bg-secondary)] rounded-3xl shadow-2xl p-8 max-w-md w-full border border-[var(--border-main)]">
+            <h3 className="text-2xl font-black text-[var(--admin-text-primary)] mb-4">Generate Invoice</h3>
+            <p className="text-[var(--admin-text-secondary)] mb-6 text-sm">Enter the Order ID to automatically generate a tax invoice.</p>
+
+            <input
+              type="text"
+              autoFocus
+              placeholder="Order ID (e.g. 1001)"
+              className="w-full h-14 px-5 bg-[var(--admin-bg-primary)] border-2 border-[var(--border-main)] focus:border-teal-500 rounded-2xl text-lg font-bold outline-none mb-6"
+              value={generateOrderId}
+              onChange={(e) => setGenerateOrderId(e.target.value)}
+            />
+
+            <div className="flex gap-4">
+              <button
+                onClick={() => setShowGenerateModal(false)}
+                className="flex-1 py-4 bg-[var(--admin-bg-primary)] border-2 border-[var(--border-main)] text-[var(--admin-text-secondary)] rounded-2xl font-bold uppercase tracking-wider"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleGenerateFromOrder}
+                disabled={!generateOrderId}
+                className="flex-1 py-4 bg-teal-600 text-white rounded-2xl font-bold uppercase tracking-wider shadow-lg hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Generate
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -791,14 +791,14 @@ const AdminBilling = () => {
                   </p>
                 </div>
               </div>
-              <button 
-                onClick={closeModal} 
+              <button
+                onClick={closeModal}
                 className="p-2 hover:bg-[var(--admin-bg-primary)] rounded-full transition-all text-[var(--admin-text-secondary)] hover:text-red-500"
               >
                 <MdClose className="text-2xl sm:text-3xl" />
               </button>
             </div>
-            
+
             <div className="p-6 sm:p-8 max-h-[70vh] overflow-y-auto">
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
@@ -819,13 +819,13 @@ const AdminBilling = () => {
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="pt-6 border-t border-[var(--border-subtle)] space-y-3">
                   <div className="flex justify-between items-center text-sm font-medium text-[var(--admin-text-secondary)]">
                     <span>Taxable Value (Subtotal)</span>
                     <span>₹{(selectedInvoice.totalValue - selectedInvoice.taxValue).toLocaleString()}</span>
                   </div>
-                   <div className="flex justify-between items-center text-sm font-medium text-[var(--admin-text-secondary)]">
+                  <div className="flex justify-between items-center text-sm font-medium text-[var(--admin-text-secondary)]">
                     <span>GST (Tax)</span>
                     <span className="text-orange-600 font-bold">+ ₹{selectedInvoice.taxValue.toLocaleString()}</span>
                   </div>
@@ -840,17 +840,17 @@ const AdminBilling = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="p-6 sm:p-8 bg-[var(--admin-bg-primary)] border-t border-[var(--border-subtle)] flex gap-4">
-              <button 
-                onClick={closeModal} 
+              <button
+                onClick={closeModal}
                 className="flex-1 px-6 py-4 bg-[var(--admin-bg-secondary)] border-2 border-[var(--border-main)] text-[var(--admin-text-secondary)] hover:text-[var(--admin-text-primary)] rounded-xl sm:rounded-2xl font-bold uppercase tracking-wider transition-all"
               >
                 Close
               </button>
               {!selectedInvoice.synced && (
-                <button 
-                  onClick={() => { handleSyncInvoice(selectedInvoice.id); closeModal(); }} 
+                <button
+                  onClick={() => { handleSyncInvoice(selectedInvoice.id); closeModal(); }}
                   className="flex-1 px-6 py-4 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-xl sm:rounded-2xl font-bold uppercase tracking-wider shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
                 >
                   <MdSync className="text-xl" />

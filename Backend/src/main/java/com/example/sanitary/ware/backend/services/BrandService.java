@@ -41,6 +41,7 @@ public class BrandService {
     private final BrandRepository brandRepository;
     private final Validator validator;
     private final ActivityLogService activityLogService;
+    private final FileStorageService fileStorageService;
 
     public List<String> importBrands(MultipartFile file) throws Exception {
         List<String> errors = new ArrayList<>();
@@ -66,6 +67,7 @@ public class BrandService {
                 dto.setDescription(getLineValue(line, headerMap, "description", "desc", "info"));
                 dto.setCountry(getLineValue(line, headerMap, "country", "origin"));
                 dto.setStatus(getLineValue(line, headerMap, "status", "active", "enabled"));
+                dto.setLogo(getLineValue(line, headerMap, "logo", "image", "brandlogo", "img"));
                 dtos.add(dto);
             }
 
@@ -103,6 +105,7 @@ public class BrandService {
                         brand.setDescription(dto.getDescription());
                         brand.setCountry(dto.getCountry());
                         brand.setStatus(dto.getStatus());
+                        if (dto.getLogo() != null) brand.setLogo(dto.getLogo());
                     } else {
                         brand = Brand.builder()
                                 .name(normalizedName)
@@ -110,6 +113,7 @@ public class BrandService {
                                 .description(dto.getDescription())
                                 .country(dto.getCountry())
                                 .status(dto.getStatus())
+                                .logo(dto.getLogo())
                                 .build();
                         // Add to maps so subsequent rows can find it
                         nameMap.put(normalizedName.toLowerCase(), brand);
@@ -150,7 +154,8 @@ public class BrandService {
                 brand.getCode(),
                 brand.getDescription(),
                 brand.getCountry(),
-                brand.getStatus())).collect(Collectors.toList());
+                brand.getStatus(),
+                brand.getLogo())).collect(Collectors.toList());
 
         StatefulBeanToCsv<BrandCsvDTO> beanToCsv = new StatefulBeanToCsvBuilder<BrandCsvDTO>(writer)
                 .withApplyQuotesToAll(false)
@@ -220,12 +225,36 @@ public class BrandService {
     }
 
     @Cacheable(value = "brands")
+
+
     public List<Brand> getAllBrands() {
-        return brandRepository.findAll();
+        List<Brand> brands = brandRepository.findAll();
+        
+        // Background Auto-sync for missing logos (Requirement 11)
+        List<String> files = fileStorageService.getAllFiles();
+        if (files != null && !files.isEmpty()) {
+            boolean changed = false;
+            for (Brand b : brands) {
+                if (b.getLogo() == null || b.getLogo().isEmpty() || b.getLogo().equals("null")) {
+                    String likelyFile = b.getName().trim() + ".png";
+                    for (String f : files) {
+                        if (f.toLowerCase().endsWith("_" + likelyFile.toLowerCase()) || f.equalsIgnoreCase(likelyFile)) {
+                            b.setLogo("/api/media/" + f);
+                            brandRepository.save(b);
+                            changed = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (changed) brands = brandRepository.findAll();
+        }
+        return brands;
     }
 
     public Brand getBrandById(@NonNull Long id) {
-        return brandRepository.findById(id).orElseThrow(() -> new RuntimeException("Brand not found"));
+        Brand brand = brandRepository.findById(id).orElseThrow(() -> new RuntimeException("Brand not found"));
+        return brand;
     }
 
     @CacheEvict(value = "brands", allEntries = true)
@@ -236,10 +265,20 @@ public class BrandService {
 
         String normalizedName = brand.getName().trim();
 
+        // 1. Handle Base64 Logo if present
+        if (brand.getLogo() != null && brand.getLogo().startsWith("data:image")) {
+            try {
+                String filename = saveBase64Image(brand.getLogo());
+                brand.setLogo("/api/media/" + filename);
+            } catch (Exception e) {
+                // Keep as is or handle error
+            }
+        }
+
         // Check for existing brand with same name (case-insensitive)
         Optional<Brand> existing = brandRepository.findByNameIgnoreCase(normalizedName);
         if (existing.isPresent()) {
-            return existing.get(); // Or throw exception if preferred. Returning existing prevents duplicates.
+            return existing.get();
         }
 
         brand.setName(normalizedName);
@@ -249,6 +288,24 @@ public class BrandService {
         Brand saved = brandRepository.save(brand);
         activityLogService.log(1L, "admin@example.com", "CREATE_BRAND", "BRANDS", "Created: " + saved.getName());
         return saved;
+    }
+
+    private String saveBase64Image(String base64Content) throws Exception {
+        String[] parts = base64Content.split(",");
+        String metadata = parts[0];
+        String base64Data = parts[1];
+        
+        String extension = ".png";
+        if (metadata.contains("jpeg")) extension = ".jpg";
+        else if (metadata.contains("webp")) extension = ".webp";
+        else if (metadata.contains("gif")) extension = ".gif";
+
+        byte[] decodedBytes = java.util.Base64.getDecoder().decode(base64Data);
+        String filename = "brand_" + java.util.UUID.randomUUID().toString().substring(0, 8) + extension;
+        
+        // Use the common root from FileStorageService for consistency
+        java.nio.file.Files.write(fileStorageService.getRootPath().resolve(filename), decodedBytes);
+        return filename;
     }
 
     private String generateCode(String name) {
@@ -278,7 +335,27 @@ public class BrandService {
             existingBrand.setStatus(brand.getStatus());
         }
         if (brand.getLogo() != null) {
-            existingBrand.setLogo(brand.getLogo());
+            String logoValue = brand.getLogo().trim();
+            if (logoValue.startsWith("data:image")) {
+                try {
+                    String filename = saveBase64Image(logoValue);
+                    existingBrand.setLogo("/api/media/" + filename);
+                } catch (Exception e) {
+                    // Log error but keep existing logo to prevent data loss
+                }
+            } else if (logoValue.isEmpty() || logoValue.equalsIgnoreCase("null") || logoValue.equalsIgnoreCase("clear")) {
+                existingBrand.setLogo(null);
+            } else {
+                // If the user didn't pick a new file (so it's already a URL), keep the current logo
+                existingBrand.setLogo(logoValue);
+            }
+        } else {
+            // Frontend explicitly sent null to clear the logo
+            existingBrand.setLogo(null);
+        }
+        // Removing the 'else' that was sets logo to null if not provided
+        if (brand.getWebsite() != null) {
+            existingBrand.setWebsite(brand.getWebsite());
         }
         return brandRepository.save(existingBrand);
     }

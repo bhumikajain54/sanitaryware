@@ -11,20 +11,28 @@ export default defineConfig({
     hmr: {
       overlay: true,
     },
-    proxy: {
+ proxy: {
       '/api': {
         target: 'http://localhost:8080',
         changeOrigin: true,
         secure: false,
         configure: (proxy, _options) => {
           proxy.on('error', (err, _req, _res) => {
-            // Silence proxy errors when backend is down
             if (err.code === 'ECONNREFUSED') return;
-            if (err.message && err.message.includes('ECONNREFUSED')) return;
             console.error('proxy error', err);
           });
-
         },
+      },
+      // Proxy static assets (logos, product images, etc.) from backend
+      '/uploads': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false
+      },
+      '/media': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false
       }
     }
   },

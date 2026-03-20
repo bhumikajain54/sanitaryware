@@ -17,13 +17,7 @@ import java.util.List;
 @Table(name = "brands")
 public class Brand {
 
-    public Brand(String value) {
-        try {
-            this.id = Long.parseLong(value);
-        } catch (NumberFormatException e) {
-            this.name = value;
-        }
-    }
+    // Standard constructors provided by Lombok annotations (@NoArgsConstructor, @AllArgsConstructor)
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,6 +36,8 @@ public class Brand {
     private String status; // e.g., ACTIVE, INACTIVE
 
     private String logo;
+
+    private String website;
 
     @OneToMany(mappedBy = "brand", cascade = CascadeType.ALL)
     @JsonIgnore

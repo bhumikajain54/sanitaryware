@@ -40,9 +40,14 @@ api.interceptors.request.use(
             config.headers['X-User-Id'] = userId;
         }
 
-        // 4. Handle Content-Type for non-FormData objects
+        // 4. Handle Content-Type precisely for FormData
         if (config.data instanceof FormData) {
-            delete config.headers['Content-Type'];
+            // Explicitly remove Content-Type to let Axios manage boundary
+            // We ensure no charset=UTF-8 is added which breaks some backends
+            if (config.headers) {
+                delete config.headers['Content-Type'];
+                delete config.headers['content-type'];
+            }
         } else if (config.data && typeof config.data === 'object' && Object.keys(config.data).length > 0) {
             config.headers['Content-Type'] = 'application/json';
         }

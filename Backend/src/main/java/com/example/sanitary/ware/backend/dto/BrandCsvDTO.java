@@ -27,4 +27,7 @@ public class BrandCsvDTO {
 
     @CsvBindByName(column = "Status")
     private String status;
+
+    @CsvBindByName(column = "Logo")
+    private String logo;
 }

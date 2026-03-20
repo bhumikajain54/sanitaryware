@@ -1,15 +1,17 @@
 package com.example.sanitary.ware.backend.controllers;
 
 import com.example.sanitary.ware.backend.entities.Brand;
+import com.example.sanitary.ware.backend.services.FileStorageService;
 import com.example.sanitary.ware.backend.services.BrandService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/brands")
@@ -17,6 +19,7 @@ import java.util.List;
 public class AdminBrandController {
 
     private final BrandService brandService;
+    private final FileStorageService fileStorageService;
 
     @GetMapping
     public ResponseEntity<List<Brand>> getAllBrands() {
@@ -49,8 +52,15 @@ public class AdminBrandController {
         brandService.exportBrandsToPdf(response);
     }
 
+    @GetMapping("/debug")
+    public ResponseEntity<Map<String, Object>> debugMedia() {
+        Map<String, Object> debug = new HashMap<>();
+        debug.put("uploadDir", fileStorageService.getAllFiles());
+        return ResponseEntity.ok(debug);
+    }
+
     @PostMapping
-    public ResponseEntity<Brand> createBrand(@RequestBody @NonNull Brand brand) {
+    public ResponseEntity<Brand> createBrand(@RequestBody Brand brand) {
         return ResponseEntity.ok(brandService.createBrand(brand));
     }
 

@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  MdDashboard, 
-  MdInventory, 
-  MdBusiness, 
-  MdCategory, 
-  MdShoppingCart, 
+import {
+  MdDashboard,
+  MdInventory,
+  MdBusiness,
+  MdCategory,
+  MdShoppingCart,
   MdPeople,
   MdImage,
   MdArticle,
@@ -61,7 +61,7 @@ const AdminSidebar = ({ isMobileOpen, onMobileClose, onMobileToggle }) => {
       '/admin/media': () => import('../../pages/admin/AdminMedia'),
       '/admin/content': () => import('../../pages/admin/AdminContent'),
     };
-    
+
     if (routes[path]) {
       routes[path]();
     }
@@ -72,13 +72,13 @@ const AdminSidebar = ({ isMobileOpen, onMobileClose, onMobileToggle }) => {
     { name: 'Products', path: '/admin/products', icon: MdInventory, color: 'cyan' },
     { name: 'Brands', path: '/admin/brands', icon: MdBusiness, color: 'blue' },
     { name: 'Categories', path: '/admin/categories', icon: MdCategory, color: 'indigo' },
+    { name: 'Orders', path: '/admin/orders', icon: MdShoppingCart, color: 'purple' },
+    { name: 'Payments', path: '/admin/payments', icon: MdPayment, color: 'emerald' },
+    { name: 'Customers', path: '/admin/customers', icon: MdPeople, color: 'pink' },
     { name: 'Billing', path: '/admin/billing', icon: MdReceipt, color: 'orange' },
     { name: 'Quotations', path: '/admin/quotations', icon: MdDescription, color: 'purple' },
     { name: 'Order Notepad', path: '/admin/order-drafts', icon: MdEditNote, color: 'amber' },
     { name: 'Tally Sync', path: '/admin/tally', icon: MdSync, color: 'rose' },
-    { name: 'Orders', path: '/admin/orders', icon: MdShoppingCart, color: 'purple' },
-    { name: 'Payments', path: '/admin/payments', icon: MdPayment, color: 'emerald' },
-    { name: 'Customers', path: '/admin/customers', icon: MdPeople, color: 'pink' },
     { name: 'Testimonials', path: '/admin/testimonials', icon: MdSentimentSatisfied, color: 'yellow' },
     { name: 'Banners', path: '/admin/banners', icon: MdViewCarousel, color: 'rose' },
     { name: 'Inquiries', path: '/admin/inquiries', icon: MdChat, color: 'emerald' },
@@ -107,8 +107,8 @@ const AdminSidebar = ({ isMobileOpen, onMobileClose, onMobileToggle }) => {
               animate={{ opacity: 1, x: 0 }}
               className="flex flex-col"
             >
-              <h1 className="text-sm font-black bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent whitespace-nowrap">Singhai Traders</h1>
-              <span className="text-[10px] text-[var(--admin-text-secondary)] font-bold tracking-widest uppercase">Admin Panel</span>
+              <h1 className="text-sm font-bold text-[var(--text-main)] whitespace-nowrap">Singhai Traders</h1>
+              <span className="text-xs text-teal-600 font-bold tracking-widest uppercase">Portal</span>
             </motion.div>
           )}
         </div>
@@ -128,10 +128,9 @@ const AdminSidebar = ({ isMobileOpen, onMobileClose, onMobileToggle }) => {
             end={item.path === '/admin'}
             onMouseEnter={() => prefetchRoute(item.path)}
             className={({ isActive }) =>
-              `flex items-center gap-4 ${isExpanded ? 'px-4' : 'px-0 justify-center'} py-3 rounded-xl transition-all duration-200 group ${
-                isActive
-                  ? 'bg-gradient-to-r from-teal-600 to-cyan-600 text-white shadow-lg shadow-teal-500/20'
-                  : 'text-[var(--admin-text-secondary)] hover:bg-[var(--admin-bg-primary)] hover:text-teal-600 dark:hover:text-teal-400'
+              `flex items-center gap-4 ${isExpanded ? 'px-4' : 'px-0 justify-center'} py-3 rounded-xl transition-all duration-200 group ${isActive
+                ? 'bg-gradient-to-r from-teal-600 to-cyan-600 text-white shadow-lg shadow-teal-500/20'
+                : 'text-[var(--admin-text-secondary)] hover:bg-[var(--admin-bg-primary)] hover:text-teal-600 dark:hover:text-teal-400'
               }`
             }
           >
@@ -162,9 +161,9 @@ const AdminSidebar = ({ isMobileOpen, onMobileClose, onMobileToggle }) => {
           {isExpanded && <span className="text-sm font-bold uppercase tracking-widest text-[10px]">Sign Out</span>}
         </button>
         {isExpanded && (
-           <div className="mt-4 text-center">
-              <p className="text-[10px] text-[var(--admin-text-secondary)] font-bold uppercase tracking-widest">© 2026 Singhai Traders</p>
-           </div>
+          <div className="mt-4 text-center">
+            <p className="text-xs text-[var(--admin-text-secondary)] font-bold uppercase tracking-widest">© 2026 Singhai Traders</p>
+          </div>
         )}
       </div>
     </div>
@@ -179,20 +178,25 @@ const AdminSidebar = ({ isMobileOpen, onMobileClose, onMobileToggle }) => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onMobileClose}
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-40 md:hidden"
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] md:hidden"
           />
         )}
       </AnimatePresence>
 
-      <aside 
+      <motion.aside
+        initial={false}
+        animate={{
+          x: (isDesktop || isMobileOpen) ? 0 : -280,
+          width: isDesktop ? (isHovered ? 260 : 80) : 280,
+          minWidth: isDesktop ? (isHovered ? 260 : 80) : (isMobileOpen ? 280 : 0)
+        }}
+        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
         onMouseEnter={() => isDesktop && setIsHovered(true)}
         onMouseLeave={() => isDesktop && setIsHovered(false)}
-        className={`fixed left-0 top-0 h-screen bg-[var(--admin-bg-secondary)] border-r border-[var(--border-main)] z-50 transition-all duration-300 ease-in-out ${
-          isMobileOpen ? 'w-64' : (isDesktop ? (isHovered ? 'w-64' : 'w-20') : 'w-0 border-none overflow-hidden')
-        }`}
+        className={`fixed left-0 top-0 h-screen bg-[var(--bg-app)] border-r border-[var(--border-main)] z-[110] shadow-2xl md:shadow-none overflow-x-hidden`}
       >
-        <SidebarContent isExpanded={isExpanded} />
-      </aside>
+        <SidebarContent isExpanded={(isDesktop && isHovered) || isMobileOpen} />
+      </motion.aside>
     </>
   );
 };

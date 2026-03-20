@@ -1,23 +1,25 @@
 import { useState, useCallback, useMemo } from 'react';
-import { 
-  MdSearch, 
-  MdAdd, 
-  MdEdit, 
-  MdDelete, 
-  MdFilterList, 
-  MdFileDownload, 
+import {
+  MdSearch,
+  MdAdd,
+  MdEdit,
+  MdDelete,
+  MdFilterList,
+  MdFileDownload,
   MdFileUpload,
   MdMoreVert,
   MdRefresh,
   MdCheckCircle,
   MdCancel,
-  MdInventory
+  MdInventory,
+  MdKeyboardArrowLeft,
+  MdKeyboardArrowRight
 } from 'react-icons/md';
 import ProductModal from '../../components/admin/ProductModal';
-import { 
-  useAdminFetch, 
-  useAdminSearch, 
-  useAdminPagination, 
+import {
+  useAdminFetch,
+  useAdminSearch,
+  useAdminPagination,
   useAdminToast,
   useAdminSelection,
   useAdminModal,
@@ -26,15 +28,15 @@ import {
 import { handleExportDownload } from '../../utils/exportUtils';
 import { useAdminFilter } from '../../hooks/useAdminFilter';
 import AdminFilterPanel from '../../components/admin/AdminFilterPanel';
-import { 
-  generateProductListPDF 
+import {
+  generateProductListPDF
 } from '../../utils/pdfGenerator';
 import adminService from '../../services/adminService';
 
 const AdminProducts = () => {
   const { success, error, info } = useAdminToast();
   const { confirm, isConfirming, confirmData, handleConfirm, handleCancel } = useAdminConfirm();
-  
+
   // Data fetching with service
   const fetchProducts = useCallback(() => adminService.getProducts(), []);
   const { data: initialProducts, loading, refetch } = useAdminFetch(
@@ -51,63 +53,63 @@ const AdminProducts = () => {
 
   const memoProducts = useMemo(() => {
     if (!initialProducts) return [];
-    
+
     // DEBUG: Log the full raw response for inspection
     console.log('📦 AdminProducts Raw Data Received:', initialProducts);
 
     let list = [];
     if (Array.isArray(initialProducts)) {
-        list = initialProducts;
+      list = initialProducts;
     } else if (initialProducts && typeof initialProducts === 'object') {
-        // Support a wide variety of backend response wrappers
-        list = initialProducts.products || 
-               initialProducts.items ||
-               initialProducts.content || 
-               initialProducts.data || 
-               initialProducts.list ||
-               initialProducts.productList ||
-               initialProducts.body ||
-               (initialProducts._embedded && initialProducts._embedded.products) ||
-               [];
-               
-        // If still empty but object has keys, try to find ANY array in the object
-        if (list.length === 0) {
-            const possibleList = Object.values(initialProducts).find(val => Array.isArray(val));
-            if (possibleList) list = possibleList;
-        }
+      // Support a wide variety of backend response wrappers
+      list = initialProducts.products ||
+        initialProducts.items ||
+        initialProducts.content ||
+        initialProducts.data ||
+        initialProducts.list ||
+        initialProducts.productList ||
+        initialProducts.body ||
+        (initialProducts._embedded && initialProducts._embedded.products) ||
+        [];
+
+      // If still empty but object has keys, try to find ANY array in the object
+      if (list.length === 0) {
+        const possibleList = Object.values(initialProducts).find(val => Array.isArray(val));
+        if (possibleList) list = possibleList;
+      }
     }
-    
+
     // DEBUG: Check data structure 
     if (list.length > 0) {
-        console.log(`✅ Normalized ${list.length} products. First item:`, list[0]);
+      console.log(`✅ Normalized ${list.length} products. First item:`, list[0]);
     } else {
-        console.warn('⚠️ Product list is empty after checking all common keys. Backend might be returning data in an unexpected format.', initialProducts);
+      console.warn('⚠️ Product list is empty after checking all common keys. Backend might be returning data in an unexpected format.', initialProducts);
     }
 
     // Normalize data structure for consistent filtering & display based on backend entity
     const normalizedList = list.map(item => {
-        // Handle ID
-        const id = item.id;
-        
-        // Handle Stock (Backend uses stockQuantity with aliases stock/quantity)
-        const stockValue = item.stockQuantity !== undefined ? item.stockQuantity : 
-                          (item.stock !== undefined ? item.stock : 
-                          (item.quantity !== undefined ? item.quantity : 0));
+      // Handle ID
+      const id = item.id;
 
-        return {
-            ...item,
-            id,
-            name: item.name || 'Untitled Product',
-            image: item.mainImage || item.image || '/Logo2.png', // Priority to mainImage
-            mainImage: item.mainImage || item.image || '/Logo2.png',
-            price: typeof item.price === 'number' ? item.price : parseFloat(String(item.price || 0).replace(/[^0-9.]/g, '')),
-            stock: Math.max(0, parseInt(stockValue)),
-            stockQuantity: Math.max(0, parseInt(stockValue)),
-            category: typeof item.category === 'object' ? item.category : { name: String(item.category || 'General') },
-            brand: typeof item.brand === 'object' ? item.brand : { name: String(item.brand || 'Generic') },
-            active: item.active !== undefined ? item.active : true,
-            status: item.active === false ? 'inactive' : 'active'
-        };
+      // Handle Stock (Backend uses stockQuantity with aliases stock/quantity)
+      const stockValue = item.stockQuantity !== undefined ? item.stockQuantity :
+        (item.stock !== undefined ? item.stock :
+          (item.quantity !== undefined ? item.quantity : 0));
+
+      return {
+        ...item,
+        id,
+        name: item.name || 'Untitled Product',
+        image: item.mainImage || item.image || '/Logo2.png', // Priority to mainImage
+        mainImage: item.mainImage || item.image || '/Logo2.png',
+        price: typeof item.price === 'number' ? item.price : parseFloat(String(item.price || 0).replace(/[^0-9.]/g, '')),
+        stock: Math.max(0, parseInt(stockValue)),
+        stockQuantity: Math.max(0, parseInt(stockValue)),
+        category: typeof item.category === 'object' ? item.category : { name: String(item.category || 'General') },
+        brand: typeof item.brand === 'object' ? item.brand : { name: String(item.brand || 'Generic') },
+        active: item.active !== undefined ? item.active : true,
+        status: item.active === false ? 'inactive' : 'active'
+      };
     });
 
     // Sort by ID descending (newest first)
@@ -129,14 +131,14 @@ const AdminProducts = () => {
   const memoBrands = useMemo(() => {
     if (!brandsList) return [];
     const rawList = Array.isArray(brandsList) ? brandsList : (brandsList.brands || brandsList.data || []);
-    
+
     // Unique by name for the filter list
     const uniqueNames = new Set();
     return rawList.filter(b => {
-        if (!b.name) return false;
-        if (uniqueNames.has(b.name)) return false;
-        uniqueNames.add(b.name);
-        return true;
+      if (!b.name) return false;
+      if (uniqueNames.has(b.name)) return false;
+      uniqueNames.add(b.name);
+      return true;
     });
   }, [brandsList]);
 
@@ -144,25 +146,25 @@ const AdminProducts = () => {
     if (!categoriesList) return [];
     let list = [];
     if (Array.isArray(categoriesList)) {
-        list = categoriesList;
+      list = categoriesList;
     } else {
-        list = categoriesList.categories || categoriesList.content || categoriesList.data || [];
+      list = categoriesList.categories || categoriesList.content || categoriesList.data || [];
     }
-    
+
     const uniqueNames = new Set();
     return list.filter(c => {
-        const name = c.name || c;
-        if (!name) return false;
-        const str = String(name).trim();
-        
-        // Uniqueness check
-        if (uniqueNames.has(str)) return false;
-        uniqueNames.add(str);
+      const name = c.name || c;
+      if (!name) return false;
+      const str = String(name).trim();
 
-        const junk = ['000'];
-        if (junk.includes(str.toUpperCase())) return false;
-        
-        return str.length > 0;
+      // Uniqueness check
+      if (uniqueNames.has(str)) return false;
+      uniqueNames.add(str);
+
+      const junk = ['000'];
+      if (junk.includes(str.toUpperCase())) return false;
+
+      return str.length > 0;
     });
   }, [categoriesList]);
 
@@ -230,27 +232,27 @@ const AdminProducts = () => {
   } = useAdminFilter(searchedProducts, filterConfig);
 
   // Pagination logic - use filtered products
-  const { 
-    currentItems: products, 
-    currentPage, 
-    totalPages, 
-    goToPage, 
-    nextPage, 
+  const {
+    currentItems: products,
+    currentPage,
+    totalPages,
+    goToPage,
+    nextPage,
     prevPage,
     resetPagination,
     hasNextPage,
-    hasPrevPage 
+    hasPrevPage
   } = useAdminPagination(filteredProducts, 10);
 
   // Multi-selection for bulk actions
-  const { 
-    toggleSelection, 
-    toggleAll, 
-    selectedIds, 
-    isSelected, 
-    isAllSelected, 
+  const {
+    toggleSelection,
+    toggleAll,
+    selectedIds,
+    isSelected,
+    isAllSelected,
     isSomeSelected,
-    clearSelection 
+    clearSelection
   } = useAdminSelection(products);
 
   // Modal states
@@ -270,7 +272,7 @@ const AdminProducts = () => {
   const handleBulkStockUpdate = async () => {
     const quantityStr = prompt('Enter the new stock quantity for ALL products:');
     if (quantityStr === null) return;
-    
+
     const quantity = parseInt(quantityStr);
     if (isNaN(quantity)) {
       error('Please enter a valid number');
@@ -367,14 +369,14 @@ const AdminProducts = () => {
 
   return (
     <div className="bg-[var(--admin-bg-primary)] min-h-screen">
-      <div className="max-w-7xl mx-auto px-1 sm:px-6 py-4 sm:py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
         {/* Page Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent leading-tight tracking-tight">Product Management</h1>
             <p className="text-[10px] sm:text-xs md:text-sm font-bold text-slate-500 mt-1 uppercase tracking-tight">Inventory, Prices & Status</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto no-scrollbar pb-2 sm:pb-0 -mx-4 px-4 sm:mx-0 sm:px-0">
             <input
               type="file"
               id="import-products"
@@ -384,7 +386,7 @@ const AdminProducts = () => {
             />
             <label
               htmlFor="import-products"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 border-2 border-[var(--border-main)] text-[var(--admin-text-secondary)] font-bold rounded-xl hover:bg-[var(--admin-bg-primary)] transition-all cursor-pointer text-[10px] sm:text-xs uppercase tracking-widest"
+              className="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 border-2 border-[var(--border-main)] text-[var(--admin-text-secondary)] font-bold rounded-xl hover:bg-[var(--admin-bg-primary)] transition-all cursor-pointer text-[10px] sm:text-xs uppercase tracking-widest active:scale-95"
               title="Import from CSV/PDF"
             >
               <MdFileUpload className="text-lg sm:text-xl" />
@@ -392,7 +394,7 @@ const AdminProducts = () => {
             </label>
             <button
               onClick={handleExport}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 border-2 border-[var(--border-main)] text-[var(--admin-text-secondary)] font-bold rounded-xl hover:bg-[var(--admin-bg-primary)] transition-all text-[10px] sm:text-xs uppercase tracking-widest"
+              className="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 border-2 border-[var(--border-main)] text-[var(--admin-text-secondary)] font-bold rounded-xl hover:bg-[var(--admin-bg-primary)] transition-all text-[10px] sm:text-xs uppercase tracking-widest active:scale-95"
               title="Export to CSV"
             >
               <MdFileDownload className="text-lg sm:text-xl" />
@@ -400,7 +402,7 @@ const AdminProducts = () => {
             </button>
             <button
               onClick={handleExportPDF}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 border-2 border-[var(--border-main)] text-[var(--admin-text-secondary)] font-bold rounded-xl hover:bg-[var(--admin-bg-primary)] transition-all text-[10px] sm:text-xs uppercase tracking-widest"
+              className="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 border-2 border-[var(--border-main)] text-[var(--admin-text-secondary)] font-bold rounded-xl hover:bg-[var(--admin-bg-primary)] transition-all text-[10px] sm:text-xs uppercase tracking-widest active:scale-95"
               title="Export to PDF"
             >
               <MdFileDownload className="text-lg sm:text-xl" />
@@ -408,7 +410,7 @@ const AdminProducts = () => {
             </button>
             <button
               onClick={handleBulkStockUpdate}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 border-2 border-[var(--border-main)] text-[var(--admin-text-secondary)] font-bold rounded-xl hover:bg-[var(--admin-bg-primary)] transition-all text-[10px] sm:text-xs uppercase tracking-widest"
+              className="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 border-2 border-[var(--border-main)] text-[var(--admin-text-secondary)] font-bold rounded-xl hover:bg-[var(--admin-bg-primary)] transition-all text-[10px] sm:text-xs uppercase tracking-widest active:scale-95"
               title="Reset All Stock"
             >
               <MdInventory className="text-lg sm:text-xl" />
@@ -416,7 +418,7 @@ const AdminProducts = () => {
             </button>
             <button
               onClick={() => openModal()}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-6 sm:py-2.5 bg-teal-600 text-white font-bold rounded-xl hover:bg-teal-700 transition-all shadow-lg shadow-teal-500/20 active:scale-95 text-[10px] sm:text-xs uppercase tracking-widest"
+              className="flex-shrink-0 inline-flex items-center gap-1.5 px-4 py-1.5 sm:px-6 sm:py-2.5 bg-teal-600 text-white font-bold rounded-xl hover:bg-teal-700 transition-all shadow-lg shadow-teal-500/20 active:scale-95 text-[10px] sm:text-xs uppercase tracking-widest"
             >
               <MdAdd className="text-lg sm:text-xl" />
               <span className="inline whitespace-nowrap">Add</span>
@@ -436,9 +438,9 @@ const AdminProducts = () => {
               className="w-full pl-11 pr-4 py-2.5 sm:py-3 bg-[var(--admin-bg-primary)] border-2 border-[var(--border-main)] focus:border-teal-500 dark:focus:border-teal-500 rounded-2xl outline-none transition-all dark:text-white text-[11px] sm:text-sm font-semibold placeholder:text-slate-400 placeholder:font-medium shadow-inner"
             />
           </div>
-          
+
           <div className="flex items-center gap-2 w-full md:w-auto">
-            <button 
+            <button
               onClick={toggleFilters}
               className="flex items-center justify-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 border-2 border-[var(--border-subtle)] text-[var(--admin-text-secondary)] font-bold rounded-xl hover:bg-[var(--admin-bg-primary)] transition-all text-[10px] sm:text-xs uppercase tracking-widest flex-1 md:flex-none relative"
             >
@@ -469,7 +471,7 @@ const AdminProducts = () => {
           <div className="bg-teal-600 text-white rounded-2xl p-4 mb-6 flex items-center justify-between shadow-xl animate-fadeIn">
             <div className="flex items-center gap-6 ml-2">
               <span className="font-black uppercase tracking-widest text-[10px] bg-white/20 px-3 py-1 rounded-full">{selectedIds.length} items selected</span>
-              <button 
+              <button
                 onClick={clearSelection}
                 className="text-[10px] font-black uppercase tracking-widest underline hover:text-teal-100"
               >
@@ -477,7 +479,7 @@ const AdminProducts = () => {
               </button>
             </div>
             <div className="flex items-center gap-2">
-              <button 
+              <button
                 onClick={handleBulkDelete}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-red-500/90 hover:bg-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-lg"
               >
@@ -495,20 +497,20 @@ const AdminProducts = () => {
               <thead>
                 <tr className="bg-[var(--admin-bg-primary)]/50">
                   <th className="px-1.5 sm:px-6 py-2.5 sm:py-4 border-b border-[var(--border-subtle)] w-6 sm:w-10">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       className="rounded border-slate-300 text-teal-600 focus:ring-teal-500 scale-75 sm:scale-110"
                       checked={isAllSelected}
                       onChange={toggleAll}
                     />
                   </th>
-                  <th className="px-1.5 sm:px-6 py-2.5 sm:py-4 text-[7px] sm:text-xs font-black text-slate-500 uppercase tracking-tighter sm:tracking-widest border-b border-[var(--border-subtle)] text-left">Product</th>
-                  <th className="px-1.5 sm:px-6 py-2.5 sm:py-4 text-[7px] sm:text-xs font-black text-slate-500 uppercase tracking-tighter sm:tracking-widest border-b border-[var(--border-subtle)] text-left">Brand</th>
-                  <th className="px-1.5 sm:px-6 py-2.5 sm:py-4 text-[7px] sm:text-xs font-black text-slate-500 uppercase tracking-tighter sm:tracking-widest border-b border-[var(--border-subtle)] text-left">Category</th>
-                  <th className="px-1.5 sm:px-6 py-2.5 sm:py-4 text-[7px] sm:text-xs font-black text-slate-500 uppercase tracking-tighter sm:tracking-widest border-b border-[var(--border-subtle)] text-left">Price</th>
-                  <th className="px-1.5 sm:px-6 py-2.5 sm:py-4 text-[7px] sm:text-xs font-black text-slate-500 uppercase tracking-widest border-b border-[var(--border-subtle)] text-left">Stock</th>
-                  <th className="px-1.5 sm:px-6 py-2.5 sm:py-4 text-[7px] sm:text-xs font-black text-slate-500 uppercase tracking-widest border-b border-[var(--border-subtle)] text-left">Status</th>
-                  <th className="px-1.5 sm:px-6 py-2.5 sm:py-4 text-[7px] sm:text-xs font-black text-slate-500 uppercase tracking-widest border-b border-[var(--border-subtle)] text-right">Actions</th>
+                  <th className="px-3 sm:px-6 py-2.5 sm:py-4 text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-tighter sm:tracking-widest border-b border-[var(--border-subtle)] text-left">Product</th>
+                  <th className="hidden sm:table-cell px-1.5 sm:px-6 py-2.5 sm:py-4 text-xs font-black text-slate-500 uppercase tracking-tighter sm:tracking-widest border-b border-[var(--border-subtle)] text-left">Brand</th>
+                  <th className="hidden sm:table-cell px-1.5 sm:px-6 py-2.5 sm:py-4 text-xs font-black text-slate-500 uppercase tracking-tighter sm:tracking-widest border-b border-[var(--border-subtle)] text-left">Category</th>
+                  <th className="px-3 sm:px-6 py-2.5 sm:py-4 text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-tighter sm:tracking-widest border-b border-[var(--border-subtle)] text-left">Price</th>
+                  <th className="px-3 sm:px-6 py-2.5 sm:py-4 text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-widest border-b border-[var(--border-subtle)] text-left">Stock</th>
+                  <th className="px-3 sm:px-6 py-2.5 sm:py-4 text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-widest border-b border-[var(--border-subtle)] text-left">Status</th>
+                  <th className="px-3 sm:px-6 py-2.5 sm:py-4 text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-widest border-b border-[var(--border-subtle)] text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -525,58 +527,56 @@ const AdminProducts = () => {
                   products.map((product) => (
                     <tr key={product.id} className={`hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors ${isSelected(product.id) ? 'bg-teal-50/50 dark:bg-teal-900/10' : ''}`}>
                       <td className="px-1.5 sm:px-6 py-2 sm:py-4">
-                        <input 
-                          type="checkbox" 
+                        <input
+                          type="checkbox"
                           className="rounded border-slate-300 text-teal-600 focus:ring-teal-500 scale-75 sm:scale-110"
                           checked={isSelected(product.id)}
                           onChange={() => toggleSelection(product.id)}
                         />
                       </td>
-                      <td className="px-1.5 sm:px-6 py-2 sm:py-4">
-                        <div className="flex items-center gap-1.5 sm:gap-4">
-                          <div className="w-6 h-6 sm:w-12 sm:h-12 bg-white dark:bg-slate-800 rounded-md sm:rounded-2xl flex items-center justify-center p-0.5 sm:p-1 group-hover:scale-105 transition-transform shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
-                             <img 
-                               src={product.image || product.mainImage || '/Logo2.png'} 
-                               alt={product.name} 
-                               className="w-full h-full object-contain" 
-                             />
+                      <td className="px-3 sm:px-6 py-3 sm:py-4">
+                        <div className="flex items-center gap-2 sm:gap-4">
+                          <div className="w-8 h-8 sm:w-12 sm:h-12 bg-white dark:bg-slate-800 rounded-lg sm:rounded-2xl flex items-center justify-center p-0.5 sm:p-1 group-hover:scale-105 transition-transform shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+                            <img
+                              src={product.image || product.mainImage || '/Logo2.png'}
+                              alt={product.name}
+                              className="w-full h-full object-contain"
+                            />
                           </div>
                           <div className="min-w-0">
-                            <p className="font-bold text-[var(--admin-text-primary)] truncate max-w-[60px] sm:max-w-[180px] tracking-tight text-[8px] sm:text-sm">{product.name}</p>
-                            <p className="text-[6px] sm:text-[10px] text-slate-500 line-clamp-1 max-w-[70px] sm:max-w-[200px] italic font-medium">{product.description}</p>
+                            <p className="font-bold text-[var(--admin-text-primary)] truncate max-w-[100px] sm:max-w-[180px] tracking-tight text-[10px] sm:text-sm">{product.name}</p>
+                            <p className="text-[8px] sm:text-[10px] text-slate-500 line-clamp-1 max-w-[110px] sm:max-w-[200px] italic font-medium">{product.description}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-1.5 sm:px-6 py-2 sm:py-4">
+                      <td className="hidden sm:table-cell px-1.5 sm:px-6 py-2 sm:py-4">
                         <span className="text-[7px] sm:text-[10px] font-black px-1 py-0.5 sm:px-3 sm:py-1 bg-cyan-50 dark:bg-cyan-900/20 text-cyan-600 rounded-full border border-cyan-100 dark:border-cyan-800/50 uppercase tracking-tighter sm:tracking-widest">
                           {typeof product.brand === 'object' && product.brand ? product.brand.name : (product.brand || 'No Brand')}
                         </span>
                       </td>
-                      <td className="px-1.5 sm:px-6 py-2 sm:py-4">
+                      <td className="hidden sm:table-cell px-1.5 sm:px-6 py-2 sm:py-4">
                         <span className="text-[7px] sm:text-[10px] font-black px-1 py-0.5 sm:px-3 sm:py-1 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 rounded-full border border-indigo-100 dark:border-indigo-800/50 uppercase tracking-tighter sm:tracking-widest">
                           {typeof product.category === 'object' && product.category ? product.category.name : (product.category || 'No Category')}
                         </span>
                       </td>
-                      <td className="px-1.5 sm:px-6 py-2 sm:py-4 font-black text-teal-600 dark:text-teal-400 text-[8px] sm:text-sm whitespace-nowrap">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 font-black text-teal-600 dark:text-teal-400 text-xs sm:text-sm whitespace-nowrap">
                         {product.price}
                       </td>
-                      <td className="px-1.5 sm:px-6 py-2 sm:py-4">
-                        <span className={`px-1.5 py-0.5 sm:px-3 sm:py-1 rounded-full text-[8px] sm:text-[10px] font-black uppercase tracking-widest ${
-                          product.stock === 0 ? 'bg-red-100 text-red-700' :
-                          product.stock < 10 ? 'bg-amber-100 text-amber-700' :
-                          'bg-green-100 text-green-700'
-                        }`}>
+                      <td className="px-3 sm:px-6 py-3 sm:py-4">
+                        <span className={`px-2 py-1 sm:px-3 sm:py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${product.stock === 0 ? 'bg-red-100 text-red-700' :
+                            product.stock < 10 ? 'bg-amber-100 text-amber-700' :
+                              'bg-green-100 text-green-700'
+                          }`}>
                           {product.stock}
                         </span>
                       </td>
-                      <td className="px-1.5 sm:px-6 py-2 sm:py-4">
-                        <button 
+                      <td className="px-3 sm:px-6 py-3 sm:py-4">
+                        <button
                           onClick={() => handleToggleStatus(product.id, product.active)}
-                          className={`flex items-center gap-0.5 sm:gap-1 text-[7px] sm:text-[10px] font-black uppercase tracking-widest transition-all ${
-                            product.active ? 'text-green-500' : 'text-slate-400'
-                          }`}
+                          className={`flex items-center gap-1 text-[10px] font-black uppercase tracking-widest transition-all ${product.active ? 'text-green-500' : 'text-slate-400'
+                            }`}
                         >
-                          {product.active ? <MdCheckCircle className="text-xs sm:text-lg" /> : <MdCancel className="text-xs sm:text-lg" />}
+                          {product.active ? <MdCheckCircle className="text-sm sm:text-lg" /> : <MdCancel className="text-sm sm:text-lg" />}
                           <span className="inline-block sm:inline">{product.active ? 'Active' : 'Inactive'}</span>
                         </button>
                       </td>
@@ -611,30 +611,31 @@ const AdminProducts = () => {
               </tbody>
             </table>
           </div>
-          
+
           {/* Pagination Footer */}
           {!loading && totalPages > 1 && (
-            <div className="px-6 py-6 border-t border-[var(--border-subtle)] flex items-center justify-between bg-slate-50/30 dark:bg-slate-800/20">
-              <p className="text-[10px] text-[var(--admin-text-secondary)] font-black uppercase tracking-widest">
+            <div className="px-4 py-4 sm:px-6 sm:py-6 border-t border-[var(--border-subtle)] flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-6 bg-slate-50/30 dark:bg-slate-800/20">
+              <p className="text-[10px] text-[var(--admin-text-secondary)] font-black uppercase tracking-widest text-center sm:text-left">
                 Showing <span className="text-teal-600 font-black">{products.length}</span> of <span className="text-teal-600 font-black">{filteredProducts.length}</span> products
               </p>
-              <div className="flex items-center gap-4">
+              <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4">
                 <button
                   onClick={prevPage}
                   disabled={!hasPrevPage}
-                  className={`px-4 py-2 border-2 border-[var(--border-main)] text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${!hasPrevPage ? 'opacity-30 cursor-not-allowed' : 'text-[var(--admin-text-secondary)] hover:bg-[var(--admin-bg-primary)]'}`}
+                  className={`flex items-center justify-center w-10 sm:w-auto sm:px-4 h-10 border-2 border-[var(--border-main)] text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${!hasPrevPage ? 'opacity-30 cursor-not-allowed' : 'text-[var(--admin-text-secondary)] hover:bg-[var(--admin-bg-primary)]'}`}
                 >
-                  Previous
+                  <MdKeyboardArrowLeft className="text-xl sm:hidden" />
+                  <span className="hidden sm:inline">Previous</span>
                 </button>
-                <div className="flex items-center gap-1.5 font-bold">
+                <div className="flex items-center gap-1 sm:gap-1.5 font-bold">
                   {(() => {
                     const range = [];
                     const overflow = 2; // Neighbors to show
 
                     for (let i = 1; i <= totalPages; i++) {
                       if (
-                        i === 1 || 
-                        i === totalPages || 
+                        i === 1 ||
+                        i === totalPages ||
                         (i >= currentPage - overflow && i <= currentPage + overflow)
                       ) {
                         range.push(i);
@@ -645,12 +646,12 @@ const AdminProducts = () => {
                         range.push('...');
                       }
                     }
-                    
+
                     // Filter duplicates just in case (e.g. at start/end of list)
                     const uniqueRange = [...new Set(range)].filter((val, idx, arr) => {
-                         // Remove sequential dots if logic produced them
-                         if (val === '...' && arr[idx-1] === '...') return false;
-                         return true;
+                      // Remove sequential dots if logic produced them
+                      if (val === '...' && arr[idx - 1] === '...') return false;
+                      return true;
                     });
 
                     return uniqueRange.map((page, index) => (
@@ -658,13 +659,12 @@ const AdminProducts = () => {
                         key={index}
                         onClick={() => typeof page === 'number' && goToPage(page)}
                         disabled={page === '...'}
-                        className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl text-[10px] sm:text-xs font-black transition-all ${
-                          page === currentPage 
-                          ? 'bg-teal-600 text-white shadow-lg shadow-teal-500/20 scale-110' 
-                          : page === '...' 
-                            ? 'text-slate-300 cursor-default' 
-                            : 'text-slate-400 hover:bg-[var(--admin-bg-primary)] hover:text-teal-600'
-                        }`}
+                        className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl text-[10px] sm:text-xs font-black transition-all ${page === currentPage
+                            ? 'bg-teal-600 text-white shadow-lg shadow-teal-500/20 scale-110'
+                            : page === '...'
+                              ? 'text-slate-300 cursor-default'
+                              : 'text-slate-400 hover:bg-[var(--admin-bg-primary)] hover:text-teal-600'
+                          }`}
                       >
                         {page}
                       </button>
@@ -674,11 +674,12 @@ const AdminProducts = () => {
                 <button
                   onClick={nextPage}
                   disabled={!hasNextPage}
-                  className={`px-4 py-2 border-2 border-[var(--border-main)] text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${!hasNextPage ? 'opacity-30 cursor-not-allowed' : 'text-[var(--admin-text-secondary)] hover:bg-[var(--admin-bg-primary)]'}`}
+                  className={`flex items-center justify-center w-10 sm:w-auto sm:px-4 h-10 border-2 border-[var(--border-main)] text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${!hasNextPage ? 'opacity-30 cursor-not-allowed' : 'text-[var(--admin-text-secondary)] hover:bg-[var(--admin-bg-primary)]'}`}
                 >
-                  Next
+                  <span className="hidden sm:inline">Next</span>
+                  <MdKeyboardArrowRight className="text-xl sm:hidden" />
                 </button>
-              </div>
+                </div>
             </div>
           )}
         </div>
@@ -714,7 +715,7 @@ const AdminProducts = () => {
                 await adminService.createProduct(sanitizedData);
                 success('Product created successfully');
               }
-              
+
               // Trigger Out-of-stock email notification if stock is 0
               if (sanitizedData.stock === 0) {
                 try {
@@ -745,27 +746,25 @@ const AdminProducts = () => {
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-all">
           <div className="bg-[var(--admin-bg-secondary)] rounded-[2rem] p-8 max-w-sm w-full shadow-2xl border border-[var(--border-main)] transform transition-all animate-fadeIn">
             <div className="text-center">
-              <div className={`w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center ${
-                confirmData.type === 'danger' ? 'bg-red-50 text-red-500 shadow-lg shadow-red-500/10' : 'bg-teal-50 text-teal-500 shadow-lg shadow-teal-500/10'
-              }`}>
+              <div className={`w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center ${confirmData.type === 'danger' ? 'bg-red-50 text-red-500 shadow-lg shadow-red-500/10' : 'bg-teal-50 text-teal-500 shadow-lg shadow-teal-500/10'
+                }`}>
                 {confirmData.type === 'danger' ? <MdDelete className="text-4xl" /> : <MdCheckCircle className="text-4xl" />}
               </div>
               <h3 className="text-xl font-black text-[var(--admin-text-primary)] mb-2 leading-tight tracking-tight">{confirmData.title}</h3>
               <p className="text-sm font-medium text-[var(--admin-text-secondary)] mb-8 leading-relaxed italic">{confirmData.message}</p>
               <div className="flex items-center gap-4">
-                <button 
+                <button
                   onClick={handleCancel}
                   className="flex-1 py-3.5 px-6 border-2 border-[var(--border-subtle)] text-slate-500 font-bold rounded-2xl hover:bg-[var(--admin-bg-primary)] transition-all uppercase tracking-widest text-[10px]"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={handleConfirm}
-                  className={`flex-1 py-3.5 px-6 font-bold rounded-2xl transition-all shadow-lg uppercase tracking-widest text-[10px] text-white ${
-                    confirmData.type === 'danger' 
-                    ? 'bg-red-500 hover:bg-red-600 shadow-red-500/20' 
-                    : 'bg-teal-600 hover:bg-teal-700 shadow-teal-500/20'
-                  }`}
+                  className={`flex-1 py-3.5 px-6 font-bold rounded-2xl transition-all shadow-lg uppercase tracking-widest text-[10px] text-white ${confirmData.type === 'danger'
+                      ? 'bg-red-500 hover:bg-red-600 shadow-red-500/20'
+                      : 'bg-teal-600 hover:bg-teal-700 shadow-teal-500/20'
+                    }`}
                 >
                   {confirmData.confirmText || 'Confirm'}
                 </button>

@@ -134,28 +134,35 @@ export const AuthProvider = ({ children }) => {
   };
 
   const handleAuthSuccess = (response) => {
-    if (!response || (!response.token && !response.userId)) {
+    if (!response || (!response.token && !response.id && !response.userId)) {
       throw new Error("Invalid response from server");
     }
     
+    // Normalize role string correctly
+    const rawRole = response.role || (response.user && response.user.role) || 'CUSTOMER';
+    const normalizedRole = String(rawRole).toUpperCase();
+    
     const userData = {
-      id: response.userId || response.id,
+      id: response.id || response.userId || (response.user && response.user.id),
       token: response.token,
-      email: response.email,
+      email: response.email || (response.user && response.user.email) || '',
       name: response.name || response.fullName || 
             (response.firstName && response.lastName ? `${response.firstName} ${response.lastName}` : (response.firstName || response.lastName)) || 
+            (response.user && response.user.name) ||
             'Social User',
-      firstName: response.firstName || '',
-      lastName: response.lastName || '',
-      phone: response.phone || response.phoneNumber || '',
-      role: response.role
+      firstName: response.firstName || (response.user && response.user.firstName) || '',
+      lastName: response.lastName || (response.user && response.user.lastName) || '',
+      phone: response.phone || response.phoneNumber || (response.user && response.user.phone) || '',
+      role: normalizedRole
     };
 
     setUser(userData);
     setIsAuthenticated(true);
-    setIsAdmin(checkIsAdmin(userData.role));
+    setIsAdmin(checkIsAdmin(normalizedRole));
     
     localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('userToken', response.token); // Also save token separately as standard login does
+    
     return { success: true, user: userData };
   };
 

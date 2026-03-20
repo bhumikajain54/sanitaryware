@@ -308,12 +308,12 @@ const AdminDashboardNew = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-1 sm:px-4 md:px-6 py-2 sm:py-6 md:py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8">
       {/* Header with Refresh */}
-      <div className="flex items-center justify-between mb-2 sm:mb-4 md:mb-6">
+      <div className="flex items-center justify-between mb-4 sm:mb-4 md:mb-6">
         <div>
-          <h1 className="text-sm sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">Dashboard Overview</h1>
-          <p className="text-[9px] sm:text-xs md:text-sm text-[var(--admin-text-secondary)] mt-0.5 sm:mt-1 hidden sm:block">Welcome back! Here's what's happening today.</p>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">Dashboard Overview</h1>
+          <p className="text-[10px] sm:text-xs md:text-sm text-[var(--admin-text-secondary)] mt-0.5 sm:mt-1 hidden sm:block">Welcome back! Here's what's happening today.</p>
         </div>
       </div>
 
@@ -349,8 +349,8 @@ const AdminDashboardNew = () => {
                       <p className="text-[7px] sm:text-xs text-[var(--admin-text-secondary)]">{stat.subtitle}</p>
                     )}
                     {stat.trend !== 0 && (
-                      <span className={`flex items-center text-[7px] sm:text-xs font-bold px-1 sm:px-1.5 py-0.5 rounded-md ${stat.trendUp ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                        {stat.trendUp ? <MdTrendingUp className="mr-0.5 text-[8px] sm:text-xs" /> : <MdTrendingDown className="mr-0.5 text-[8px] sm:text-xs" />}
+                      <span className={`flex items-center text-xs font-bold px-1 sm:px-1.5 py-0.5 rounded-md ${stat.trendUp ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                        {stat.trendUp ? <MdTrendingUp className="mr-0.5 text-xs" /> : <MdTrendingDown className="mr-0.5 text-xs" />}
                         {stat.trend}%
                       </span>
                     )}
@@ -401,8 +401,8 @@ const AdminDashboardNew = () => {
         </div>
 
         <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-slate-950 to-transparent flex items-center justify-between">
-          <p className="text-slate-400 text-[10px] sm:text-xs font-medium uppercase tracking-widest">Showing current hero section on Singhai Traders</p>
-          <Link to="/admin/banners" className="text-teal-400 text-[10px] sm:text-xs font-black uppercase tracking-widest hover:text-white transition-all">Manage Sliders →</Link>
+          <p className="text-slate-400 text-xs font-medium uppercase tracking-widest">Showing current hero section on Singhai Traders</p>
+          <Link to="/admin/banners" className="text-teal-400 text-xs font-black uppercase tracking-widest hover:text-white transition-all">Manage Sliders →</Link>
         </div>
       </div>
 
@@ -412,8 +412,8 @@ const AdminDashboardNew = () => {
         <div className="bg-[var(--admin-bg-secondary)] border border-[var(--border-main)] shadow-md rounded-lg sm:rounded-2xl p-2 sm:p-4 md:p-6">
           <div className="flex items-center justify-between mb-1.5 sm:mb-3 md:mb-4">
             <div>
-              <h3 className="text-[10px] sm:text-base md:text-lg font-bold text-[var(--admin-text-primary)]">Revenue Trend</h3>
-              <p className="text-[8px] sm:text-xs md:text-sm text-[var(--admin-text-secondary)]">Showing stats for last {period} days</p>
+              <h3 className="text-xs sm:text-base md:text-lg font-bold text-[var(--admin-text-primary)]">Revenue Trend</h3>
+              <p className="text-[10px] sm:text-xs md:text-sm text-[var(--admin-text-secondary)]">Showing stats for last {period} days</p>
             </div>
             <select
               value={period}
@@ -460,8 +460,8 @@ const AdminDashboardNew = () => {
         {/* Orders Chart */}
         <div className="bg-[var(--admin-bg-secondary)] border border-[var(--border-main)] shadow-md rounded-lg sm:rounded-2xl p-2 sm:p-4 md:p-6">
           <div className="mb-1.5 sm:mb-3 md:mb-4">
-            <h3 className="text-[10px] sm:text-base md:text-lg font-bold text-[var(--admin-text-primary)]">Orders Overview</h3>
-            <p className="text-[8px] sm:text-xs md:text-sm text-[var(--admin-text-secondary)]">Daily order count</p>
+            <h3 className="text-xs sm:text-base md:text-lg font-bold text-[var(--admin-text-primary)]">Orders Overview</h3>
+            <p className="text-[10px] sm:text-xs md:text-sm text-[var(--admin-text-secondary)]">Daily order count</p>
           </div>
           <ResponsiveContainer width="100%" height={150}>
             <BarChart data={ordersData}>
@@ -485,19 +485,19 @@ const AdminDashboardNew = () => {
       {/* Recent Orders */}
       <div className="bg-[var(--admin-bg-secondary)] border border-[var(--border-main)] shadow-md rounded-lg sm:rounded-2xl overflow-hidden">
         <div className="px-2 sm:px-4 md:px-6 py-1.5 sm:py-3 md:py-4 border-b border-[var(--border-subtle)]">
-          <h2 className="text-xs sm:text-base md:text-lg lg:text-xl font-bold text-[var(--admin-text-primary)]">Recent Orders</h2>
-          <p className="text-[8px] sm:text-[10px] md:text-xs lg:text-sm text-[var(--admin-text-secondary)] mt-0.5 sm:mt-1">Latest customer orders</p>
+          <h2 className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-[var(--admin-text-primary)]">Recent Orders</h2>
+          <p className="text-xs lg:text-sm text-[var(--admin-text-secondary)] mt-0.5 sm:mt-1">Latest customer orders</p>
         </div>
 
         <div className="overflow-x-auto scrollbar-hide">
           <table className="w-full min-w-[600px] text-left border-separate border-spacing-0">
             <thead>
               <tr className="bg-[var(--admin-bg-primary)]/50">
-                <th className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-[8px] sm:text-[9px] md:text-xs font-bold text-[var(--admin-text-secondary)] uppercase tracking-wider sm:tracking-widest border-b border-[var(--border-subtle)] w-[20%]">Order #</th>
-                <th className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-[8px] sm:text-[9px] md:text-xs font-bold text-[var(--admin-text-secondary)] uppercase tracking-wider sm:tracking-widest border-b border-[var(--border-subtle)] w-[25%]">Customer</th>
-                <th className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-[8px] sm:text-[9px] md:text-xs font-bold text-[var(--admin-text-secondary)] uppercase tracking-wider sm:tracking-widest border-b border-[var(--border-subtle)] w-[20%]">Amount</th>
-                <th className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-[8px] sm:text-[9px] md:text-xs font-bold text-[var(--admin-text-secondary)] uppercase tracking-wider sm:tracking-widest border-b border-[var(--border-subtle)] w-[15%]">Status</th>
-                <th className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-[8px] sm:text-[9px] md:text-xs font-bold text-[var(--admin-text-secondary)] uppercase tracking-wider sm:tracking-widest border-b border-[var(--border-subtle)] text-right w-[20%]">Date</th>
+                <th className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-xs font-bold text-[var(--admin-text-secondary)] uppercase tracking-wider sm:tracking-widest border-b border-[var(--border-subtle)] w-[20%]">Order #</th>
+                <th className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-xs font-bold text-[var(--admin-text-secondary)] uppercase tracking-wider sm:tracking-widest border-b border-[var(--border-subtle)] w-[25%]">Customer</th>
+                <th className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-xs font-bold text-[var(--admin-text-secondary)] uppercase tracking-wider sm:tracking-widest border-b border-[var(--border-subtle)] w-[20%]">Amount</th>
+                <th className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-xs font-bold text-[var(--admin-text-secondary)] uppercase tracking-wider sm:tracking-widest border-b border-[var(--border-subtle)] w-[15%]">Status</th>
+                <th className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-xs font-bold text-[var(--admin-text-secondary)] uppercase tracking-wider sm:tracking-widest border-b border-[var(--border-subtle)] text-right w-[20%]">Date</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--border-subtle)]">
@@ -513,7 +513,7 @@ const AdminDashboardNew = () => {
                     ₹{(order.total || 0).toLocaleString()}
                   </td>
                   <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4">
-                    <span className={`px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1 rounded-full text-[7px] sm:text-[8px] md:text-[10px] font-black uppercase tracking-wider sm:tracking-widest ${getStatusBadge(order.status)}`}>
+                    <span className={`px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest ${getStatusBadge(order.status)}`}>
                       {order.status.replace('_', ' ')}
                     </span>
                   </td>

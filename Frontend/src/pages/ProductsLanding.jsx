@@ -214,17 +214,17 @@ const ProductsLanding = () => {
       </div>
 
       <div className="relative z-10 py-8 md:py-16">
-        <div className="w-full max-w-[1920px] mx-auto px-2 md:px-6 lg:px-10">
+        <div className="w-full max-w-[1920px] mx-auto px-4 md:px-6 lg:px-10">
           
           {/* Compact Header experience */}
           <div className="flex flex-col lg:flex-row items-center justify-between gap-6 mb-8 md:mb-12">
             <motion.div
                 initial={{ opacity: 0, x: -30 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="text-center lg:text-left"
+                className="text-center lg:text-left w-full sm:w-auto"
             >
                 <div className="flex items-center justify-center lg:justify-start gap-2 mb-2">
-                    <span className="text-[10px] font-black tracking-[0.4em] text-teal-600 uppercase">Premium Catalog</span>
+                    <span className="text-xs font-black tracking-[0.4em] text-teal-600 uppercase">Premium Catalog</span>
                 </div>
                 <h1 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tighter leading-none uppercase italic">
                    THE <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 via-indigo-500 to-sky-500">COLLECTION</span>
@@ -336,7 +336,7 @@ const ProductsLanding = () => {
                         />
                         
                         <div className="absolute top-2 left-2">
-                           <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider text-white ${getBadgeColor(product.badge)}`}>
+                           <span className={`px-2 py-1 rounded text-[10px] sm:text-xs font-black uppercase tracking-wider text-white ${getBadgeColor(product.badge)}`}>
                               {product.badge}
                            </span>
                         </div>
@@ -350,7 +350,7 @@ const ProductsLanding = () => {
                      </div>
 
                      <div className="p-3 flex flex-col flex-1">
-                        <div className="flex items-center gap-1 mb-1 text-[8px] font-bold text-slate-400 uppercase tracking-wider">
+                        <div className="flex items-center gap-1 mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                            <span>{product.brand}</span>
                            <span className="text-teal-500">•</span>
                            <span className="text-teal-600 truncate">{product.category}</span>
@@ -361,9 +361,9 @@ const ProductsLanding = () => {
                         
                         <div className="mt-auto flex items-center justify-between pt-2 border-t border-slate-50">
                            <div className="flex flex-col">
-                              <span className="text-sm font-black text-slate-900 tracking-tighter">₹{(product.price || 0).toLocaleString()}</span>
+                              <span className="text-[14px] font-black text-slate-900 tracking-tighter">₹{(product.price || 0).toLocaleString()}</span>
                               {product.originalPrice > product.price && (
-                                <span className="text-[8px] font-bold text-red-400 line-through">₹{product.originalPrice.toLocaleString()}</span>
+                                <span className="text-[10px] font-bold text-red-400 line-through">₹{product.originalPrice.toLocaleString()}</span>
                               )}
                            </div>
                            <button

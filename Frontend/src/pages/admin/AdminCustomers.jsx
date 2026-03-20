@@ -9,7 +9,9 @@ import {
   MdPeople,
   MdCheckCircle,
   MdCancel,
-  MdFileUpload
+  MdFileUpload,
+  MdKeyboardArrowLeft,
+  MdKeyboardArrowRight
 } from 'react-icons/md';
 import {
   useAdminFetch,
@@ -441,24 +443,26 @@ const AdminCustomers = () => {
 
           {/* Pagination Footer */}
           {!loading && totalPages > 1 && (
-            <div className="px-3 py-3 sm:px-6 sm:py-6 border-t border-[var(--border-subtle)] flex items-center justify-between bg-slate-50/30 dark:bg-slate-800/20">
-              <p className="text-[8px] sm:text-[10px] text-[var(--admin-text-secondary)] font-black uppercase tracking-widest">
-                Showing <span className="text-teal-600">{customers.length}</span> of <span className="text-teal-600">{filteredCustomers.length}</span> customers
+            <div className="px-4 py-4 sm:px-6 sm:py-6 border-t border-[var(--border-subtle)] flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-6 bg-slate-50/30 dark:bg-slate-800/20">
+              <p className="text-[10px] text-[var(--admin-text-secondary)] font-black uppercase tracking-widest text-center sm:text-left">
+                Showing <span className="text-teal-600 font-black">{customers.length}</span> of <span className="text-teal-600 font-black">{filteredCustomers.length}</span> customers
               </p>
-              <div className="flex items-center gap-2 sm:gap-4">
+              <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4">
                 <button
                   onClick={prevPage}
                   disabled={!hasPrevPage}
-                  className={`px-2 py-1 sm:px-4 sm:py-2 border-2 border-[var(--border-main)] text-[8px] sm:text-[10px] font-black uppercase tracking-widest rounded-md sm:rounded-xl transition-all ${!hasPrevPage ? 'opacity-30 cursor-not-allowed' : 'text-[var(--admin-text-secondary)] hover:bg-[var(--admin-bg-primary)]'}`}
+                  className={`flex items-center justify-center w-10 sm:w-auto sm:px-4 h-10 border-2 border-[var(--border-main)] text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${!hasPrevPage ? 'opacity-30 cursor-not-allowed' : 'text-[var(--admin-text-secondary)] hover:bg-[var(--admin-bg-primary)]'}`}
                 >
-                  Previous
+                  <MdKeyboardArrowLeft className="text-xl sm:hidden" />
+                  <span className="hidden sm:inline">Previous</span>
                 </button>
                 <button
                   onClick={nextPage}
                   disabled={!hasNextPage}
-                  className={`px-2 py-1 sm:px-4 sm:py-2 border-2 border-[var(--border-main)] text-[8px] sm:text-[10px] font-black uppercase tracking-widest rounded-md sm:rounded-xl transition-all ${!hasNextPage ? 'opacity-30 cursor-not-allowed' : 'text-[var(--admin-text-secondary)] hover:bg-[var(--admin-bg-primary)]'}`}
+                  className={`flex items-center justify-center w-10 sm:w-auto sm:px-4 h-10 border-2 border-[var(--border-main)] text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${!hasNextPage ? 'opacity-30 cursor-not-allowed' : 'text-[var(--admin-text-secondary)] hover:bg-[var(--admin-bg-primary)]'}`}
                 >
-                  Next
+                  <span className="hidden sm:inline">Next</span>
+                  <MdKeyboardArrowRight className="text-xl sm:hidden" />
                 </button>
               </div>
             </div>

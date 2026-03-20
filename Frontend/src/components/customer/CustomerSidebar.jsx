@@ -99,7 +99,7 @@ const CustomerSidebar = ({ isMobileOpen, onMobileClose, onMobileToggle }) => {
               className="flex flex-col"
             >
               <h1 className="text-sm font-bold text-[var(--text-main)] whitespace-nowrap">Singhai Traders</h1>
-              <span className="text-[10px] text-teal-600 font-bold tracking-widest uppercase">Portal</span>
+              <span className="text-xs text-teal-600 font-bold tracking-widest uppercase">Portal</span>
             </motion.div>
           )}
         </div>
@@ -115,7 +115,7 @@ const CustomerSidebar = ({ isMobileOpen, onMobileClose, onMobileToggle }) => {
         {menuSections.map((section, idx) => (
           <div key={idx} className="space-y-1">
             {isExpanded && (
-              <h3 className="px-4 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] mb-3">
+              <h3 className="px-4 text-xs font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] mb-3">
                 {section.title}
               </h3>
             )}
@@ -167,20 +167,25 @@ const CustomerSidebar = ({ isMobileOpen, onMobileClose, onMobileToggle }) => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onMobileClose}
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-40 md:hidden"
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] md:hidden"
           />
         )}
       </AnimatePresence>
 
-      <aside 
+      <motion.aside 
+        initial={false}
+        animate={{ 
+          x: (isDesktop || isMobileOpen) ? 0 : -280,
+        width: isDesktop ? (isHovered ? 260 : 80) : 280,
+          minWidth: isDesktop ? (isHovered ? 260 : 80) : (isMobileOpen ? 280 : 0)
+        }}
+        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
         onMouseEnter={() => isDesktop && setIsHovered(true)}
         onMouseLeave={() => isDesktop && setIsHovered(false)}
-        className={`fixed left-0 top-0 h-screen bg-[var(--bg-app)] border-r border-[var(--border-main)] z-50 transition-all duration-300 ease-in-out ${
-          isMobileOpen ? 'w-64' : (isDesktop ? (isHovered ? 'w-64' : 'w-20') : 'w-0 border-none overflow-hidden')
-        }`}
+        className={`fixed left-0 top-0 h-screen bg-[var(--bg-app)] border-r border-[var(--border-main)] z-[110] shadow-2xl md:shadow-none overflow-x-hidden`}
       >
         <SidebarContent isExpanded={(isDesktop && isHovered) || isMobileOpen} />
-      </aside>
+      </motion.aside>
     </>
   );
 };

@@ -135,11 +135,11 @@ const LandingPage = () => {
             <motion.div
               key={idx}
               whileHover={{ y: -5 }}
-              className="bg-white p-2 md:p-8 rounded-xl md:rounded-3xl shadow-xl flex flex-col items-center text-center border border-slate-100"
+              className="bg-white p-4 md:p-8 rounded-xl md:rounded-3xl shadow-xl flex flex-col items-center text-center border border-slate-100"
             >
-              <div className="text-xs md:text-3xl mb-1 md:mb-3">{stat.icon}</div>
-              <div className="text-[10px] md:text-3xl font-black text-slate-900 leading-none">{stat.value}</div>
-              <div className="text-[5px] md:text-sm font-semibold text-slate-500 uppercase tracking-tighter md:tracking-wider mt-1">{stat.label}</div>
+              <div className="text-xl md:text-3xl mb-1 md:mb-3">{stat.icon}</div>
+              <div className="text-sm md:text-3xl font-black text-slate-900 leading-none">{stat.value}</div>
+              <div className="text-[8px] md:text-sm font-semibold text-slate-500 uppercase tracking-tighter md:tracking-wider mt-1">{stat.label}</div>
             </motion.div>
           ))}
         </div>
@@ -255,7 +255,7 @@ const LandingPage = () => {
                 <p className="hidden md:block">
                   Since 2019, Singhai Traders has stood as a beacon of excellence in the sanitary ware industry. We don't just sell fittings; we curate experiences that elevate your daily life.
                 </p>
-                <p>
+                <p className="text-xs sm:text-base md:text-lg">
                   Our showroom in Balaghat houses a handpicked collection of the world's finest brands, ensuring every piece meets highest standards.
                 </p>
               </div>
@@ -310,10 +310,10 @@ const LandingPage = () => {
                   <span className="hidden md:inline-block bg-teal-600/30 backdrop-blur-md text-teal-400 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full mb-3 border border-teal-500/30">
                     {cat.tag}
                   </span>
-                  <h4 className="text-[7px] md:text-2xl font-black text-white md:mb-6 leading-tight uppercase tracking-tighter">{cat.name}</h4>
+                  <h4 className="text-xs md:text-2xl font-black text-white md:mb-6 leading-tight uppercase tracking-tighter">{cat.name}</h4>
                   <Link
                     to={cat.link}
-                    className="mt-2 w-full bg-white text-slate-950 py-1.5 md:py-4 rounded-md md:rounded-2xl font-black text-[5px] md:text-sm flex items-center justify-center gap-1 md:gap-2 opacity-100 md:opacity-0 translate-y-0 md:translate-y-4 md:group-hover:opacity-100 md:group-hover:translate-y-0 transition-all duration-300"
+                    className="mt-2 w-full bg-white text-slate-950 py-1.5 md:py-4 rounded-md md:rounded-2xl font-black text-[8px] md:text-sm flex items-center justify-center gap-1 md:gap-2 opacity-100 md:opacity-0 translate-y-0 md:translate-y-4 md:group-hover:opacity-100 md:group-hover:translate-y-0 transition-all duration-300"
                   >
                     DETAILS
                   </Link>
@@ -431,16 +431,16 @@ const LandingPage = () => {
             </div>
             <div className="col-span-2 grid grid-cols-2 gap-2 md:gap-8">
               {testimonials.map((t, idx) => (
-                <div key={idx} className="bg-white p-2 md:p-10 rounded-xl md:rounded-3xl shadow-lg border border-slate-100 overflow-hidden flex flex-col h-full">
-                  <div className="flex gap-0.5 md:gap-1 text-yellow-400 mb-1 md:mb-6">
-                    {[...Array(t.rating || 5)].map((_, i) => <MdStar key={i} className="text-[6px] md:text-[20px]" />)}
+                <div key={idx} className="bg-white p-4 md:p-10 rounded-xl md:rounded-3xl shadow-lg border border-slate-100 overflow-hidden flex flex-col h-full">
+                  <div className="flex gap-0.5 md:gap-1 text-yellow-400 mb-2 md:mb-6">
+                    {[...Array(t.rating || 5)].map((_, i) => <MdStar key={i} className="text-[10px] md:text-[20px]" />)}
                   </div>
-                  <p className="text-slate-600 italic text-[6px] md:text-lg mb-2 md:mb-8 leading-relaxed line-clamp-3">"{t.comment}"</p>
-                  <div className="flex items-center gap-1 md:gap-4 mt-auto">
-                    <div className="w-4 h-4 md:w-12 md:h-12 bg-slate-200 rounded-full shrink-0" />
+                  <p className="text-slate-600 italic text-[10px] md:text-lg mb-4 md:mb-8 leading-relaxed line-clamp-3">"{t.comment}"</p>
+                  <div className="flex items-center gap-2 md:gap-4 mt-auto">
+                    <div className="w-6 h-6 md:w-12 md:h-12 bg-slate-200 rounded-full shrink-0" />
                     <div className="min-w-0">
-                      <h4 className="font-extrabold text-slate-950 text-[5px] md:text-base truncate uppercase tracking-tighter">{t.name}</h4>
-                      <p className="text-[4px] md:text-sm text-slate-500 font-medium truncate uppercase">{t.role}</p>
+                      <h4 className="font-extrabold text-slate-950 text-[10px] md:text-base truncate uppercase tracking-tighter">{t.name}</h4>
+                      <p className="text-[8px] md:text-sm text-slate-500 font-medium truncate uppercase">{t.role}</p>
                     </div>
                   </div>
                 </div>

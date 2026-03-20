@@ -106,44 +106,37 @@ const SocialLogins = () => {
 
   const loginGoogle = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
-      console.log('Google login success, token received:', tokenResponse.access_token ? 'Extracted' : 'Missing');
-
-      console.log('Navigate From:', from);
-
+      console.log('--- Google Login Status ---');
+      console.log('Token Received:', tokenResponse.access_token ? 'Yes (starts with ' + tokenResponse.access_token.substring(0, 5) + '...)' : 'No');
+      console.log('Scopes Granted:', tokenResponse.scope);
+      
       if (!tokenResponse?.access_token) {
-        toast.error('Google failed to provide an access token');
-        console.error('Missing access token in tokenResponse:', tokenResponse);
+        toast.error('Google didn\'t provide a valid session. Please try again.');
         return;
       }
 
-      const toastId = toast.loading('Authenticating with Google...');
+      const toastId = toast.loading('Synchronizing with Singhai accounts...');
       try {
         const result = await loginWithGoogle(tokenResponse.access_token);
-        console.log('Backend Google Login Result:', result);
+        console.log('Backend Response:', result);
 
         if (result.success) {
-          toast.success('Logged in with Google!', { id: toastId });
-
-          // Determine destination using the same logic as standard login
+          toast.success('Access Granted!', { id: toastId });
+          
           if (checkIsAdmin(result.user?.role)) {
-            console.log('Social Admin detected, navigating to /admin');
             navigate('/admin', { replace: true });
           } else {
-            // Ensure we don't redirect back to login page
             const destination = (from === '/customer/login' || from === '/login') 
               ? '/customer/dashboard' 
               : from;
-            
-            console.log('Social Customer detected, navigating to:', destination);
             navigate(destination, { replace: true });
           }
         } else {
-          console.error('Backend Google auth failed:', result.message);
-          toast.error(result.message || 'Google authentication failed', { id: toastId });
+          toast.error(result.message || 'Authentication rejected by server', { id: toastId });
         }
       } catch (err) {
-        console.error('Google login connection error:', err);
-        toast.error('Connection failed', { id: toastId });
+        console.error('Network error during Google Sync:', err);
+        toast.error('Server connection failed. Please check your internet.', { id: toastId });
       }
     },
     onError: (error) => {

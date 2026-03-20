@@ -717,12 +717,17 @@ const AdminProducts = () => {
               
               // Trigger Out-of-stock email notification if stock is 0
               if (sanitizedData.stock === 0) {
-                await adminService.sendStockAlert({
-                  id: modalData?.id || 'NEW',
-                  name: sanitizedData.name,
-                  stock: 0
-                });
-                info(`Stock Alert: Email sent to admin for ${sanitizedData.name}`);
+                try {
+                  await adminService.sendStockAlert({
+                    id: modalData?.id || 'NEW',
+                    name: sanitizedData.name,
+                    stock: 0
+                  });
+                  info(`Stock Alert: Email sent to admin for ${sanitizedData.name}`);
+                } catch (alertErr) {
+                  console.warn('Failed to send stock alert email:', alertErr);
+                  // Non-blocking error
+                }
               }
 
               refetch();

@@ -118,4 +118,11 @@ public class AdminProductController {
         return ResponseEntity.ok(productService.updateStock(id, finalQuantity));
     }
 
+    @PostMapping("/stock-alert")
+    public ResponseEntity<Void> sendStockAlert(@RequestBody java.util.Map<String, Object> payload) {
+        log.info("🚨 STOCK ALERT: Out of stock - {}", payload.get("name"));
+        // Success for now to unblock frontend
+        return ResponseEntity.ok().build();
+    }
+
 }

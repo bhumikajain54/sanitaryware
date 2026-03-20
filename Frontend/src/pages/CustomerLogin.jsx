@@ -5,11 +5,11 @@ import { GoogleOAuthProvider, useGoogleLogin } from '@react-oauth/google';
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { checkAdminExists, registerAdmin } from '../services/authService';
-import { 
-  MdEmail, 
-  MdLock, 
-  MdPerson, 
-  MdVisibility, 
+import {
+  MdEmail,
+  MdLock,
+  MdPerson,
+  MdVisibility,
   MdVisibilityOff,
   MdArrowBack,
   MdPhone,
@@ -20,37 +20,36 @@ import {
 // --- Sub-Components ---
 
 const MagneticButton = ({ children }) => {
-    const x = useMotionValue(0);
-    const y = useMotionValue(0);
-    const springX = useSpring(x, { stiffness: 150, damping: 15 });
-    const springY = useSpring(y, { stiffness: 150, damping: 15 });
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const springX = useSpring(x, { stiffness: 150, damping: 15 });
+  const springY = useSpring(y, { stiffness: 150, damping: 15 });
 
-    const handleMouseMove = (e) => {
-        const { clientX, clientY, currentTarget } = e;
-        const { width, height, left, top } = currentTarget.getBoundingClientRect();
-        const middleX = clientX - (left + width / 2);
-        const middleY = clientY - (top + height / 2);
-        x.set(middleX * 0.2);
-        y.set(middleY * 0.2);
-    };
+  const handleMouseMove = (e) => {
+    const { clientX, clientY, currentTarget } = e;
+    const { width, height, left, top } = currentTarget.getBoundingClientRect();
+    const middleX = clientX - (left + width / 2);
+    const middleY = clientY - (top + height / 2);
+    x.set(middleX * 0.2);
+    y.set(middleY * 0.2);
+  };
 
-    const handleMouseLeave = () => { x.set(0); y.set(0); };
+  const handleMouseLeave = () => { x.set(0); y.set(0); };
 
-    return (
-        <motion.div onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} style={{ x: springX, y: springY }}>
-            {children}
-        </motion.div>
-    );
+  return (
+    <motion.div onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} style={{ x: springX, y: springY }}>
+      {children}
+    </motion.div>
+  );
 };
 
 const InputField = ({ icon: Icon, type, name, placeholder, value, onChange, showPasswordToggle, showPassword, onTogglePassword, accent }) => {
   const isAmber = accent === 'amber';
-  
+
   return (
     <div className="relative group perspective">
-      <div className={`absolute left-2 md:left-5 top-1/2 -translate-y-1/2 text-gray-500 transition-all duration-500 z-10 ${
-        isAmber ? 'group-focus-within:text-amber-400' : 'group-focus-within:text-teal-400'
-      } group-focus-within:scale-110`}>
+      <div className={`absolute left-2 md:left-5 top-1/2 -translate-y-1/2 text-gray-500 transition-all duration-500 z-10 ${isAmber ? 'group-focus-within:text-amber-400' : 'group-focus-within:text-teal-400'
+        } group-focus-within:scale-110`}>
         <Icon className="text-[12px] md:text-[22px]" />
       </div>
       <input
@@ -60,9 +59,8 @@ const InputField = ({ icon: Icon, type, name, placeholder, value, onChange, show
         onChange={onChange}
         required
         placeholder={placeholder}
-        className={`w-full pl-6 md:pl-14 pr-6 md:pr-12 py-1.5 md:py-4 bg-white/5 border border-white/5 rounded-lg md:rounded-2xl outline-none transition-all text-white font-bold tracking-wide placeholder:text-gray-700 placeholder:font-medium text-[8px] md:text-sm ${
-          isAmber ? 'focus:border-amber-500/30 focus:bg-amber-500/5' : 'focus:border-teal-500/30 focus:bg-white/10'
-        }`}
+        className={`w-full pl-6 md:pl-14 pr-6 md:pr-12 py-1.5 md:py-4 bg-white/5 border border-white/5 rounded-lg md:rounded-2xl outline-none transition-all text-white font-bold tracking-wide placeholder:text-gray-700 placeholder:font-medium text-[8px] md:text-sm ${isAmber ? 'focus:border-amber-500/30 focus:bg-amber-500/5' : 'focus:border-teal-500/30 focus:bg-white/10'
+          }`}
       />
       {showPasswordToggle && (
         <button type="button" onClick={onTogglePassword} className="absolute right-2 md:right-5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-all p-0.5 md:p-1 z-10">
@@ -74,7 +72,7 @@ const InputField = ({ icon: Icon, type, name, placeholder, value, onChange, show
 };
 
 const PasswordStrength = ({ strength, rules, currentStrength, password }) => (
-  <motion.div 
+  <motion.div
     initial={{ opacity: 0, x: -20 }}
     animate={{ opacity: 1, x: 0 }}
     className="px-2 md:px-4 py-2 md:py-4 bg-white/5 rounded-xl md:rounded-3xl space-y-2 md:space-y-4 border border-white/5 backdrop-blur-md"
@@ -101,7 +99,7 @@ const PasswordStrength = ({ strength, rules, currentStrength, password }) => (
 );
 
 const SocialLogins = () => {
-  const { loginWithGoogle } = useAuth();
+  const { loginWithGoogle, checkIsAdmin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || '/customer/dashboard';
@@ -109,7 +107,9 @@ const SocialLogins = () => {
   const loginGoogle = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       console.log('Google login success, token received:', tokenResponse.access_token ? 'Extracted' : 'Missing');
-      
+
+      console.log('Navigate From:', from);
+
       if (!tokenResponse?.access_token) {
         toast.error('Google failed to provide an access token');
         console.error('Missing access token in tokenResponse:', tokenResponse);
@@ -119,9 +119,24 @@ const SocialLogins = () => {
       const toastId = toast.loading('Authenticating with Google...');
       try {
         const result = await loginWithGoogle(tokenResponse.access_token);
+        console.log('Backend Google Login Result:', result);
+
         if (result.success) {
           toast.success('Logged in with Google!', { id: toastId });
-          navigate(from, { replace: true });
+
+          // Determine destination using the same logic as standard login
+          if (checkIsAdmin(result.user?.role)) {
+            console.log('Social Admin detected, navigating to /admin');
+            navigate('/admin', { replace: true });
+          } else {
+            // Ensure we don't redirect back to login page
+            const destination = (from === '/customer/login' || from === '/login') 
+              ? '/customer/dashboard' 
+              : from;
+            
+            console.log('Social Customer detected, navigating to:', destination);
+            navigate(destination, { replace: true });
+          }
         } else {
           console.error('Backend Google auth failed:', result.message);
           toast.error(result.message || 'Google authentication failed', { id: toastId });
@@ -138,8 +153,8 @@ const SocialLogins = () => {
     scope: 'email profile openid',
   });
 
-  const isGoogleConfigured = !!import.meta.env.VITE_GOOGLE_CLIENT_ID && 
-                           !import.meta.env.VITE_GOOGLE_CLIENT_ID.includes('123456789012');
+  const isGoogleConfigured = !!import.meta.env.VITE_GOOGLE_CLIENT_ID &&
+    !import.meta.env.VITE_GOOGLE_CLIENT_ID.includes('123456789012');
 
   return (
     <div className="mt-2 md:mt-4 w-full">
@@ -149,7 +164,7 @@ const SocialLogins = () => {
         <div className="flex-grow h-[1px] bg-white/5 group-hover:bg-teal-500/30 transition-colors duration-700"></div>
       </div>
       <div className="flex justify-center">
-        <button 
+        <button
           onClick={() => {
             if (!isGoogleConfigured) {
               toast.error('Google Client ID not configured');
@@ -157,12 +172,12 @@ const SocialLogins = () => {
             }
             loginGoogle();
           }}
-          type="button" 
+          type="button"
           className={`w-full max-w-xs flex items-center justify-center gap-2 md:gap-3 py-2 md:py-3.5 bg-white/5 border border-white/10 rounded-xl md:rounded-2xl text-[7px] md:text-[11px] font-black text-white hover:bg-white/10 hover:border-white/20 transition-all active:scale-95 group overflow-hidden relative shadow-lg shadow-black/20 ${!isGoogleConfigured ? 'opacity-40 grayscale cursor-not-allowed' : ''}`}
           title={!isGoogleConfigured ? "Google ID not configured" : "Sign in with Google"}
         >
           <div className="w-3.5 h-3.5 md:w-5 md:h-5 z-10 bg-white rounded-full flex items-center justify-center p-0.5 md:p-1 flex-shrink-0">
-            <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-full h-full" alt="G" /> 
+            <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-full h-full" alt="G" />
           </div>
           <span className="z-10 tracking-[0.2em] font-black uppercase">CONTINUE WITH GOOGLE</span>
           {!isGoogleConfigured && <span className="absolute top-0 right-0 bg-red-500 text-[5px] px-1 rounded-bl-lg z-20">PENDING</span>}
@@ -170,15 +185,15 @@ const SocialLogins = () => {
         </button>
       </div>
       <p className="text-center mt-4 flex items-center justify-center gap-2">
-        <Link 
-          to="/terms" 
+        <Link
+          to="/terms"
           className="text-[9px] font-bold text-gray-500 hover:text-white transition-all tracking-[0.2em] underline underline-offset-4 decoration-gray-800 hover:decoration-teal-500"
         >
           TERMS OF SERVICE
         </Link>
         <span className="text-[9px] font-bold text-gray-700">&</span>
-        <Link 
-          to="/privacy" 
+        <Link
+          to="/privacy"
           className="text-[9px] font-bold text-gray-500 hover:text-white transition-all tracking-[0.2em] underline underline-offset-4 decoration-gray-800 hover:decoration-teal-500"
         >
           PRIVACY POLICY
@@ -237,7 +252,7 @@ const CustomerLogin = () => {
 
   const rotateX = useSpring(useTransform(y, [-300, 300], [10, -10]), { stiffness: 150, damping: 20 });
   const rotateY = useSpring(useTransform(x, [-300, 300], [-10, 10]), { stiffness: 150, damping: 20 });
-  
+
   // Parallax Background Logic
   const bgX = useSpring(useTransform(mouseX, [0, 1920], [-20, 20]), { stiffness: 30, damping: 10 });
   const bgY = useSpring(useTransform(mouseY, [0, 1080], [-20, 20]), { stiffness: 30, damping: 10 });
@@ -296,7 +311,7 @@ const CustomerLogin = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     if (name === 'phone') {
       const cleaned = value.replace(/\D/g, '').slice(0, 10);
       setFormData({ ...formData, [name]: cleaned });
@@ -382,12 +397,12 @@ const CustomerLogin = () => {
   };
 
   return (
-    <div 
+    <div
       onMouseMove={handleMouseMove}
       className="min-h-screen relative overflow-hidden bg-[#0a0f16] font-sans selection:bg-teal-500/30"
     >
       {/* Dynamic Parallax Background */}
-      <motion.div 
+      <motion.div
         style={{ x: bgX, y: bgY }}
         className="absolute inset-[-40px] z-0 pointer-events-none"
       >
@@ -400,11 +415,11 @@ const CustomerLogin = () => {
             transition={{ duration: 1.2 }}
             className="absolute inset-0"
           >
-            <div 
+            <div
               className="absolute inset-0 bg-cover bg-center"
               style={{
-                backgroundImage: isLogin 
-                  ? `url('https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=1920&q=80')` 
+                backgroundImage: isLogin
+                  ? `url('https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=1920&q=80')`
                   : `url('https://images.unsplash.com/photo-1620626011761-9963d7b59675?w=1920&q=80')`
               }}
             />
@@ -434,8 +449,8 @@ const CustomerLogin = () => {
           </div>
           {/* <img src="/Logo2.png" alt="Logo" className="h-4 md:h-10 w-auto brightness-200 contrast-125 drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]" /> */}
           <div className="w-5 h-5 md:w-10 md:h-10 bg-slate-950 rounded md:rounded-lg p-0.5 md:p-1 flex-shrink-0">
-                <img src="/Logo2.png" alt="Logo" className="w-full h-full object-contain invert" />
-              </div>
+            <img src="/Logo2.png" alt="Logo" className="w-full h-full object-contain invert" />
+          </div>
         </div>
       </nav>
 
@@ -455,11 +470,10 @@ const CustomerLogin = () => {
                   setMode('adminSetup');
                   setFormData({ firstName: '', lastName: '', email: '', phone: '', password: '', confirmPassword: '' });
                 }}
-                className={`w-full flex items-center gap-3 px-4 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-2xl border ${
-                  isAdminSetup
+                className={`w-full flex items-center gap-3 px-4 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-2xl border ${isAdminSetup
                     ? 'bg-amber-500/20 border-amber-400/50 text-amber-300'
                     : 'bg-amber-900/20 border-amber-600/30 text-amber-400 hover:bg-amber-900/30 hover:border-amber-500/50'
-                } transition-all duration-300 group`}
+                  } transition-all duration-300 group`}
               >
                 <div className="w-6 h-6 md:w-8 md:h-8 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center flex-shrink-0">
                   <MdShield className="text-amber-400 text-sm md:text-base" />
@@ -485,12 +499,12 @@ const CustomerLogin = () => {
           transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
           className="w-full max-w-5xl h-[400px] md:h-[700px] bg-[#111827]/30 backdrop-blur-[40px] rounded-3xl md:rounded-[48px] shadow-[0_0_80px_rgba(0,0,0,0.6)] border border-white/10 overflow-hidden flex relative"
         >
-            {/* Visual Flare Effect */}
-            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-teal-400/50 to-transparent" />
-            <div className="absolute top-0 right-0 h-full w-[1px] bg-gradient-to-b from-transparent via-cyan-400/30 to-transparent" />
-            {isAdminSetup && (
-              <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-amber-400/80 to-transparent z-30" />
-            )}
+          {/* Visual Flare Effect */}
+          <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-teal-400/50 to-transparent" />
+          <div className="absolute top-0 right-0 h-full w-[1px] bg-gradient-to-b from-transparent via-cyan-400/30 to-transparent" />
+          {isAdminSetup && (
+            <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-amber-400/80 to-transparent z-30" />
+          )}
 
           <div className="flex w-full h-full relative z-10">
             {/* LOGIN Form */}
@@ -499,7 +513,7 @@ const CustomerLogin = () => {
                 <header className="mb-2 md:mb-6 text-center md:text-left">
                   <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
                     <h2 className="text-[16px] md:text-5xl font-extrabold text-white mb-1 md:mb-3 tracking-tight leading-tight">
-                        Log <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-cyan-500">In.</span>
+                      Log <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-cyan-500">In.</span>
                     </h2>
                     <p className="text-[6px] md:text-xs text-gray-400 font-medium tracking-wide border-l-2 border-teal-500/50 pl-2 md:pl-4">Digital Concierge Access</p>
                   </motion.div>
@@ -510,24 +524,24 @@ const CustomerLogin = () => {
                     <InputField icon={MdEmail} type="email" name="email" placeholder="Identifier (Email)" value={formData.email} onChange={handleChange} />
                     <div className="space-y-1.5 md:space-y-3">
                       <InputField icon={MdLock} type={showPassword ? 'text' : 'password'} name="password" placeholder="Access Key" value={formData.password} onChange={handleChange} showPasswordToggle showPassword={showPassword} onTogglePassword={() => setShowPassword(!showPassword)} />
-                      
+
                       {formData.password && (
-                        <PasswordStrength 
-                          strength={strength} 
-                          rules={rules} 
-                          currentStrength={currentStrength} 
-                          password={formData.password} 
+                        <PasswordStrength
+                          strength={strength}
+                          rules={rules}
+                          currentStrength={currentStrength}
+                          password={formData.password}
                         />
                       )}
 
                       <div className="flex justify-end pt-0.5 md:pt-1">
-                        <button 
-                          type="button" 
+                        <button
+                          type="button"
                           onClick={() => alert('Password reset link sent to your email!')}
                           className="text-[6px] md:text-[10px] font-bold text-gray-500 hover:text-teal-400 transition-all uppercase tracking-widest flex items-center gap-1 md:gap-2 group"
                         >
-                           FORGOT? 
-                           <span className="w-1 h-1 md:w-1.5 md:h-1.5 bg-teal-500 rounded-full group-hover:animate-ping" />
+                          FORGOT?
+                          <span className="w-1 h-1 md:w-1.5 md:h-1.5 bg-teal-500 rounded-full group-hover:animate-ping" />
                         </button>
                       </div>
                     </div>
@@ -535,8 +549,8 @@ const CustomerLogin = () => {
 
                   <MagneticButton>
                     <button type="submit" className="w-full group relative flex items-center justify-center gap-1 md:gap-3 bg-white text-[#0a0f16] py-1.5 md:py-2 rounded-md md:rounded-lg font-black text-[8px] md:text-xs overflow-hidden transition-transform active:scale-95 shadow-xl">
-                        <span className="relative z-10 uppercase">Authorize</span>
-                        <div className="absolute inset-0 bg-gradient-to-r from-teal-400 to-cyan-500 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+                      <span className="relative z-10 uppercase">Authorize</span>
+                      <div className="absolute inset-0 bg-gradient-to-r from-teal-400 to-cyan-500 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
                     </button>
                   </MagneticButton>
                 </form>
@@ -550,7 +564,7 @@ const CustomerLogin = () => {
                 <header className="mb-2 md:mb-4 text-center md:text-left">
                   <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
                     <h2 className="text-[16px] md:text-5xl font-extrabold text-white mb-1 md:mb-2 tracking-tight leading-tight">
-                        Register <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-cyan-500">New.</span>
+                      Register <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-cyan-500">New.</span>
                     </h2>
                     <p className="text-[6px] md:text-xs text-gray-400 font-medium tracking-wide border-l-2 border-cyan-500/50 pl-2 md:pl-4">Create Luxury Identity</p>
                   </motion.div>
@@ -563,7 +577,7 @@ const CustomerLogin = () => {
                   </div>
                   <InputField icon={MdEmail} type="email" name="email" placeholder="Email Address" value={formData.email} onChange={handleChange} />
                   <InputField icon={MdPhone} type="tel" name="phone" placeholder="Contact Number" value={formData.phone} onChange={handleChange} />
-                  
+
                   <div className="space-y-2 md:space-y-4">
                     <InputField icon={MdLock} type={showPassword ? 'text' : 'password'} name="password" placeholder="Passphrase" value={formData.password} onChange={handleChange} showPasswordToggle showPassword={showPassword} onTogglePassword={() => setShowPassword(!showPassword)} />
                     {formData.password && <PasswordStrength strength={strength} rules={rules} currentStrength={currentStrength} password={formData.password} />}
@@ -572,9 +586,9 @@ const CustomerLogin = () => {
 
                   <MagneticButton>
                     <button type="submit" className="w-full relative overflow-hidden bg-gradient-to-r from-teal-500 to-cyan-600 text-white py-1.5 md:py-2 rounded-md md:rounded-lg font-black text-[8px] md:text-xs group shadow-[0_20px_40px_rgba(20,184,166,0.3)] active:scale-95 transition-all">
-                        <span className="relative z-10 capitalize">Initialize</span>
-                        <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
-                        <span className="absolute inset-0 flex items-center justify-center text-[#0a0f16] translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-20 font-black">CONFIRM</span>
+                      <span className="relative z-10 capitalize">Initialize</span>
+                      <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+                      <span className="absolute inset-0 flex items-center justify-center text-[#0a0f16] translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-20 font-black">CONFIRM</span>
                     </button>
                   </MagneticButton>
                 </form>
@@ -604,7 +618,7 @@ const CustomerLogin = () => {
                   </div>
                   <InputField icon={MdEmail} type="email" name="email" placeholder="Admin Email" value={formData.email} onChange={handleChange} accent="amber" />
                   <InputField icon={MdPhone} type="tel" name="phone" placeholder="Contact Number" value={formData.phone} onChange={handleChange} accent="amber" />
-                  
+
                   <div className="space-y-2 md:space-y-3">
                     <InputField icon={MdLock} type={showPassword ? 'text' : 'password'} name="password" placeholder="Admin Passphrase" value={formData.password} onChange={handleChange} showPasswordToggle showPassword={showPassword} onTogglePassword={() => setShowPassword(!showPassword)} accent="amber" />
                     {formData.password && <PasswordStrength strength={strength} rules={rules} currentStrength={currentStrength} password={formData.password} />}
@@ -613,11 +627,11 @@ const CustomerLogin = () => {
 
                   <MagneticButton>
                     <button type="submit" className="w-full relative overflow-hidden bg-gradient-to-r from-amber-500 to-yellow-600 text-[#0a0f16] py-1.5 md:py-2 rounded-md md:rounded-lg font-black text-[8px] md:text-xs group shadow-[0_20px_40px_rgba(245,158,11,0.3)] active:scale-95 transition-all">
-                        <span className="relative z-10 uppercase flex items-center justify-center gap-1">
-                          <MdShield className="text-[10px] md:text-sm" /> Create Admin
-                        </span>
-                        <div className="absolute inset-0 bg-[#0a0f16] translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
-                        <span className="absolute inset-0 flex items-center justify-center text-amber-400 translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-20 font-black text-[8px] md:text-xs uppercase">INITIALIZE SYSTEM</span>
+                      <span className="relative z-10 uppercase flex items-center justify-center gap-1">
+                        <MdShield className="text-[10px] md:text-sm" /> Create Admin
+                      </span>
+                      <div className="absolute inset-0 bg-[#0a0f16] translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+                      <span className="absolute inset-0 flex items-center justify-center text-amber-400 translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-20 font-black text-[8px] md:text-xs uppercase">INITIALIZE SYSTEM</span>
                     </button>
                   </MagneticButton>
 
@@ -635,65 +649,66 @@ const CustomerLogin = () => {
 
           {/* Sliding Decorative Overlay — hidden in adminSetup mode */}
           {mode !== 'adminSetup' && (
-          <motion.div
-            animate={{ 
-              x: isLogin ? '100.5%' : '0%',
-              borderRadius: isLogin ? '100px 24px 24px 100px' : '24px 100px 100px 24px'
-            }}
-            transition={{ type: "spring", stiffness: 80, damping: 15 }}
-            className="flex absolute top-0 left-0 w-1/2 h-full bg-gradient-to-br from-teal-600/60 to-cyan-800/60 backdrop-blur-3xl z-20 items-center justify-center p-4 md:p-12 text-white border-x border-white/10 group"
-          >
-            <div className="text-center relative">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={isLogin ? 'info-login' : 'info-signup'}
-                  initial={{ opacity: 0, scale: 0.8, filter: 'blur(10px)' }}
-                  animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-                  exit={{ opacity: 0, scale: 1.2, filter: 'blur(10px)' }}
-                  transition={{ duration: 0.6 }}
-                >
-                  <motion.div 
-                    animate={{ rotate: isLogin ? 3 : -3, y: [0, -5, 0] }}
-                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                    className="w-12 h-12 md:w-32 md:h-32 bg-white/10 backdrop-blur-2xl rounded-2xl md:rounded-[40px] flex items-center justify-center mx-auto mb-4 md:mb-12 shadow-2xl p-2 md:p-6 border border-white/20 transform-gpu"
+            <motion.div
+              animate={{
+                x: isLogin ? '100.5%' : '0%',
+                borderRadius: isLogin ? '100px 24px 24px 100px' : '24px 100px 100px 24px'
+              }}
+              transition={{ type: "spring", stiffness: 80, damping: 15 }}
+              className="flex absolute top-0 left-0 w-1/2 h-full bg-gradient-to-br from-teal-600/60 to-cyan-800/60 backdrop-blur-3xl z-20 items-center justify-center p-4 md:p-12 text-white border-x border-white/10 group"
+            >
+              <div className="text-center relative">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={isLogin ? 'info-login' : 'info-signup'}
+                    initial={{ opacity: 0, scale: 0.8, filter: 'blur(10px)' }}
+                    animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                    exit={{ opacity: 0, scale: 1.2, filter: 'blur(10px)' }}
+                    transition={{ duration: 0.6 }}
                   >
-                  <div className="w-5 h-5 md:w-10 md:h-10 bg-slate-950 rounded md:rounded-lg p-0.5 md:p-1 flex-shrink-0 ">
-                <img src="/Logo2.png" alt="Logo" className="w-full h-full object-contain invert" />
-              </div>
-                  </motion.div>
-                  
-                  {isLogin ? (
-                    <>
-                      <h3 className="text-[18px] md:text-5xl font-black mb-2 md:mb-6 leading-tight tracking-tighter">NEW <br className="hidden md:block" />DISCOVERY.</h3>
-                      <p className="text-teal-50/70 mb-4 md:mb-12 text-[8px] md:text-lg font-medium tracking-wide max-w-[80px] md:max-w-xs mx-auto italic">Crafting luxury environments.</p>
-                      <button onClick={toggleMode} className="group relative px-4 md:px-12 py-2 md:py-5 rounded-full font-black text-[7px] md:text-sm uppercase tracking-[0.2em] border-2 border-white/20 overflow-hidden transition-all hover:border-white">
-                        <span className="relative z-10">Sign Up</span>
-                        <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
-                        <span className="absolute inset-0 flex items-center justify-center text-[#0a0f16] translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-20 font-black">START</span>
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <h3 className="text-[18px] md:text-5xl font-black mb-2 md:mb-6 leading-tight tracking-tighter">RETURN <br className="hidden md:block" />CUSTOMER.</h3>
-                      <p className="text-teal-50/70 mb-4 md:mb-12 text-[8px] md:text-lg font-medium tracking-wide max-w-[80px] md:max-w-xs mx-auto italic">Resume premium management.</p>
-                      <button onClick={toggleMode} className="group relative px-4 md:px-12 py-2 md:py-5 rounded-full font-black text-[7px] md:text-sm uppercase tracking-[0.2em] border-2 border-white/20 overflow-hidden transition-all hover:border-white">
-                        <span className="relative z-10">Sign In</span>
-                        <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
-                        <span className="absolute inset-0 flex items-center justify-center text-[#0a0f16] translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-20 font-black">WELCOME</span>
-                      </button>
-                    </>
-                  )}
-                  
+                    <motion.div
+                      animate={{ rotate: isLogin ? 3 : -3, y: [0, -5, 0] }}
+                      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                      className="w-12 h-12 md:w-32 md:h-32 bg-white/10 backdrop-blur-2xl rounded-2xl md:rounded-[40px] flex items-center justify-center mx-auto mb-4 md:mb-12 shadow-2xl p-2 md:p-6 border border-white/20 transform-gpu"
+                    >
+                      <div className="w-5 h-5 md:w-10 md:h-10 bg-slate-950 rounded md:rounded-lg p-0.5 md:p-1 flex-shrink-0 ">
+                        <img src="/Logo2.png" alt="Logo" className="w-full h-full object-contain invert" />
+                      </div>
+                    </motion.div>
 
-                </motion.div>
-              </AnimatePresence>
-            </div>
-          </motion.div>
+                    {isLogin ? (
+                      <>
+                        <h3 className="text-[18px] md:text-5xl font-black mb-2 md:mb-6 leading-tight tracking-tighter">NEW <br className="hidden md:block" />DISCOVERY.</h3>
+                        <p className="text-teal-50/70 mb-4 md:mb-12 text-[8px] md:text-lg font-medium tracking-wide max-w-[80px] md:max-w-xs mx-auto italic">Crafting luxury environments.</p>
+                        <button onClick={toggleMode} className="group relative px-4 md:px-12 py-2 md:py-5 rounded-full font-black text-[7px] md:text-sm uppercase tracking-[0.2em] border-2 border-white/20 overflow-hidden transition-all hover:border-white">
+                          <span className="relative z-10">Sign Up</span>
+                          <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+                          <span className="absolute inset-0 flex items-center justify-center text-[#0a0f16] translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-20 font-black">START</span>
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <h3 className="text-[18px] md:text-5xl font-black mb-2 md:mb-6 leading-tight tracking-tighter">RETURN <br className="hidden md:block" />CUSTOMER.</h3>
+                        <p className="text-teal-50/70 mb-4 md:mb-12 text-[8px] md:text-lg font-medium tracking-wide max-w-[80px] md:max-w-xs mx-auto italic">Resume premium management.</p>
+                        <button onClick={toggleMode} className="group relative px-4 md:px-12 py-2 md:py-5 rounded-full font-black text-[7px] md:text-sm uppercase tracking-[0.2em] border-2 border-white/20 overflow-hidden transition-all hover:border-white">
+                          <span className="relative z-10">Sign In</span>
+                          <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+                          <span className="absolute inset-0 flex items-center justify-center text-[#0a0f16] translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-20 font-black">WELCOME</span>
+                        </button>
+                      </>
+                    )}
+
+
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+            </motion.div>
           )}
         </motion.div>
       </div>
 
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         .custom-scrollbar::-webkit-scrollbar { width: 3px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(20,184,166,0.3); border-radius: 20px; }
@@ -706,17 +721,17 @@ const CustomerLogin = () => {
 
 // --- Wrap the main component with the Provider ---
 const WrappedCustomerLogin = (props) => {
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    
-    if (!clientId) {
-        return <CustomerLogin {...props} />;
-    }
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
-    return (
-        <GoogleOAuthProvider clientId={clientId}>
-            <CustomerLogin {...props} />
-        </GoogleOAuthProvider>
-    );
+  if (!clientId) {
+    return <CustomerLogin {...props} />;
+  }
+
+  return (
+    <GoogleOAuthProvider clientId={clientId}>
+      <CustomerLogin {...props} />
+    </GoogleOAuthProvider>
+  );
 };
 
 export default WrappedCustomerLogin;

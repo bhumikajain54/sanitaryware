@@ -68,6 +68,8 @@ public class ProductService {
                 .price(product.getPrice())
                 .stockQuantity(product.getStockQuantity())
                 .mainImage(product.getMainImage())
+                .description(product.getDescription())
+                .features(product.getFeatures())
                 .active(product.getActive())
                 .featured(product.getFeatured())
                 .categoryId(product.getCategory() != null ? product.getCategory().getId() : null)
@@ -646,6 +648,12 @@ public class ProductService {
 
         if (product.getMainImage() != null)
             existingProduct.setMainImage(product.getMainImage());
+
+        if (product.getDescription() != null)
+            existingProduct.setDescription(product.getDescription());
+
+        if (product.getFeatures() != null)
+            existingProduct.setFeatures(product.getFeatures());
 
         if (product.getActive() != null)
             existingProduct.setActive(product.getActive());

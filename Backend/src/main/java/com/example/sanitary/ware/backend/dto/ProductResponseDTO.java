@@ -15,6 +15,8 @@ public class ProductResponseDTO {
     private Double price;
     private Integer stockQuantity;
     private String mainImage;
+    private String description;
+    private String features;
     private Boolean active;
     private Boolean featured;
 

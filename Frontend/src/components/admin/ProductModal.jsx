@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { MdClose, MdSave, MdCancel, MdKeyboardArrowDown } from 'react-icons/md';
+import { MdClose, MdSave, MdCancel, MdKeyboardArrowDown, MdCloudUpload } from 'react-icons/md';
+import adminService from '../../services/adminService';
 
 const ProductModal = ({ product, brands = [], categories = [], onClose, onSave }) => {
   const [formData, setFormData] = useState({
@@ -13,6 +14,9 @@ const ProductModal = ({ product, brands = [], categories = [], onClose, onSave }
     status: 'active',
     features: '',
   });
+  const [imageFile, setImageFile] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     if (product) {
@@ -23,10 +27,11 @@ const ProductModal = ({ product, brands = [], categories = [], onClose, onSave }
         stock: product.stock?.toString().replace(/[^0-9]/g, '') || '',
         brand: product.brand && typeof product.brand === 'object' ? product.brand.name : (product.brand || ''),
         category: product.category && typeof product.category === 'object' ? product.category.name : (product.category || ''),
-        image: product.image || '',
+        image: product.image || product.mainImage || '',
         status: product.status || 'active',
         features: Array.isArray(product.features) ? product.features.join(', ') : (product.features || ''),
       });
+      setPreview(product.image || product.mainImage || null);
     } else {
       // Reset for new product
       setFormData({
@@ -40,17 +45,49 @@ const ProductModal = ({ product, brands = [], categories = [], onClose, onSave }
         status: 'active',
         features: '',
       });
+      setPreview(null);
     }
+    setImageFile(null);
   }, [product, brands, categories]);
 
-  const handleSubmit = (e) => {
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      setPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Process features string into array
-    const processedData = {
-      ...formData,
-      features: formData.features ? formData.features.split(',').map(f => f.trim()).filter(f => f) : []
-    };
-    onSave(processedData);
+    setIsUploading(true);
+
+    try {
+      let finalImageUrl = formData.image;
+
+      // 1. Upload new image if selected
+      if (imageFile) {
+        const uploadData = new FormData();
+        uploadData.append('file', imageFile);
+        const uploadRes = await adminService.uploadMedia(uploadData);
+        finalImageUrl = uploadRes.url;
+      }
+
+      // 2. Process features string into a clean string for backend
+      const processedData = {
+        ...formData,
+        mainImage: finalImageUrl,
+        description: formData.description || '',
+        features: formData.features || '',
+      };
+
+      await onSave(processedData);
+    } catch (err) {
+      console.error('Upload error:', err);
+      alert('Failed to upload image. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleChange = (e) => {
@@ -102,17 +139,44 @@ const ProductModal = ({ product, brands = [], categories = [], onClose, onSave }
                 />
               </div>
 
-              {/* Image URL */}
-              <div className="space-y-1 sm:space-y-2">
-                <label className="text-[8px] sm:text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Image URL</label>
-                <input
-                  type="text"
-                  name="image"
-                  value={formData.image}
-                  onChange={handleChange}
-                  className="w-full px-4 sm:px-5 py-2.5 sm:py-3.5 bg-[#f8fafc] dark:bg-slate-900/50 border-2 border-transparent focus:border-[#0d9488]/20 focus:bg-white rounded-xl outline-none transition-all dark:text-white font-bold text-[10px] sm:text-sm shadow-sm"
-                  placeholder="https://images.unsplash.com/..."
-                />
+              {/* Image Upload Area */}
+              <div className="space-y-1 sm:space-y-4">
+                <label className="text-[8px] sm:text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Product Image</label>
+                
+                <div className="relative group cursor-pointer border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-4 sm:p-6 bg-slate-50/50 hover:bg-white transition-all overflow-hidden flex flex-col items-center justify-center min-h-[120px] sm:min-h-[160px]">
+                   <input 
+                      type="file" 
+                      onChange={handleFileChange}
+                      accept="image/*"
+                      className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                   />
+                   
+                   {preview ? (
+                     <div className="relative w-full aspect-video rounded-xl overflow-hidden shadow-inner bg-white">
+                        <img 
+                          src={preview} 
+                          alt="Preview" 
+                          className="w-full h-full object-contain"
+                          onError={(e) => { e.target.src = '/Logo2.png'; }}
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                           <p className="text-white font-black text-[8px] sm:text-xs uppercase tracking-widest">Replace Photo</p>
+                        </div>
+                     </div>
+                   ) : (
+                     <div className="text-center">
+                        <MdCloudUpload className="mx-auto text-3xl sm:text-5xl text-slate-300 group-hover:text-teal-500 transition-colors mb-2 sm:mb-4" />
+                        <p className="text-[8px] sm:text-xs font-black text-slate-400 uppercase tracking-tighter">Click to upload product image</p>
+                        <p className="text-[6px] sm:text-[9px] text-slate-300 mt-1">Recommended: Square format, PNG/JPG</p>
+                     </div>
+                   )}
+                </div>
+                
+                {isUploading && (
+                   <div className="w-full bg-slate-100 rounded-full h-1 overflow-hidden">
+                      <div className="bg-teal-500 h-full animate-pulse w-full"></div>
+                   </div>
+                )}
               </div>
 
               {/* Description */}
@@ -259,13 +323,14 @@ const ProductModal = ({ product, brands = [], categories = [], onClose, onSave }
               <MdCancel size={20} />
               Discard
             </button>
-            <button
-              type="submit"
-              className="flex-1 py-3 sm:py-4 bg-teal-600 text-white font-black rounded-xl hover:bg-teal-700 transition-all shadow-lg shadow-teal-500/20 uppercase tracking-widest text-[9px] sm:text-xs flex items-center justify-center gap-2"
-            >
-              <MdSave size={20} />
-              {product ? 'Update Changes' : 'Save Product'}
-            </button>
+              <button
+                type="submit"
+                disabled={isUploading}
+                className="flex-1 py-3 sm:py-4 bg-teal-600 text-white font-black rounded-xl hover:bg-teal-700 transition-all shadow-lg shadow-teal-500/20 uppercase tracking-widest text-[9px] sm:text-xs flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                <MdSave size={20} />
+                {isUploading ? 'Uploading...' : (product ? 'Update Changes' : 'Save Product')}
+              </button>
           </div>
         </form>
       </div>

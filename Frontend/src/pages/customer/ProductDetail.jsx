@@ -240,8 +240,9 @@ const ProductDetail = () => {
               className="bg-[var(--bg-card)] rounded-3xl p-4 md:p-8 shadow-xl shadow-teal-500/5 mb-6 border border-[var(--border-main)]"
             >
               <img
-                src={product.images[selectedImage]}
+                src={product.images[selectedImage] || '/Logo2.png'}
                 alt={product.name}
+                onError={(e) => { e.target.src = '/Logo2.png'; e.target.className = 'w-full h-72 sm:h-96 md:h-[500px] object-contain p-12 opacity-40'; }}
                 className="w-full h-72 sm:h-96 md:h-[500px] object-contain rounded-2xl"
               />
             </motion.div>
@@ -254,7 +255,12 @@ const ProductDetail = () => {
                     selectedImage === index ? 'border-teal-600' : 'border-[var(--border-main)] hover:border-teal-300'
                   }`}
                 >
-                  <img src={image} alt={`View ${index + 1}`} className="w-full h-20 md:h-24 object-cover" />
+                  <img 
+                    src={image || '/Logo2.png'} 
+                    alt={`View ${index + 1}`} 
+                    onError={(e) => e.target.src = '/Logo2.png'}
+                    className="w-full h-20 md:h-24 object-contain p-2 bg-slate-50" 
+                  />
                 </button>
               ))}
             </div>
@@ -508,7 +514,11 @@ const ProductDetail = () => {
                     >
                         <div className="relative aspect-square bg-[var(--bg-app)] overflow-hidden p-4">
                             <Link to={`/product/${item.id}`}>
-                                <img src={item.images?.[0] || item.image} className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-700" />
+                                <img 
+                                    src={item.images?.[0] || item.image || '/Logo2.png'} 
+                                    onError={(e) => e.target.src = '/Logo2.png'}
+                                    className="w-full h-full object-contain p-4 mix-blend-multiply group-hover:scale-110 transition-transform duration-700" 
+                                />
                             </Link>
                             <div className="absolute top-4 left-4">
                                 <span className={`px-2.5 py-1 rounded-full text-[6px] font-black uppercase tracking-widest text-white ${getBadgeColor(item.badge)} shadow-lg`}>

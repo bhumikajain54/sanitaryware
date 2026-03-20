@@ -59,7 +59,7 @@ const InputField = ({ icon: Icon, type, name, placeholder, value, onChange, show
         onChange={onChange}
         required
         placeholder={placeholder}
-        className={`w-full pl-6 md:pl-14 pr-6 md:pr-12 py-1.5 md:py-4 bg-white/5 border border-white/5 rounded-lg md:rounded-2xl outline-none transition-all text-white font-bold tracking-wide placeholder:text-gray-700 placeholder:font-medium text-[8px] md:text-sm ${isAmber ? 'focus:border-amber-500/30 focus:bg-amber-500/5' : 'focus:border-teal-500/30 focus:bg-white/10'
+        className={`w-full pl-8 md:pl-14 pr-8 md:pr-12 py-2.5 md:py-4 bg-white/5 border border-white/5 rounded-lg md:rounded-2xl outline-none transition-all text-white font-bold tracking-wide placeholder:text-gray-700 placeholder:font-medium text-[12px] md:text-sm ${isAmber ? 'focus:border-amber-500/30 focus:bg-amber-500/5' : 'focus:border-teal-500/30 focus:bg-white/10'
           }`}
       />
       {showPasswordToggle && (
@@ -77,7 +77,7 @@ const PasswordStrength = ({ strength, rules, currentStrength, password }) => (
     animate={{ opacity: 1, x: 0 }}
     className="px-2 md:px-4 py-2 md:py-4 bg-white/5 rounded-xl md:rounded-3xl space-y-2 md:space-y-4 border border-white/5 backdrop-blur-md"
   >
-    <div className="flex justify-between items-center text-[5px] md:text-[10px] font-black uppercase tracking-[0.2em]">
+    <div className="flex justify-between items-center text-[10px] md:text-[10px] font-black uppercase tracking-[0.2em]">
       <span className="text-gray-500">Security Index</span>
       <span className={`${currentStrength.text} transition-colors duration-500`}>{currentStrength.label}</span>
     </div>
@@ -90,7 +90,7 @@ const PasswordStrength = ({ strength, rules, currentStrength, password }) => (
         return (
           <div key={i} className="flex items-center gap-1 md:gap-3">
             <div className={`w-1 h-1 md:w-2 md:h-2 rounded-full transition-all duration-500 ${passed ? "bg-teal-500 shadow-[0_0_8px_rgba(20,184,166,0.8)]" : "bg-white/10"}`} />
-            <span className={`text-[5px] md:text-[9px] font-bold uppercase tracking-wider transition-colors duration-500 ${passed ? "text-teal-300" : "text-gray-600"}`}>{rule.label}</span>
+            <span className={`text-[10px] md:text-[9px] font-bold uppercase tracking-wider transition-colors duration-500 ${passed ? "text-teal-300" : "text-gray-600"}`}>{rule.label}</span>
           </div>
         );
       })}
@@ -160,7 +160,7 @@ const SocialLogins = () => {
     <div className="mt-2 md:mt-4 w-full">
       <div className="flex items-center gap-2 md:gap-6 mb-1 md:mb-2 group">
         <div className="flex-grow h-[1px] bg-white/5 group-hover:bg-teal-500/30 transition-colors duration-700"></div>
-        <span className="text-[6px] md:text-[10px] font-black text-gray-600 uppercase tracking-[0.3em]">Quick Auth</span>
+        <span className="text-[10px] md:text-[10px] font-black text-gray-600 uppercase tracking-[0.3em]">Quick Auth</span>
         <div className="flex-grow h-[1px] bg-white/5 group-hover:bg-teal-500/30 transition-colors duration-700"></div>
       </div>
       <div className="flex justify-center">
@@ -173,7 +173,7 @@ const SocialLogins = () => {
             loginGoogle();
           }}
           type="button"
-          className={`w-full max-w-xs flex items-center justify-center gap-2 md:gap-3 py-2 md:py-3.5 bg-white/5 border border-white/10 rounded-xl md:rounded-2xl text-[7px] md:text-[11px] font-black text-white hover:bg-white/10 hover:border-white/20 transition-all active:scale-95 group overflow-hidden relative shadow-lg shadow-black/20 ${!isGoogleConfigured ? 'opacity-40 grayscale cursor-not-allowed' : ''}`}
+          className={`w-full max-w-xs flex items-center justify-center gap-3 md:gap-3 py-3 md:py-3.5 bg-white/5 border border-white/10 rounded-xl md:rounded-2xl text-[10px] md:text-[11px] font-black text-white hover:bg-white/10 hover:border-white/20 transition-all active:scale-95 group overflow-hidden relative shadow-lg shadow-black/20 ${!isGoogleConfigured ? 'opacity-40 grayscale cursor-not-allowed' : ''}`}
           title={!isGoogleConfigured ? "Google ID not configured" : "Sign in with Google"}
         >
           <div className="w-3.5 h-3.5 md:w-5 md:h-5 z-10 bg-white rounded-full flex items-center justify-center p-0.5 md:p-1 flex-shrink-0">
@@ -436,19 +436,19 @@ const CustomerLogin = () => {
       </div>
 
       <nav className="absolute top-0 left-0 right-0 z-50 p-6 md:p-8 flex justify-between items-center">
-        <Link to="/" className="group flex items-center gap-1 md:gap-2">
-          <div className="w-6 h-6 md:w-12 md:h-12 bg-white/5 backdrop-blur-xl rounded-lg md:rounded-2xl flex items-center justify-center border border-white/10 group-hover:bg-white/10 group-hover:border-white/20 transition-all duration-500 group-hover:rotate-[-8deg]">
-            <MdArrowBack className="text-white text-[12px] md:text-2xl group-hover:-translate-x-1 transition-transform" />
+        <Link to="/" className="group flex items-center gap-2 md:gap-2">
+          <div className="w-8 h-8 md:w-12 md:h-12 bg-white/5 backdrop-blur-xl rounded-lg md:rounded-2xl flex items-center justify-center border border-white/10 group-hover:bg-white/10 group-hover:border-white/20 transition-all duration-500 group-hover:rotate-[-8deg]">
+            <MdArrowBack className="text-white text-[16px] md:text-2xl group-hover:-translate-x-1 transition-transform" />
           </div>
-          <span className="text-white/60 font-medium tracking-wide text-[5px] md:text-xs">EXIT PORTAL</span>
+          <span className="text-white/60 font-medium tracking-wide text-[10px] md:text-xs">EXIT PORTAL</span>
         </Link>
-        <div className="flex items-center gap-1 md:gap-4">
+        <div className="flex items-center gap-2 md:gap-4">
           <div className="flex flex-col items-end mr-2">
-            <span className="text-white font-black tracking-tighter text-[12px] md:text-2xl italic leading-none">SINGHAI Traders</span>
-            <span className="text-[5px] md:text-[10px] text-teal-400 font-bold tracking-[0.3em] uppercase">Est. 2019</span>
+            <span className="text-white font-black tracking-tighter text-sm md:text-2xl italic leading-none">SINGHAI Traders</span>
+            <span className="text-[10px] md:text-[10px] text-teal-400 font-bold tracking-[0.3em] uppercase">Est. 2019</span>
           </div>
           {/* <img src="/Logo2.png" alt="Logo" className="h-4 md:h-10 w-auto brightness-200 contrast-125 drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]" /> */}
-          <div className="w-5 h-5 md:w-10 md:h-10 bg-slate-950 rounded md:rounded-lg p-0.5 md:p-1 flex-shrink-0">
+          <div className="w-8 h-8 md:w-10 md:h-10 bg-slate-950 rounded md:rounded-lg p-1 md:p-1 flex-shrink-0">
             <img src="/Logo2.png" alt="Logo" className="w-full h-full object-contain invert" />
           </div>
         </div>
@@ -479,10 +479,10 @@ const CustomerLogin = () => {
                   <MdShield className="text-amber-400 text-sm md:text-base" />
                 </div>
                 <div className="flex-1 text-left">
-                  <p className="font-black text-[9px] md:text-xs uppercase tracking-widest">⚡ First-Time System Setup</p>
-                  <p className="text-[7px] md:text-[10px] text-amber-500/70 font-medium">No admin account detected — click to create the System Administrator</p>
+                  <p className="font-black text-[11px] md:text-xs uppercase tracking-widest">⚡ First-Time System Setup</p>
+                  <p className="text-[10px] md:text-[10px] text-amber-500/70 font-medium">No admin account detected — click to create the System Administrator</p>
                 </div>
-                <div className="text-[7px] md:text-[10px] font-black uppercase tracking-widest opacity-60 group-hover:opacity-100 transition-opacity">
+                <div className="text-[10px] md:text-[10px] font-black uppercase tracking-widest opacity-60 group-hover:opacity-100 transition-opacity">
                   {isAdminSetup ? '● ACTIVE' : 'SETUP →'}
                 </div>
               </button>
@@ -493,11 +493,15 @@ const CustomerLogin = () => {
         <motion.div
           ref={cardRef}
           onMouseLeave={handleMouseLeave}
-          style={{ rotateX, rotateY, perspective: 1000 }}
+          style={{ 
+            rotateX: typeof window !== 'undefined' && window.innerWidth > 768 ? rotateX : 0, 
+            rotateY: typeof window !== 'undefined' && window.innerWidth > 768 ? rotateY : 0, 
+            perspective: 1000 
+          }}
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-          className="w-full max-w-5xl h-[400px] md:h-[700px] bg-[#111827]/30 backdrop-blur-[40px] rounded-3xl md:rounded-[48px] shadow-[0_0_80px_rgba(0,0,0,0.6)] border border-white/10 overflow-hidden flex relative"
+          className="w-full max-w-5xl md:h-[700px] bg-[#111827]/30 backdrop-blur-[40px] rounded-3xl md:rounded-[48px] shadow-[0_0_80px_rgba(0,0,0,0.6)] border border-white/10 overflow-hidden flex flex-col md:flex-row relative"
         >
           {/* Visual Flare Effect */}
           <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-teal-400/50 to-transparent" />
@@ -506,16 +510,16 @@ const CustomerLogin = () => {
             <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-amber-400/80 to-transparent z-30" />
           )}
 
-          <div className="flex w-full h-full relative z-10">
+          <div className="flex flex-col md:flex-row w-full h-full relative z-10">
             {/* LOGIN Form */}
-            <div className={`w-1/2 h-full flex items-center justify-center p-3 md:p-10 transition-all duration-1000 ease-in-out ${mode !== 'login' ? 'opacity-0 pointer-events-none translate-x-20 scale-95' : 'opacity-100 scale-100'}`}>
+            <div className={`w-full md:w-1/2 min-h-[400px] md:h-full flex items-center justify-center p-6 md:p-10 transition-all duration-1000 ease-in-out ${mode !== 'login' ? 'hidden md:flex md:opacity-0 md:pointer-events-none md:translate-x-20 md:scale-95' : 'flex opacity-100 scale-100'}`}>
               <div className="w-full max-w-sm">
-                <header className="mb-2 md:mb-6 text-center md:text-left">
+                <header className="mb-4 md:mb-6 text-center md:text-left">
                   <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-                    <h2 className="text-[16px] md:text-5xl font-extrabold text-white mb-1 md:mb-3 tracking-tight leading-tight">
+                    <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-2 md:mb-3 tracking-tight leading-tight">
                       Log <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-cyan-500">In.</span>
                     </h2>
-                    <p className="text-[6px] md:text-xs text-gray-400 font-medium tracking-wide border-l-2 border-teal-500/50 pl-2 md:pl-4">Digital Concierge Access</p>
+                    <p className="text-[10px] md:text-xs text-gray-400 font-medium tracking-wide border-l-2 border-teal-500/50 pl-2 md:pl-4">Digital Concierge Access</p>
                   </motion.div>
                 </header>
 
@@ -548,29 +552,34 @@ const CustomerLogin = () => {
                   </div>
 
                   <MagneticButton>
-                    <button type="submit" className="w-full group relative flex items-center justify-center gap-1 md:gap-3 bg-white text-[#0a0f16] py-1.5 md:py-2 rounded-md md:rounded-lg font-black text-[8px] md:text-xs overflow-hidden transition-transform active:scale-95 shadow-xl">
+                    <button type="submit" className="w-full group relative flex items-center justify-center gap-3 bg-white text-[#0a0f16] py-3 md:py-3 rounded-lg font-black text-[10px] md:text-xs overflow-hidden transition-transform active:scale-95 shadow-xl">
                       <span className="relative z-10 uppercase">Authorize</span>
                       <div className="absolute inset-0 bg-gradient-to-r from-teal-400 to-cyan-500 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
                     </button>
                   </MagneticButton>
                 </form>
                 <SocialLogins />
+                <div className="md:hidden mt-8 text-center">
+                  <button onClick={toggleMode} className="text-teal-400 font-black text-[10px] uppercase tracking-widest">
+                    Create New Account →
+                  </button>
+                </div>
               </div>
             </div>
 
             {/* REGISTER Form */}
-            <div className={`w-1/2 h-full flex items-center justify-center p-3 md:p-10 absolute right-0 transition-all duration-1000 ease-in-out ${mode !== 'register' ? 'opacity-0 pointer-events-none -translate-x-20 scale-95' : 'opacity-100 scale-100'}`}>
+            <div className={`w-full md:w-1/2 min-h-[450px] md:h-full flex items-center justify-center p-6 md:p-10 transition-all duration-1000 ease-in-out ${mode !== 'register' ? 'hidden md:flex md:right-0 md:opacity-0 md:pointer-events-none md:-translate-x-20 md:scale-95' : 'flex opacity-100 scale-100 md:absolute md:right-0'}`}>
               <div className="w-full max-w-sm">
-                <header className="mb-2 md:mb-4 text-center md:text-left">
+                <header className="mb-4 md:mb-4 text-center md:text-left">
                   <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-                    <h2 className="text-[16px] md:text-5xl font-extrabold text-white mb-1 md:mb-2 tracking-tight leading-tight">
+                    <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-2 md:mb-2 tracking-tight leading-tight">
                       Register <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-cyan-500">New.</span>
                     </h2>
-                    <p className="text-[6px] md:text-xs text-gray-400 font-medium tracking-wide border-l-2 border-cyan-500/50 pl-2 md:pl-4">Create Luxury Identity</p>
+                    <p className="text-[10px] md:text-xs text-gray-400 font-medium tracking-wide border-l-2 border-cyan-500/50 pl-2 md:pl-4">Create Luxury Identity</p>
                   </motion.div>
                 </header>
 
-                <form onSubmit={handleSubmit} className="space-y-1.5 md:space-y-3 overflow-y-auto max-h-[220px] md:max-h-[360px] pr-1 md:pr-2 custom-scrollbar">
+                <form onSubmit={handleSubmit} className="space-y-2 md:space-y-3 overflow-y-auto max-h-[350px] md:max-h-[360px] pr-2 custom-scrollbar">
                   <div className="grid grid-cols-2 gap-2">
                     <InputField icon={MdPerson} type="text" name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleChange} />
                     <InputField icon={MdPerson} type="text" name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleChange} />
@@ -578,36 +587,41 @@ const CustomerLogin = () => {
                   <InputField icon={MdEmail} type="email" name="email" placeholder="Email Address" value={formData.email} onChange={handleChange} />
                   <InputField icon={MdPhone} type="tel" name="phone" placeholder="Contact Number" value={formData.phone} onChange={handleChange} />
 
-                  <div className="space-y-2 md:space-y-4">
+                  <div className="space-y-3 md:space-y-4">
                     <InputField icon={MdLock} type={showPassword ? 'text' : 'password'} name="password" placeholder="Passphrase" value={formData.password} onChange={handleChange} showPasswordToggle showPassword={showPassword} onTogglePassword={() => setShowPassword(!showPassword)} />
                     {formData.password && <PasswordStrength strength={strength} rules={rules} currentStrength={currentStrength} password={formData.password} />}
                     <InputField icon={MdLock} type={showConfirmPassword ? 'text' : 'password'} name="confirmPassword" placeholder="Validate Passphrase" value={formData.confirmPassword} onChange={handleChange} showPasswordToggle showPassword={showConfirmPassword} onTogglePassword={() => setShowConfirmPassword(!showConfirmPassword)} />
                   </div>
 
                   <MagneticButton>
-                    <button type="submit" className="w-full relative overflow-hidden bg-gradient-to-r from-teal-500 to-cyan-600 text-white py-1.5 md:py-2 rounded-md md:rounded-lg font-black text-[8px] md:text-xs group shadow-[0_20px_40px_rgba(20,184,166,0.3)] active:scale-95 transition-all">
-                      <span className="relative z-10 capitalize">Initialize</span>
+                    <button type="submit" className="w-full relative overflow-hidden bg-gradient-to-r from-teal-500 to-cyan-600 text-white py-3 md:py-3 rounded-lg font-black text-[10px] md:text-xs group shadow-[0_20px_40px_rgba(20,184,166,0.3)] active:scale-95 transition-all">
+                      <span className="relative z-10 uppercase">Initialize</span>
                       <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
                       <span className="absolute inset-0 flex items-center justify-center text-[#0a0f16] translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-20 font-black">CONFIRM</span>
                     </button>
                   </MagneticButton>
                 </form>
                 <SocialLogins />
+                <div className="md:hidden mt-8 text-center">
+                  <button onClick={toggleMode} className="text-teal-400 font-black text-[10px] uppercase tracking-widest">
+                    Already have an account? Sign In →
+                  </button>
+                </div>
               </div>
             </div>
 
             {/* ADMIN SETUP Form — only when no admin exists */}
-            <div className={`w-1/2 h-full flex items-center justify-center p-3 md:p-10 absolute right-0 transition-all duration-1000 ease-in-out ${mode !== 'adminSetup' ? 'opacity-0 pointer-events-none -translate-x-20 scale-95' : 'opacity-100 scale-100'}`}>
+            <div className={`w-full md:w-1/2 min-h-[450px] md:h-full flex items-center justify-center p-6 md:p-10 transition-all duration-1000 ease-in-out ${mode !== 'adminSetup' ? 'hidden md:flex md:right-0 md:opacity-0 md:pointer-events-none md:-translate-x-20 md:scale-95' : 'flex opacity-100 scale-100 md:absolute md:right-0'}`}>
               <div className="w-full max-w-sm">
-                <header className="mb-2 md:mb-4 text-center md:text-left">
+                <header className="mb-4 md:mb-4 text-center md:text-left">
                   <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-                    <div className="flex items-center gap-2 mb-1 md:mb-3">
-                      <MdAdminPanelSettings className="text-amber-400 text-lg md:text-3xl" />
-                      <h2 className="text-[14px] md:text-4xl font-extrabold text-white tracking-tight leading-tight">
+                    <div className="flex items-center gap-2 mb-2 md:mb-3 justify-center md:justify-start">
+                      <MdAdminPanelSettings className="text-amber-400 text-2xl md:text-3xl" />
+                      <h2 className="text-2xl md:text-4xl font-extrabold text-white tracking-tight leading-tight">
                         Admin <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-500">Setup.</span>
                       </h2>
                     </div>
-                    <p className="text-[6px] md:text-xs text-amber-400/60 font-medium tracking-wide border-l-2 border-amber-500/50 pl-2 md:pl-4">One-time system initialization</p>
+                    <p className="text-[10px] md:text-xs text-amber-400/60 font-medium tracking-wide border-l-2 border-amber-500/50 pl-2 md:pl-4">One-time system initialization</p>
                   </motion.div>
                 </header>
 
@@ -626,12 +640,12 @@ const CustomerLogin = () => {
                   </div>
 
                   <MagneticButton>
-                    <button type="submit" className="w-full relative overflow-hidden bg-gradient-to-r from-amber-500 to-yellow-600 text-[#0a0f16] py-1.5 md:py-2 rounded-md md:rounded-lg font-black text-[8px] md:text-xs group shadow-[0_20px_40px_rgba(245,158,11,0.3)] active:scale-95 transition-all">
-                      <span className="relative z-10 uppercase flex items-center justify-center gap-1">
-                        <MdShield className="text-[10px] md:text-sm" /> Create Admin
+                    <button type="submit" className="w-full relative overflow-hidden bg-gradient-to-r from-amber-500 to-yellow-600 text-[#0a0f16] py-3 md:py-3 rounded-lg font-black text-[10px] md:text-xs group shadow-[0_20px_40px_rgba(245,158,11,0.3)] active:scale-95 transition-all">
+                      <span className="relative z-10 uppercase flex items-center justify-center gap-2">
+                        <MdShield className="text-sm md:text-sm" /> Create Admin
                       </span>
                       <div className="absolute inset-0 bg-[#0a0f16] translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
-                      <span className="absolute inset-0 flex items-center justify-center text-amber-400 translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-20 font-black text-[8px] md:text-xs uppercase">INITIALIZE SYSTEM</span>
+                      <span className="absolute inset-0 flex items-center justify-center text-amber-400 translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-20 font-black text-[10px] md:text-xs uppercase">INITIALIZE SYSTEM</span>
                     </button>
                   </MagneticButton>
 
@@ -647,7 +661,7 @@ const CustomerLogin = () => {
             </div>
           </div>
 
-          {/* Sliding Decorative Overlay — hidden in adminSetup mode */}
+          {/* Sliding Decorative Overlay — hidden in adminSetup mode and smaller screens */}
           {mode !== 'adminSetup' && (
             <motion.div
               animate={{
@@ -655,7 +669,7 @@ const CustomerLogin = () => {
                 borderRadius: isLogin ? '100px 24px 24px 100px' : '24px 100px 100px 24px'
               }}
               transition={{ type: "spring", stiffness: 80, damping: 15 }}
-              className="flex absolute top-0 left-0 w-1/2 h-full bg-gradient-to-br from-teal-600/60 to-cyan-800/60 backdrop-blur-3xl z-20 items-center justify-center p-4 md:p-12 text-white border-x border-white/10 group"
+              className="hidden md:flex absolute top-0 left-0 w-1/2 h-full bg-gradient-to-br from-teal-600/60 to-cyan-800/60 backdrop-blur-3xl z-20 items-center justify-center p-12 text-white border-x border-white/10 group"
             >
               <div className="text-center relative">
                 <AnimatePresence mode="wait">
@@ -678,9 +692,9 @@ const CustomerLogin = () => {
 
                     {isLogin ? (
                       <>
-                        <h3 className="text-[18px] md:text-5xl font-black mb-2 md:mb-6 leading-tight tracking-tighter">NEW <br className="hidden md:block" />DISCOVERY.</h3>
-                        <p className="text-teal-50/70 mb-4 md:mb-12 text-[8px] md:text-lg font-medium tracking-wide max-w-[80px] md:max-w-xs mx-auto italic">Crafting luxury environments.</p>
-                        <button onClick={toggleMode} className="group relative px-4 md:px-12 py-2 md:py-5 rounded-full font-black text-[7px] md:text-sm uppercase tracking-[0.2em] border-2 border-white/20 overflow-hidden transition-all hover:border-white">
+                        <h3 className="text-3xl md:text-5xl font-black mb-4 md:mb-6 leading-tight tracking-tighter">NEW <br className="hidden md:block" />DISCOVERY.</h3>
+                        <p className="text-teal-50/70 mb-8 md:mb-12 text-sm md:text-lg font-medium tracking-wide max-w-xs mx-auto italic">Crafting luxury environments.</p>
+                        <button onClick={toggleMode} className="group relative px-8 md:px-12 py-3 md:py-5 rounded-full font-black text-xs md:text-sm uppercase tracking-[0.2em] border-2 border-white/20 overflow-hidden transition-all hover:border-white">
                           <span className="relative z-10">Sign Up</span>
                           <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
                           <span className="absolute inset-0 flex items-center justify-center text-[#0a0f16] translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-20 font-black">START</span>
@@ -688,9 +702,9 @@ const CustomerLogin = () => {
                       </>
                     ) : (
                       <>
-                        <h3 className="text-[18px] md:text-5xl font-black mb-2 md:mb-6 leading-tight tracking-tighter">RETURN <br className="hidden md:block" />CUSTOMER.</h3>
-                        <p className="text-teal-50/70 mb-4 md:mb-12 text-[8px] md:text-lg font-medium tracking-wide max-w-[80px] md:max-w-xs mx-auto italic">Resume premium management.</p>
-                        <button onClick={toggleMode} className="group relative px-4 md:px-12 py-2 md:py-5 rounded-full font-black text-[7px] md:text-sm uppercase tracking-[0.2em] border-2 border-white/20 overflow-hidden transition-all hover:border-white">
+                        <h3 className="text-3xl md:text-5xl font-black mb-4 md:mb-6 leading-tight tracking-tighter">RETURN <br className="hidden md:block" />CUSTOMER.</h3>
+                        <p className="text-teal-50/70 mb-8 md:mb-12 text-sm md:text-lg font-medium tracking-wide max-w-xs mx-auto italic">Resume premium management.</p>
+                        <button onClick={toggleMode} className="group relative px-8 md:px-12 py-3 md:py-5 rounded-full font-black text-xs md:text-sm uppercase tracking-[0.2em] border-2 border-white/20 overflow-hidden transition-all hover:border-white">
                           <span className="relative z-10">Sign In</span>
                           <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
                           <span className="absolute inset-0 flex items-center justify-center text-[#0a0f16] translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-20 font-black">WELCOME</span>

@@ -17,7 +17,7 @@ import {
   MdOutlineWorkspacePremium,
   MdInventory
 } from 'react-icons/md';
-import { FaFacebookF, FaInstagram} from 'react-icons/fa';
+import { FaFacebookF, FaInstagram } from 'react-icons/fa';
 import customerService from '../services/customerService';
 import HeroSlider from '../components/home/HeroSlider';
 
@@ -33,9 +33,9 @@ const CategorySkeleton = () => (
 
 const ProductSkeleton = () => (
   <div className="bg-slate-50 rounded-[2rem] overflow-hidden border border-slate-100 p-4 animate-pulse">
-      <div className="h-48 bg-slate-200 rounded-xl mb-4"></div>
-      <div className="h-4 bg-slate-200 rounded w-3/4 mb-2"></div>
-      <div className="h-4 bg-slate-200 rounded w-1/2"></div>
+    <div className="h-48 bg-slate-200 rounded-xl mb-4"></div>
+    <div className="h-4 bg-slate-200 rounded w-3/4 mb-2"></div>
+    <div className="h-4 bg-slate-200 rounded w-1/2"></div>
   </div>
 );
 
@@ -60,18 +60,18 @@ const LandingPage = () => {
   const [testimonials, setTestimonials] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   // Independent loading states for progressive rendering
   const [sectionsLoaded, setSectionsLoaded] = useState({
-      banners: false, 
-      products: false, // Covers categories too in this logic
+    banners: false,
+    products: false, // Covers categories too in this logic
   });
 
   useEffect(() => {
     const loadHomeData = async () => {
       // Helper for safe fetching that won't reject Promise.all
       const safeFetch = async (promise, fallback) => {
-          try { return await promise; } catch (e) { console.warn('Section load failed', e); return fallback; }
+        try { return await promise; } catch (e) { console.warn('Section load failed', e); return fallback; }
       };
 
       try {
@@ -80,7 +80,7 @@ const LandingPage = () => {
         // 1. Fetch Banners (Critical) - Wait for this or timeout
         const bannersData = await safeFetch(customerService.getBanners(), []);
         setBanners(Array.isArray(bannersData) ? bannersData : []);
-        setSectionsLoaded(prev => ({...prev, banners: true}));
+        setSectionsLoaded(prev => ({ ...prev, banners: true }));
 
         // 2. Fetch others in parallel (Non-blocking)
         const [categoriesData, brandsData, testimonialsData, productsData] = await Promise.all([
@@ -89,22 +89,22 @@ const LandingPage = () => {
           safeFetch(customerService.getTestimonials(), []),
           safeFetch(customerService.getProducts(), [])
         ]);
-        
+
         setCategories(Array.isArray(categoriesData) ? categoriesData.slice(0, 4) : []);
         setBrands(Array.isArray(brandsData) ? brandsData : []);
         setTestimonials(Array.isArray(testimonialsData) ? testimonialsData.slice(0, 2) : []);
-        
+
         // Normalize products
         const rawProducts = Array.isArray(productsData) ? productsData : (productsData?.content || productsData?.data || []);
         const normalizedProducts = rawProducts.map(p => ({
-            ...p,
-            brand: p.brand && typeof p.brand === 'object' ? p.brand.name : (p.brand || 'No Brand'),
-            category: p.category && typeof p.category === 'object' ? p.category.name : (p.category || 'No Category'),
+          ...p,
+          brand: p.brand && typeof p.brand === 'object' ? p.brand.name : (p.brand || 'No Brand'),
+          category: p.category && typeof p.category === 'object' ? p.category.name : (p.category || 'No Category'),
         })).slice(0, 4);
 
         setProducts(normalizedProducts);
-        setSectionsLoaded(prev => ({...prev, products: true}));
-        
+        setSectionsLoaded(prev => ({ ...prev, products: true }));
+
       } catch (error) {
         console.error('Critical failure loading home data:', error);
       } finally {
@@ -123,7 +123,7 @@ const LandingPage = () => {
 
   return (
     <div id="home" className="min-h-screen bg-slate-50 font-sans text-slate-900 overflow-x-hidden">
-      
+
       {/* Hero Section */}
       <HeroSlider banners={banners} />
 
@@ -265,7 +265,7 @@ const LandingPage = () => {
       </section>
       <section id="products" className="py-8 md:py-24 bg-slate-900 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-[150px] md:w-[500px] h-[150px] md:h-[500px] bg-teal-500/10 rounded-full blur-[40px] md:blur-[120px]" />
-        
+
         <div className="max-w-7xl mx-auto px-2 md:px-8 relative z-10">
           <div className="flex flex-row items-end justify-between mb-4 md:mb-16 gap-2">
             <div>
@@ -281,12 +281,12 @@ const LandingPage = () => {
 
           <div className="grid grid-cols-4 gap-2 md:gap-8">
             {!sectionsLoaded.products ? (
-               <>
-                 <CategorySkeleton />
-                 <CategorySkeleton />
-                 <CategorySkeleton />
-                 <CategorySkeleton />
-               </>
+              <>
+                <CategorySkeleton />
+                <CategorySkeleton />
+                <CategorySkeleton />
+                <CategorySkeleton />
+              </>
             ) : categories.map((cat, idx) => (
               <motion.div
                 key={idx}
@@ -294,13 +294,18 @@ const LandingPage = () => {
                 className="group relative h-[150px] md:h-[450px] rounded-xl md:rounded-[2.5rem] overflow-hidden shadow-2xl"
               >
                 <img
-                  src={cat.image}
+                  src={cat.image || '/Logo2.png'}
                   alt={cat.name}
                   loading={idx > 1 ? "lazy" : "eager"}
+                  onError={(e) => { 
+                    e.target.src = '/Logo2.png';
+                    e.target.classList.add('object-contain', 'p-12', 'bg-slate-100');
+                    e.target.classList.remove('object-cover');
+                  }}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-60 md:opacity-100"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-90" />
-                
+
                 <div className="absolute bottom-2 left-2 right-2 md:bottom-8 md:left-8 md:right-8">
                   <span className="hidden md:inline-block bg-teal-600/30 backdrop-blur-md text-teal-400 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full mb-3 border border-teal-500/30">
                     {cat.tag}
@@ -318,71 +323,76 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
-      
+
       {/* New Arrivals Section */}
       <section className="py-24 bg-white relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
-            <div className="flex items-end justify-between mb-16 px-4">
-                <div>
-                    <h3 className="text-teal-600 font-black tracking-widest uppercase mb-4">Latest Arrivals</h3>
-                    <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter uppercase leading-none">
-                        New <span className="text-teal-600 italic">Segments.</span>
-                    </h2>
-                </div>
-                <Link to="/shop" className="text-teal-600 font-bold flex items-center gap-2 group">
-                    EXPLORE ALL <MdArrowForward className="group-hover:translate-x-2 transition-transform" />
-                </Link>
+          <div className="flex items-end justify-between mb-16 px-4">
+            <div>
+              <h3 className="text-teal-600 font-black tracking-widest uppercase mb-4">Latest Arrivals</h3>
+              <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter uppercase leading-none">
+                New <span className="text-teal-600 italic">Segments.</span>
+              </h2>
             </div>
+            <Link to="/shop" className="text-teal-600 font-bold flex items-center gap-2 group">
+              EXPLORE ALL <MdArrowForward className="group-hover:translate-x-2 transition-transform" />
+            </Link>
+          </div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
-                {!sectionsLoaded.products ? (
-                    <>
-                        <ProductSkeleton />
-                        <ProductSkeleton />
-                        <ProductSkeleton />
-                        <ProductSkeleton />
-                    </>
-                ) : products.length > 0 ? products.map((product, idx) => (
-                    <motion.div
-                        key={product.id}
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: idx * 0.1 }}
-                        className="group relative bg-slate-50 rounded-[2rem] overflow-hidden border border-slate-100 hover:shadow-2xl transition-all duration-500"
-                    >
-                        <div className="aspect-square overflow-hidden bg-white">
-                            <img 
-                                src={product.image || '/Logo2.png'} 
-                                alt={product.name}
-                                loading={idx > 1 ? "lazy" : "eager"}
-                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
-                            />
-                        </div>
-                        <div className="p-8">
-                            <div className="flex items-center gap-2 mb-2 text-[10px] font-black text-teal-600 uppercase tracking-widest">
-                                <span>{product.brand}</span>
-                                <span className="w-1 h-1 bg-teal-200 rounded-full" />
-                                <span className="text-slate-400">{product.category}</span>
-                            </div>
-                            <h4 className="text-xl font-black text-slate-900 mb-4 truncate uppercase tracking-tighter group-hover:text-teal-600 transition-colors">
-                                {product.name}
-                            </h4>
-                            <div className="flex items-center justify-between">
-                                <span className="text-2xl font-black text-slate-950">₹{(product.price || 0).toLocaleString()}</span>
-                                <Link to="/shop" className="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center hover:bg-teal-600 transition-all shadow-lg active:scale-95">
-                                    <MdShoppingCart size={20} />
-                                </Link>
-                            </div>
-                        </div>
-                    </motion.div>
-                )) : (
-                    <div className="col-span-full py-20 text-center bg-slate-50 rounded-[3rem] border-2 border-dashed border-slate-200">
-                        <MdInventory className="mx-auto text-6xl text-slate-200 mb-4" />
-                        <p className="text-slate-400 font-bold uppercase tracking-widest text-sm">Synchronizing new inventory...</p>
-                    </div>
-                )}
-            </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
+            {!sectionsLoaded.products ? (
+              <>
+                <ProductSkeleton />
+                <ProductSkeleton />
+                <ProductSkeleton />
+                <ProductSkeleton />
+              </>
+            ) : products.length > 0 ? products.map((product, idx) => (
+              <motion.div
+                key={product.id}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.1 }}
+                className="group relative bg-slate-50 rounded-[2rem] overflow-hidden border border-slate-100 hover:shadow-2xl transition-all duration-500"
+              >
+                <div className="aspect-square overflow-hidden bg-white">
+                  <img
+                    src={product.image || '/Logo2.png'}
+                    alt={product.name}
+                    loading={idx > 1 ? "lazy" : "eager"}
+                    onError={(e) => { 
+                      e.target.src = '/Logo2.png';
+                      e.target.classList.add('object-contain', 'p-8');
+                      e.target.classList.remove('object-cover');
+                    }}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  />
+                </div>
+                <div className="p-8">
+                  <div className="flex items-center gap-2 mb-2 text-[10px] font-black text-teal-600 uppercase tracking-widest">
+                    <span>{product.brand}</span>
+                    <span className="w-1 h-1 bg-teal-200 rounded-full" />
+                    <span className="text-slate-400">{product.category}</span>
+                  </div>
+                  <h4 className="text-xl font-black text-slate-900 mb-4 truncate uppercase tracking-tighter group-hover:text-teal-600 transition-colors">
+                    {product.name}
+                  </h4>
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl font-black text-slate-950">₹{(product.price || 0).toLocaleString()}</span>
+                    <Link to="/shop" className="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center hover:bg-teal-600 transition-all shadow-lg active:scale-95">
+                      <MdShoppingCart size={20} />
+                    </Link>
+                  </div>
+                </div>
+              </motion.div>
+            )) : (
+              <div className="col-span-full py-20 text-center bg-slate-50 rounded-[3rem] border-2 border-dashed border-slate-200">
+                <MdInventory className="mx-auto text-6xl text-slate-200 mb-4" />
+                <p className="text-slate-400 font-bold uppercase tracking-widest text-sm">Synchronizing new inventory...</p>
+              </div>
+            )}
+          </div>
         </div>
       </section>
 

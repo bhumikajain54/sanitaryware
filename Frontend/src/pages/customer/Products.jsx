@@ -78,24 +78,19 @@ const CompactProductCard = ({ product, addToCart, toggleWishlist, isInWishlist }
   >
     {/* Image Container */}
     <div className="relative aspect-square overflow-hidden bg-slate-50 flex items-center justify-center">
-      {!hasError ? (
-        <img
-          src={imgSrc || '/placeholder.png'}
-          alt={product.name}
-          loading="lazy"
-          onError={() => {
-             setHasError(true);
-             // Fallback to a generous default or avoid looping
-             setImgSrc(null); 
-          }}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-        />
-      ) : (
-        <div className="flex flex-col items-center justify-center text-slate-300 w-full h-full bg-slate-50">
-           <MdSort className="text-4xl mb-2 opacity-20" />
-           <span className="text-[10px] font-bold uppercase tracking-widest opacity-40">No Image</span>
-        </div>
-      )}
+      <img
+        src={imgSrc || '/Logo2.png'}
+        alt={product.name}
+        loading="lazy"
+        onError={(e) => {
+           setHasError(true);
+           setImgSrc('/Logo2.png'); 
+           e.target.src = '/Logo2.png';
+           e.target.classList.add('object-contain', 'p-4');
+           e.target.classList.remove('object-cover');
+        }}
+        className={`w-full h-full ${hasError || !imgSrc || imgSrc === '/Logo2.png' ? 'object-contain p-4' : 'object-cover'} group-hover:scale-105 transition-transform duration-700 bg-slate-50`}
+      />
       
       {/* Badges */}
       <div className="absolute top-2 left-2 flex flex-col gap-1">
@@ -217,8 +212,8 @@ const Products = () => {
                 name: p.name || 'Untitled Product',
                 price,
                 originalPrice: parseFloat((p.originalPrice || p.mrp || 0).toString().replace(/[^0-9.]/g, '')) || (price * 1.2),
-                image: p.mainImage || p.image || '/placeholder.png',
-                mainImage: p.mainImage || p.image || '/placeholder.png',
+                image: p.mainImage || p.image || '/Logo2.png',
+                mainImage: p.mainImage || p.image || '/Logo2.png',
                 category: p.category?.name || (typeof p.category === 'string' ? p.category : 'General'),
                 brand: p.brand?.name || (typeof p.brand === 'string' ? p.brand : 'Generic'),
                 stock: Math.max(0, parseInt(stockValue)),
@@ -472,7 +467,16 @@ const Products = () => {
                          ) : (
                             <div key={product.id} className="bg-white rounded-xl p-4 border border-slate-100 flex gap-4 hover:border-teal-500 transition-all shadow-sm">
                                <div className="w-20 h-20 bg-slate-50 rounded-lg overflow-hidden shrink-0">
-                                  <img src={product.image} className="w-full h-full object-cover" />
+                                  <img
+                                    src={product.image || '/Logo2.png'}
+                                    alt={product.name}
+                                    onError={(e) => { 
+                                        e.target.src = '/Logo2.png';
+                                        e.target.classList.add('object-contain', 'p-2', 'bg-slate-900', 'opacity-30');
+                                        e.target.classList.remove('object-cover');
+                                    }}
+                                    className="w-full h-full object-cover"
+                                  />
                                 </div>
                                <div className="flex-1 flex items-center justify-between">
                                   <div>

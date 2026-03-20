@@ -6,13 +6,13 @@ import apiCall from './api';
 /**
  * Dashboard & Stats
  */
-export const getDashboardStats = () => apiCall('/admin/dashboard/stats');
-export const getDashboardSummary = () => apiCall('/admin/dashboard/summary');
-export const getDashboardSales = () => apiCall('/admin/dashboard/sales');
-export const getDashboardOrders = () => apiCall('/admin/dashboard/orders');
-export const getDashboardUsers = () => apiCall('/admin/dashboard/users');
-export const getRevenueTrend = (period = '7d') => apiCall(`/admin/dashboard/revenue-trend?period=${period}`);
-export const getOrdersTrend = () => apiCall('/admin/dashboard/orders-trend');
+export const getDashboardStats = (days = 0) => apiCall(`/admin/dashboard/stats?days=${days}`);
+export const getDashboardSummary = (days = 0) => apiCall(`/admin/dashboard/summary?days=${days}`);
+export const getDashboardSales = (days = 0) => apiCall(`/admin/dashboard/sales?days=${days}`);
+export const getDashboardOrders = (days = 0) => apiCall(`/admin/dashboard/orders?days=${days}`);
+export const getDashboardUsers = (days = 0) => apiCall(`/admin/dashboard/users?days=${days}`);
+export const getRevenueTrend = (days = 7) => apiCall(`/admin/dashboard/revenue-trend?days=${days}`);
+export const getOrdersTrend = (days = 7) => apiCall(`/admin/dashboard/orders-trend?days=${days}`);
 
 /**
  * Product Management

@@ -105,7 +105,7 @@ const ProductsLanding = () => {
                     rating: parseFloat(p.rating) || 0,
                     reviews: parseInt(p.reviews) || 0,
                     badge: p.badge || (stock === 0 ? 'Out of Stock' : (p.isNew ? 'New Arrival' : '')),
-                    image: p.image || p.imageUrl || p.mainImage || '/placeholder-product.png'
+                    image: p.image || p.imageUrl || p.mainImage || '/Logo2.png'
                 };
             });
 
@@ -324,9 +324,14 @@ const ProductsLanding = () => {
                   >
                      <div className="relative h-40 md:h-48 overflow-hidden bg-slate-50">
                         <img 
-                          src={product.image} 
+                          src={product.image || '/Logo2.png'} 
                           loading="lazy"
                           decoding="async"
+                          onError={(e) => { 
+                              e.target.src = '/Logo2.png';
+                              e.target.classList.add('object-contain', 'p-4', 'bg-slate-100');
+                              e.target.classList.remove('object-cover', 'grayscale');
+                          }}
                           className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105" 
                         />
                         

@@ -27,13 +27,33 @@ public class FileStorageService {
     }
 
     public String save(MultipartFile file) {
+        if (file.isEmpty()) {
+            throw new RuntimeException("Failed to store empty file.");
+        }
+
+        // 1. Validation: File Type
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null || !isValidExtension(originalFilename)) {
+            throw new RuntimeException("Invalid file type. Only JPG, PNG, and WEBP images are allowed.");
+        }
+
         try {
-            String filename = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+            // 2. Clean filename and add UUID to prevent collisions
+            String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            String cleanName = originalFilename.replace(extension, "").replaceAll("[^a-zA-Z0-9]", "_");
+            String filename = cleanName + "_" + UUID.randomUUID().toString().substring(0, 8) + extension;
+            
             Files.copy(file.getInputStream(), this.root.resolve(filename));
             return filename;
         } catch (Exception e) {
             throw new RuntimeException("Could not store the file. Error: " + e.getMessage());
         }
+    }
+
+    private boolean isValidExtension(String filename) {
+        String lower = filename.toLowerCase();
+        return lower.endsWith(".jpg") || lower.endsWith(".jpeg") || 
+               lower.endsWith(".png") || lower.endsWith(".webp");
     }
 
     public org.springframework.core.io.Resource load(String filename) {

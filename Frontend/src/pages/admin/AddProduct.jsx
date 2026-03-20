@@ -21,6 +21,9 @@ const AddProduct = () => {
     features: '',
     inStock: true,
   });
+  const [uploading, setUploading] = useState(false);
+  const [preview, setPreview] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -47,6 +50,16 @@ const AddProduct = () => {
     fetchData();
   }, []);
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => setPreview(reader.result);
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleChange = (e) => {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
     setFormData({
@@ -57,22 +70,38 @@ const AddProduct = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    const newProduct = {
-      ...formData,
-      price: parseFloat(formData.price),
-      stock: parseInt(formData.stock || 0),
-      features: formData.features.split(',').map((f) => f.trim()).filter(f => f),
-      status: 'active'
-    };
+    setUploading(true);
 
     try {
+      let finalImageUrl = formData.image;
+
+      // 1. Upload image if a new file is selected
+      if (imageFile) {
+        const uploadData = new FormData();
+        uploadData.append('file', imageFile);
+        
+        // This assumes adminService.uploadMedia exists or we use a direct fetch
+        const uploadRes = await adminService.uploadMedia(uploadData);
+        finalImageUrl = uploadRes.url;
+      }
+
+      // 2. Prepare final product data
+      const newProduct = {
+        ...formData,
+        mainImage: finalImageUrl, // Map to backend entity field
+        price: parseFloat(formData.price),
+        stockQuantity: parseInt(formData.stock || 0), // Map to backend field
+        active: formData.inStock,
+      };
+
       await adminService.createProduct(newProduct);
       alert('Product added successfully!');
       navigate('/admin/products');
     } catch (err) {
       console.error('Failed to add product:', err);
-      alert('Failed to add product. Please try again.');
+      alert(err.response?.data?.message || 'Failed to add product. Please try again.');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -184,20 +213,46 @@ const AddProduct = () => {
               </div>
             </div>
 
-            {/* Image URL */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Image URL *
+            {/* Image Upload */}
+            <div className="space-y-4">
+              <label className="block text-sm font-medium text-gray-700">
+                Product Image *
               </label>
-              <input
-                type="url"
-                name="image"
-                value={formData.image}
-                onChange={handleChange}
-                required
-                className="input-field"
-                placeholder="https://example.com/image.jpg"
-              />
+              
+              <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-6 bg-slate-50 hover:bg-slate-100 transition-all cursor-pointer group relative overflow-hidden">
+                <input
+                  type="file"
+                  onChange={handleFileChange}
+                  accept="image/*"
+                  className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                />
+                
+                {preview ? (
+                  <div className="relative w-full aspect-video rounded-lg overflow-hidden border border-slate-200 shadow-sm">
+                    <img src={preview} alt="Upload preview" className="w-full h-full object-contain bg-white" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                       <p className="text-white font-black text-xs uppercase tracking-widest">Change Image</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <div className="mx-auto w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center mb-3 text-slate-400 group-hover:text-teal-600 transition-colors">
+                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                       </svg>
+                    </div>
+                    <p className="text-sm font-bold text-slate-600 uppercase tracking-tighter">Click to upload product image</p>
+                    <p className="text-[10px] text-slate-400 uppercase mt-1">JPG, PNG, WEBP (Max 5MB)</p>
+                  </div>
+                )}
+              </div>
+              
+              {/* Progress Indicator */}
+              {uploading && (
+                <div className="w-full bg-slate-100 rounded-full h-1 overflow-hidden">
+                   <div className="bg-teal-500 h-full animate-[progress_2s_ease-in-out_infinite]" style={{ width: '100%' }}></div>
+                </div>
+              )}
             </div>
 
             {/* Description */}
@@ -251,8 +306,12 @@ const AddProduct = () => {
 
             {/* Buttons */}
             <div className="flex space-x-4 pt-4">
-              <button type="submit" className="btn-primary flex-1">
-                Add Product
+              <button 
+                type="submit" 
+                disabled={uploading || loading}
+                className="btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {uploading ? 'Processing...' : 'Add Product'}
               </button>
               <button
                 type="button"

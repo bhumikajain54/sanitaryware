@@ -7,10 +7,10 @@ const HeroSlider = ({ banners = [] }) => {
 
   // Map backend field names if they are different (for compatibility)
   const displayBanners = banners.map(b => ({
-      ...b,
-      imageUrl: b.imageUrl || b.image,
-      description: b.description || b.subtitle,
-      linkUrl: b.linkUrl || b.link || '/shop'
+    ...b,
+    imageUrl: b.imageUrl || b.image,
+    description: b.description || b.subtitle,
+    linkUrl: b.linkUrl || b.link || '/shop'
   })).filter(b => b.active !== false); // Filter out inactive ones
 
   useEffect(() => {
@@ -25,15 +25,15 @@ const HeroSlider = ({ banners = [] }) => {
 
 
   if (displayBanners.length === 0) {
-      // Fallback Banner if data load fails
-      displayBanners.push({
-          id: 'default-1',
-          imageUrl: 'https://images.unsplash.com/photo-1584622050111-993a426fbf0a?auto=format&fit=crop&q=80',
-          title: 'Modern Sanitary Excellence',
-          description: 'Experience the finest collection of premium bath fittings and sanitary ware designed for luxury living.',
-          linkUrl: '/shop',
-          active: true
-      });
+    // Fallback Banner if data load fails
+    displayBanners.push({
+      id: 'default-1',
+      imageUrl: 'https://images.unsplash.com/photo-1584622050111-993a426fbf0a?auto=format&fit=crop&q=80',
+      title: 'Modern Sanitary Excellence',
+      description: 'Experience the finest collection of premium bath fittings and sanitary ware designed for luxury living.',
+      linkUrl: '/shop',
+      active: true
+    });
   }
 
   const current = displayBanners[currentSlide];
@@ -70,7 +70,7 @@ const HeroSlider = ({ banners = [] }) => {
               transition={{ duration: 0.8, ease: "circOut" }}
               className="max-w-4xl"
             >
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2 }}
@@ -81,19 +81,19 @@ const HeroSlider = ({ banners = [] }) => {
                   Premium Excellence
                 </h2>
               </motion.div>
-              
-              <motion.h1 
+
+              <motion.h1
                 initial={{ opacity: 0, y: 40 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
                 className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-black text-white leading-[0.9] mb-10 tracking-tighter"
               >
                 {current.title?.split(' ').map((word, i) => (
-                    <span key={i} className={i % 2 !== 0 ? "text-teal-500 italic font-medium inline-block" : "inline-block"}>{word}&nbsp;</span>
+                  <span key={i} className={i % 2 !== 0 ? "text-teal-500 italic font-medium inline-block" : "inline-block"}>{word}&nbsp;</span>
                 )) || ''}
               </motion.h1>
 
-              <motion.p 
+              <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.6 }}
@@ -105,10 +105,10 @@ const HeroSlider = ({ banners = [] }) => {
 
             </motion.div>
           </AnimatePresence>
+        </div>
       </div>
-    </div>
-  </section>
-);
+    </section>
+  );
 };
 
 export default HeroSlider;

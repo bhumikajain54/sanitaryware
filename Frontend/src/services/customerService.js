@@ -160,6 +160,11 @@ export const createContactInquiry = (data) => apiCall('/contact', {
 
 export const initiatePayment = (data) => apiCall('/payment/initiate', { method: 'POST', body: data });
 export const verifyPayment = (data) => apiCall('/payment/verify', { method: 'POST', body: data });
+export const verifyRazorpayPayment = (data) => apiCall('/payment/verify-razorpay', { method: 'POST', body: data });
+export const updatePaymentStatus = (params) => {
+    const queryParams = new URLSearchParams(params).toString();
+    return apiCall(`/payment/update-status?${queryParams}`, { method: 'POST' });
+};
 export const getPaymentHistory = () => apiCall('/payment/history');
 
 // ============================================
@@ -227,6 +232,8 @@ export default {
     createContactInquiry,
     initiatePayment,
     verifyPayment,
+    verifyRazorpayPayment,
+    updatePaymentStatus,
     getPaymentHistory,
     getProfile,
     updateProfile,

@@ -22,6 +22,7 @@ public class CustomerPreference {
 
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false, unique = true)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private User user;
 
     @Builder.Default
@@ -43,6 +44,18 @@ public class CustomerPreference {
     @Builder.Default
     @Column(name = "newsletter", nullable = false)
     private boolean newsletter = false;
+
+    @Builder.Default
+    @Column(name = "two_factor_enabled")
+    private Boolean twoFactorEnabled = false;
+
+    @Builder.Default
+    @Column(name = "language")
+    private String language = "English (US)";
+
+    @Builder.Default
+    @Column(name = "currency")
+    private String currency = "INR (\u20B9)";
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

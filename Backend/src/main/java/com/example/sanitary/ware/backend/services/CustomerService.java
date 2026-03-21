@@ -199,23 +199,63 @@ public class CustomerService {
     }
 
     // Preference Methods
-    public CustomerPreference getPreferences(Long userId) {
-        return customerPreferenceRepository.findByUserId(userId)
+    public com.example.sanitary.ware.backend.dto.CustomerPreferenceDTO getPreferences(Long userId) {
+        CustomerPreference prefs = customerPreferenceRepository.findByUserId(userId)
                 .orElseGet(() -> createDefaultPreferences(userId));
+        return mapToDTO(prefs);
     }
 
     @Transactional
-    public CustomerPreference updatePreferences(Long userId, CustomerPreference preferences) {
-        CustomerPreference existingPreferences = customerPreferenceRepository.findByUserId(userId)
-                .orElseGet(() -> createDefaultPreferences(userId));
+    public com.example.sanitary.ware.backend.dto.CustomerPreferenceDTO updatePreferences(Long userId, java.util.Map<String, Object> preferences) {
+        try {
+            CustomerPreference existingPreferences = customerPreferenceRepository.findByUserId(userId)
+                    .orElseGet(() -> createDefaultPreferences(userId));
 
-        existingPreferences.setEmailNotifications(preferences.isEmailNotifications());
-        existingPreferences.setSmsNotifications(preferences.isSmsNotifications());
-        existingPreferences.setOrderUpdates(preferences.isOrderUpdates());
-        existingPreferences.setPromotionalEmails(preferences.isPromotionalEmails());
-        existingPreferences.setNewsletter(preferences.isNewsletter());
+            if (preferences.get("emailNotifications") != null) {
+                existingPreferences.setEmailNotifications(Boolean.parseBoolean(preferences.get("emailNotifications").toString()));
+            }
+            if (preferences.get("smsNotifications") != null) {
+                existingPreferences.setSmsNotifications(Boolean.parseBoolean(preferences.get("smsNotifications").toString()));
+            }
+            if (preferences.get("orderUpdates") != null) {
+                existingPreferences.setOrderUpdates(Boolean.parseBoolean(preferences.get("orderUpdates").toString()));
+            }
+            if (preferences.get("promotionalEmails") != null) {
+                existingPreferences.setPromotionalEmails(Boolean.parseBoolean(preferences.get("promotionalEmails").toString()));
+            }
+            if (preferences.get("newsletter") != null) {
+                existingPreferences.setNewsletter(Boolean.parseBoolean(preferences.get("newsletter").toString()));
+            }
+            if (preferences.get("twoFactorEnabled") != null) {
+                existingPreferences.setTwoFactorEnabled(Boolean.parseBoolean(preferences.get("twoFactorEnabled").toString()));
+            }
 
-        return customerPreferenceRepository.save(existingPreferences);
+            if (preferences.get("language") != null) {
+                existingPreferences.setLanguage(preferences.get("language").toString());
+            }
+            if (preferences.get("currency") != null) {
+                existingPreferences.setCurrency(preferences.get("currency").toString());
+            }
+
+            return mapToDTO(customerPreferenceRepository.save(existingPreferences));
+        } catch (Exception e) {
+            System.err.println("❌ Preference update failed for user " + userId + ": " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Error updating preferences: " + e.getMessage());
+        }
+    }
+
+    private com.example.sanitary.ware.backend.dto.CustomerPreferenceDTO mapToDTO(CustomerPreference prefs) {
+        return com.example.sanitary.ware.backend.dto.CustomerPreferenceDTO.builder()
+                .emailNotifications(prefs.isEmailNotifications())
+                .smsNotifications(prefs.isSmsNotifications())
+                .orderUpdates(prefs.isOrderUpdates())
+                .promotionalEmails(prefs.isPromotionalEmails())
+                .newsletter(prefs.isNewsletter())
+                .twoFactorEnabled(Boolean.TRUE.equals(prefs.getTwoFactorEnabled()))
+                .language(prefs.getLanguage())
+                .currency(prefs.getCurrency())
+                .build();
     }
 
     private CustomerPreference createDefaultPreferences(Long userId) {
@@ -227,6 +267,9 @@ public class CustomerService {
                 .orderUpdates(true)
                 .promotionalEmails(true)
                 .newsletter(false)
+                .twoFactorEnabled(false)
+                .language("English (US)")
+                .currency("INR (\u20B9)")
                 .build();
         return customerPreferenceRepository.save(preferences);
     }

@@ -10,6 +10,7 @@ import Navbar from './components/common/Navbar';
 import Footer from './components/common/Footer';
 import LandingNavbar from './components/LandingPage/LandingNavbar';
 import AdminOrderDrafts from './pages/admin/AdminOrderDrafts';
+import { ComparisonProvider } from './context/ComparisonContext';
 
 // Lazy loaded components
 const CustomerLogin = lazy(() => import('./pages/CustomerLogin'));
@@ -174,7 +175,8 @@ function App() {
           <CartProvider>
             <ProductProvider>
               <WishlistProvider>
-                <Toaster position="bottom-right" />
+                <ComparisonProvider>
+                  <Toaster position="bottom-right" />
                 <Suspense fallback={<LoadingSpinner />}>
                 <Routes>
                 {/* Admin Routes */}
@@ -449,6 +451,7 @@ function App() {
                 />
               </Routes>
             </Suspense>
+          </ComparisonProvider>
           </WishlistProvider>
         </ProductProvider>
       </CartProvider>

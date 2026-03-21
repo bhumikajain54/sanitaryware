@@ -29,6 +29,7 @@ public class OrderService {
     private final WhatsAppService whatsAppService;
     private final OrderNoteRepository orderNoteRepository;
 
+    @Transactional
     public Order createOrder(Long userId, OrderRequest request) {
         // Call the transactional part
         Order savedOrder = createOrderInternal(userId, request);

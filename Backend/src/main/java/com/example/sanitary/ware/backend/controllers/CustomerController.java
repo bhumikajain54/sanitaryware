@@ -3,7 +3,6 @@ package com.example.sanitary.ware.backend.controllers;
 import com.example.sanitary.ware.backend.dto.ChangePasswordRequest;
 import com.example.sanitary.ware.backend.entities.ActivityLog;
 import com.example.sanitary.ware.backend.entities.Address;
-import com.example.sanitary.ware.backend.entities.CustomerPreference;
 import com.example.sanitary.ware.backend.entities.Product;
 import com.example.sanitary.ware.backend.entities.User;
 import com.example.sanitary.ware.backend.services.ActivityLogService;
@@ -130,19 +129,23 @@ public class CustomerController {
 
     // Preferences
     @GetMapping("/preferences")
-    public ResponseEntity<CustomerPreference> getPreferences(@AuthenticationPrincipal User user) {
+    public ResponseEntity<?> getPreferences(@AuthenticationPrincipal User user) {
         if (user == null)
             return ResponseEntity.status(401).build();
         return ResponseEntity.ok(customerService.getPreferences(user.getId()));
     }
 
     @PutMapping("/preferences")
-    public ResponseEntity<CustomerPreference> updatePreferences(
+    public ResponseEntity<?> updatePreferences(
             @AuthenticationPrincipal User user,
-            @RequestBody CustomerPreference preferences) {
+            @RequestBody java.util.Map<String, Object> preferences) {
         if (user == null)
             return ResponseEntity.status(401).build();
-        return ResponseEntity.ok(customerService.updatePreferences(user.getId(), preferences));
+        try {
+            return ResponseEntity.ok(customerService.updatePreferences(user.getId(), preferences));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(java.util.Map.of("error", e.getMessage()));
+        }
     }
 
     // Activity Logs

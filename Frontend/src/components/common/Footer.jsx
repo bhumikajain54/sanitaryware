@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
-import { 
-  MdLocationOn, 
-  MdPhone, 
-  MdEmail 
+import {
+  MdLocationOn,
+  MdPhone,
+  MdEmail
 } from 'react-icons/md';
 import { FaFacebookF, FaInstagram } from 'react-icons/fa';
 

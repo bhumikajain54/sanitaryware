@@ -18,6 +18,10 @@ FROM eclipse-temurin:17-jre-alpine
 # Set the working directory
 WORKDIR /app
 
+# Create the uploads directory and copy existing files
+RUN mkdir -p uploads
+COPY uploads ./uploads
+
 # Environment variables (to be set in Render or at runtime)
 # DATASOURCE_URL
 # DATASOURCE_USER

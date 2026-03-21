@@ -42,8 +42,8 @@ public class MediaController {
 
         Map<String, String> response = new HashMap<>();
         response.put("filename", filename);
-        // Return full URL for the frontend to use
-        response.put("url", "http://localhost:8080/api/media/" + filename);
+        // Return relative URL for the frontend to use
+        response.put("url", "/api/media/" + filename);
         return ResponseEntity.ok(response);
     }
 

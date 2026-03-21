@@ -143,12 +143,14 @@ const Orders = () => {
       <div className="flex flex-col gap-3 sm:gap-4 md:gap-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-[var(--text-main)] tracking-tight flex items-center gap-2 sm:gap-3">
-              <MdHistory className="text-teal-600 flex-shrink-0 text-xl sm:text-2xl md:text-3xl lg:text-4xl" />
-              <span className="truncate">My Orders</span>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-[var(--text-main)] tracking-tight flex items-center gap-3">
+               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-orange-500/10 rounded-2xl flex items-center justify-center flex-shrink-0">
+                 <MdShoppingBag className="text-orange-600 text-xl sm:text-2xl lg:text-3xl" />
+               </div>
+               Your Orders
             </h1>
-            <p className="text-[var(--text-muted)] font-bold mt-0.5 sm:mt-1 text-[9px] sm:text-[10px] md:text-xs uppercase tracking-widest opacity-60">
-              Track and manage your order history.
+            <p className="text-[var(--text-muted)] font-bold text-[10px] sm:text-xs uppercase tracking-[0.2em] ml-1 sm:ml-14 opacity-70">
+              Track, manage & return
             </p>
           </div>
         </div>

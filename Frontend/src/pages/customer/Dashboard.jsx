@@ -50,7 +50,8 @@ const Dashboard = () => {
     { label: 'Orders Placed', value: orders.length.toString(), icon: MdShoppingBag, trend: 'this month', trendValue: '+2', trendColor: 'success', color: 'primary', onClick: () => navigate('/customer/orders') },
     { label: 'Wishlist Items', value: wishlistItems.length.toString(), icon: MdFavorite, trend: 'saved for later', trendValue: 'Active', trendColor: 'success', color: 'indigo', onClick: () => navigate('/customer/wishlist') },
     { label: 'Total Investment', value: `₹${(totalSpent || 0).toLocaleString()}`, icon: MdOutlineAccountBalanceWallet, trend: 'lifetime value', trendValue: 'Premium', trendColor: 'success', color: 'blue' },
-    { label: 'Pending Deliveries', value: pendingOrders.toString(), icon: MdLocalShipping, trend: 'in progress', trendValue: 'Active', trendColor: 'success', color: 'amber', onClick: () => navigate('/customer/orders') },
+    { label: 'Pending Deliveries', value: pendingOrders.toString(), icon: MdLocalShipping, trend: 'in progress', trendValue: 'Active', trendColor: 'success', color: 'amber', onClick: () => navigate('/customer/deliveries') },
+
   ];
 
   const getStatusVariant = (status) => {
@@ -278,7 +279,8 @@ const Dashboard = () => {
             <h3 className="text-[var(--text-main)] font-black text-xs sm:text-sm md:text-base mb-3 sm:mb-3.5 md:mb-4 tracking-tight">Quick Shortcuts</h3>
             <div className="grid grid-cols-2 gap-2 sm:gap-2.5 md:gap-3 lg:gap-4">
               {[
-                { label: 'Track Order', path: '/customer/orders', icon: MdLocalShipping },
+                { label: 'Track Order', path: '/customer/deliveries', icon: MdLocalShipping },
+
                 { label: 'Favorites', path: '/customer/wishlist', icon: MdFavorite },
                 { label: 'My Invoices', path: '/customer/orders', icon: MdReceipt },
                 { label: 'Profile', path: '/customer/profile', icon: MdPerson },

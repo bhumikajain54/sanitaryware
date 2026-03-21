@@ -323,7 +323,7 @@ const CustomerHeader = ({ onMenuClick }) => {
                   <div className="p-2">
                     {[
                       { icon: MdPerson, label: 'Account Profile', path: '/customer/profile' },
-                      { icon: MdSettings, label: 'Preferences', path: '/customer/preferences' },
+                      { icon: MdSettings, label: 'Account Settings', path: '/customer/settings' },
                     ].map((item, i) => (
                      <Link
                         key={i}

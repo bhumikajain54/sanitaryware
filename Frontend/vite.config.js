@@ -11,6 +11,9 @@ export default defineConfig({
     hmr: {
       overlay: true,
     },
+    headers: {
+      'Permissions-Policy': 'accelerometer=(self "https://checkout.razorpay.com"), gyroscope=(self "https://checkout.razorpay.com"), magnetometer=(self "https://checkout.razorpay.com"), devicemotion=(self "https://checkout.razorpay.com"), deviceorientation=(self "https://checkout.razorpay.com")'
+    },
  proxy: {
       '/api': {
         target: 'http://localhost:8080',

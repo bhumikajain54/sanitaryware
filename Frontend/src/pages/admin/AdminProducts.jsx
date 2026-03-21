@@ -156,10 +156,27 @@ const AdminProducts = () => {
   };
 
   const handleBulkDelete = async () => {
-    const confirmed = await confirm({ title: 'Bulk Delete', message: `Delete ${selectedIds.length} products?`, confirmText: 'Delete All', type: 'danger' });
+    const confirmed = await confirm({
+      title: 'Bulk Delete',
+      message: `Delete ${selectedIds.length} selected product(s)? Products that are linked to existing orders cannot be deleted and will be skipped.`,
+      confirmText: 'Delete All',
+      type: 'danger'
+    });
     if (confirmed) {
-      try { await adminService.bulkDeleteProducts(selectedIds); success(`${selectedIds.length} products deleted`); clearSelection(); refetch(); }
-      catch (err) { error('Bulk delete failed'); }
+      try {
+        await adminService.bulkDeleteProducts(selectedIds);
+        success(`${selectedIds.length} products deleted successfully`);
+        clearSelection();
+        refetch();
+      } catch (err) {
+        // Backend returns a helpful message when FK constraint is violated
+        const msg = err.message || 'Bulk delete failed';
+        if (msg.toLowerCase().includes('referenced') || msg.toLowerCase().includes('order') || msg.toLowerCase().includes('constrained')) {
+          error('Some products could not be deleted — they are linked to existing orders. Try deactivating them instead.');
+        } else {
+          error(msg);
+        }
+      }
     }
   };
 

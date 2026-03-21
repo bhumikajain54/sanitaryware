@@ -72,6 +72,18 @@ public class Order {
     @Column(name = "order_notes", columnDefinition = "TEXT")
     private String orderNotes;
 
+    @Column(name = "tracking_number")
+    private String trackingNumber;
+
+    @Column(name = "carrier")
+    private String carrier;
+
+    @Column(name = "estimated_delivery")
+    private String estimatedDelivery;
+
+    @Column(name = "tracking_url")
+    private String trackingUrl;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

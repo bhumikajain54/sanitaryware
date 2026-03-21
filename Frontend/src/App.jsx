@@ -29,6 +29,7 @@ const Notifications = lazy(() => import('./pages/customer/Notifications'));
 const Support = lazy(() => import('./pages/customer/Support'));
 // const Brands = lazy(() => import('./pages/customer/Brands')); // Removed
 const PaymentGateways = lazy(() => import('./pages/customer/PaymentGateways'));
+const PaymentWallet = lazy(() => import('./pages/customer/PaymentWallet'));
 const Wishlist = lazy(() => import('./pages/customer/Wishlist'));
 const HelpFAQ = lazy(() => import('./pages/HelpFAQ'));
 const ReturnPolicy = lazy(() => import('./pages/ReturnPolicy'));
@@ -37,7 +38,10 @@ const TermsConditions = lazy(() => import('./pages/TermsConditions'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const ProductsLanding = lazy(() => import('./pages/ProductsLanding'));
 const LandingContact = lazy(() => import('./pages/LandingContact'));
-const Preferences = lazy(() => import('./pages/customer/Preferences'));
+const AccountSettings = lazy(() => import('./pages/customer/AccountSettings'));
+const Deliveries = lazy(() => import('./pages/customer/Deliveries'));
+const Reviews = lazy(() => import('./pages/customer/Reviews'));
+
 
 // Admin Pages
 const AdminLayout = lazy(() => import('./components/admin/AdminLayout'));
@@ -368,6 +372,26 @@ function App() {
                   }
                 />
                 <Route
+                  path="/customer/deliveries"
+                  element={
+                    <ProtectedCustomerRoute>
+                      <CustomerLayoutWithSidebar>
+                        <Deliveries />
+                      </CustomerLayoutWithSidebar>
+                    </ProtectedCustomerRoute>
+                  }
+                />
+                <Route
+                  path="/customer/reviews"
+                  element={
+                    <ProtectedCustomerRoute>
+                      <CustomerLayoutWithSidebar>
+                        <Reviews />
+                      </CustomerLayoutWithSidebar>
+                    </ProtectedCustomerRoute>
+                  }
+                />
+                <Route
                   path="/customer/contact"
                   element={
                     <ProtectedCustomerRoute>
@@ -398,11 +422,11 @@ function App() {
                   }
                 />
                 <Route
-                  path="/customer/preferences"
+                  path="/customer/settings"
                   element={
                     <ProtectedCustomerRoute>
                       <CustomerLayoutWithSidebar>
-                        <Preferences />
+                        <AccountSettings />
                       </CustomerLayoutWithSidebar>
                     </ProtectedCustomerRoute>
                   }
@@ -423,6 +447,26 @@ function App() {
                     <ProtectedCustomerRoute>
                       <CustomerLayoutWithSidebar>
                         <Wishlist />
+                      </CustomerLayoutWithSidebar>
+                    </ProtectedCustomerRoute>
+                  }
+                />
+                <Route
+                  path="/customer/payment"
+                  element={
+                    <ProtectedCustomerRoute>
+                      <CustomerLayoutWithSidebar>
+                        <PaymentGateways />
+                      </CustomerLayoutWithSidebar>
+                    </ProtectedCustomerRoute>
+                  }
+                />
+                <Route
+                  path="/customer/payment-wallet"
+                  element={
+                    <ProtectedCustomerRoute>
+                      <CustomerLayoutWithSidebar>
+                        <PaymentWallet />
                       </CustomerLayoutWithSidebar>
                     </ProtectedCustomerRoute>
                   }

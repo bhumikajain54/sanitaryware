@@ -144,6 +144,57 @@ const OrderViewModal = ({ order, onClose, onConfirmPayment }) => {
             </div>
           </div>
 
+          {/* Tracking Section (Admin Only) */}
+          <div className="space-y-1.5 sm:space-y-4">
+            <h4 className="text-[5px] sm:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest border-b border-[var(--border-subtle)] pb-1 sm:pb-2">Tracking Information</h4>
+            <form 
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const trackingData = {
+                  trackingNumber: formData.get('trackingNumber'),
+                  carrier: formData.get('carrier'),
+                  estimatedDelivery: formData.get('estimatedDelivery'),
+                  trackingUrl: formData.get('trackingUrl')
+                };
+                try {
+                  const adminService = await import('../../services/adminService');
+                  await adminService.updateOrderTracking(order.id, trackingData);
+                  alert('Tracking details updated successfully');
+                  if (typeof onConfirmPayment === 'function') {
+                    // This is a hacky way to trigger a list refresh since this modal is controlled by AdminOrders
+                    // In a real app, you'd pass a refresh function
+                  }
+                } catch (err) {
+                  alert('Failed to update tracking details');
+                }
+              }}
+              className="bg-slate-50/50 dark:bg-slate-800/30 rounded-lg sm:rounded-2xl p-3 sm:p-6 border border-[var(--border-subtle)] space-y-3 sm:space-y-5"
+            >
+              <div className="grid grid-cols-2 gap-3 sm:gap-5">
+                <div className="space-y-1">
+                  <label className="text-[5px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">Tracking Number</label>
+                  <input name="trackingNumber" defaultValue={order.trackingNumber} className="w-full bg-[var(--admin-bg-primary)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-[8px] sm:text-xs font-bold outline-none focus:border-teal-500" placeholder="e.g. ST12345678" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[5px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">Carrier</label>
+                  <input name="carrier" defaultValue={order.carrier} className="w-full bg-[var(--admin-bg-primary)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-[8px] sm:text-xs font-bold outline-none focus:border-teal-500" placeholder="e.g. BlueDart" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3 sm:gap-5">
+                <div className="space-y-1">
+                  <label className="text-[5px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">Est. Delivery</label>
+                  <input name="estimatedDelivery" defaultValue={order.estimatedDelivery} className="w-full bg-[var(--admin-bg-primary)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 text-[8px] sm:text-xs font-bold outline-none focus:border-teal-500" placeholder="e.g. 25th March" />
+                </div>
+                <div className="flex items-end">
+                   <button type="submit" className="w-full py-2 sm:py-2.5 bg-slate-900 text-white rounded-lg sm:rounded-xl font-black text-[6px] sm:text-[10px] uppercase tracking-widest hover:opacity-90 transition-all">
+                      Save Tracking
+                   </button>
+                </div>
+              </div>
+            </form>
+          </div>
+
           {/* Items Table */}
           <div className="space-y-1.5 sm:space-y-4">
             <h4 className="text-[5px] sm:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Order Summary</h4>

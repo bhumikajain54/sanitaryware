@@ -166,6 +166,15 @@ export const updatePaymentStatus = (params) => {
     return apiCall(`/payment/update-status?${queryParams}`, { method: 'POST' });
 };
 export const getPaymentHistory = () => apiCall('/payment/history');
+export const getWalletBalance = () => apiCall('/customer/wallet/balance');
+export const getWalletHistory = () => apiCall('/customer/wallet/history');
+export const addMoneyToWallet = (amount) => apiCall('/customer/wallet/add', { method: 'POST', body: { amount } });
+export const getSavedCards = () => apiCall('/customer/payment-methods/cards');
+export const addSavedCard = (data) => apiCall('/customer/payment-methods/cards', { method: 'POST', body: data });
+export const deleteSavedCard = (id) => apiCall(`/customer/payment-methods/cards/${id}`, { method: 'DELETE' });
+export const getSavedUpi = () => apiCall('/customer/payment-methods/upi');
+export const addSavedUpi = (upiId) => apiCall('/customer/payment-methods/upi', { method: 'POST', body: { upiId } });
+export const deleteSavedUpi = (id) => apiCall(`/customer/payment-methods/upi/${id}`, { method: 'DELETE' });
 
 // ============================================
 // LEGACY / COMPATIBILITY EXPORTS
@@ -243,5 +252,14 @@ export default {
     getPageBySlug,
     getNotifications,
     markNotificationAsRead,
-    getActivityLogs
+    getActivityLogs,
+    getWalletBalance,
+    getWalletHistory,
+    addMoneyToWallet,
+    getSavedCards,
+    addSavedCard,
+    deleteSavedCard,
+    getSavedUpi,
+    addSavedUpi,
+    deleteSavedUpi
 };

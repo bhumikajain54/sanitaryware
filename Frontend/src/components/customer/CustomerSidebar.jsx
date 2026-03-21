@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  MdHome, 
-  MdInventory, 
+import {
+  MdHome,
+  MdInventory,
   MdDashboard,
   MdReceipt,
   MdPerson,
@@ -13,8 +13,11 @@ import {
   MdLocationOn,
   MdNotifications,
   MdHelpOutline,
-  MdSettings
+  MdSettings,
+  MdLocalShipping,
+  MdStar
 } from 'react-icons/md';
+
 import { useAuth } from '../../context/AuthContext';
 
 const CustomerSidebar = ({ isMobileOpen, onMobileClose, onMobileToggle }) => {
@@ -48,10 +51,10 @@ const CustomerSidebar = ({ isMobileOpen, onMobileClose, onMobileToggle }) => {
       '/customer/notifications': () => import('../../pages/customer/Notifications'),
       '/customer/addresses': () => import('../../pages/customer/Addresses'),
       '/customer/profile': () => import('../../pages/customer/Profile'),
-      '/customer/preferences': () => import('../../pages/customer/Preferences'),
+      '/customer/settings': () => import('../../pages/customer/AccountSettings'),
       '/customer/contact': () => import('../../pages/customer/Support'),
     };
-    
+
     if (routes[path]) {
       routes[path](); // Start loading the chunk
     }
@@ -69,6 +72,8 @@ const CustomerSidebar = ({ isMobileOpen, onMobileClose, onMobileToggle }) => {
       title: 'My Workspace',
       items: [
         { name: 'Orders', path: '/customer/orders', icon: MdReceipt },
+        { name: 'Deliveries', path: '/customer/deliveries', icon: MdLocalShipping },
+        { name: 'Reviews', path: '/customer/reviews', icon: MdStar },
         { name: 'Wishlist', path: '/customer/wishlist', icon: MdFavorite },
         { name: 'Notifications', path: '/customer/notifications', icon: MdNotifications },
         { name: 'Addresses', path: '/customer/addresses', icon: MdLocationOn },
@@ -78,7 +83,7 @@ const CustomerSidebar = ({ isMobileOpen, onMobileClose, onMobileToggle }) => {
       title: 'Account',
       items: [
         { name: 'My Profile', path: '/customer/profile', icon: MdPerson },
-        { name: 'Preferences', path: '/customer/preferences', icon: MdSettings },
+        { name: 'Account Settings', path: '/customer/settings', icon: MdSettings },
         { name: 'Support', path: '/customer/contact', icon: MdHelpOutline },
       ]
     }
@@ -90,8 +95,8 @@ const CustomerSidebar = ({ isMobileOpen, onMobileClose, onMobileToggle }) => {
       <div className={`py-6 flex items-center justify-between ${isExpanded ? 'px-6' : 'px-0 justify-center'}`}>
         <div className="flex items-center gap-3">
           <div className="w-5 h-5 md:w-10 md:h-10 bg-slate-950 rounded md:rounded-lg p-0.5 md:p-1 flex-shrink-0">
-                <img src="/Logo2.png" alt="Logo" className="w-full h-full object-contain invert" />
-              </div>
+            <img src="/Logo2.png" alt="Logo" className="w-full h-full object-contain invert" />
+          </div>
           {isExpanded && (
             <motion.div
               initial={{ opacity: 0, x: -10 }}
@@ -99,7 +104,6 @@ const CustomerSidebar = ({ isMobileOpen, onMobileClose, onMobileToggle }) => {
               className="flex flex-col"
             >
               <h1 className="text-sm font-bold text-[var(--text-main)] whitespace-nowrap">Singhai Traders</h1>
-              <span className="text-xs text-teal-600 font-bold tracking-widest uppercase">Portal</span>
             </motion.div>
           )}
         </div>
@@ -120,7 +124,7 @@ const CustomerSidebar = ({ isMobileOpen, onMobileClose, onMobileToggle }) => {
               </h3>
             )}
             {!isExpanded && <div className="h-px bg-[var(--border-subtle)] mx-4 mb-3" />}
-            
+
             {section.items.map((item) => (
               <NavLink
                 key={item.path}
@@ -128,10 +132,9 @@ const CustomerSidebar = ({ isMobileOpen, onMobileClose, onMobileToggle }) => {
                 end={item.path === '/customer/dashboard'}
                 onMouseEnter={() => prefetchRoute(item.path)}
                 className={({ isActive }) =>
-                  `flex items-center gap-4 ${isExpanded ? 'px-4' : 'px-0 justify-center'} py-3 rounded-xl transition-all duration-200 group ${
-                    isActive
-                      ? 'bg-teal-600 text-white shadow-lg shadow-teal-500/20'
-                      : 'text-[var(--text-muted)] hover:bg-[var(--bg-card)] hover:text-teal-600'
+                  `flex items-center gap-4 ${isExpanded ? 'px-4' : 'px-0 justify-center'} py-3 rounded-xl transition-all duration-200 group ${isActive
+                    ? 'bg-teal-600 text-white shadow-lg shadow-teal-500/20'
+                    : 'text-[var(--text-muted)] hover:bg-[var(--bg-card)] hover:text-teal-600'
                   }`
                 }
               >
@@ -172,11 +175,11 @@ const CustomerSidebar = ({ isMobileOpen, onMobileClose, onMobileToggle }) => {
         )}
       </AnimatePresence>
 
-      <motion.aside 
+      <motion.aside
         initial={false}
-        animate={{ 
+        animate={{
           x: (isDesktop || isMobileOpen) ? 0 : -280,
-        width: isDesktop ? (isHovered ? 260 : 80) : 280,
+          width: isDesktop ? (isHovered ? 260 : 80) : 280,
           minWidth: isDesktop ? (isHovered ? 260 : 80) : (isMobileOpen ? 280 : 0)
         }}
         transition={{ type: 'spring', damping: 25, stiffness: 200 }}

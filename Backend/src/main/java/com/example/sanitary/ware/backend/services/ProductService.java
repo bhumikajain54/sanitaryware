@@ -710,8 +710,36 @@ public class ProductService {
     @Transactional
     @CacheEvict(value = { "products", "productsByCategory", "productsByBrand", "featuredProducts" }, allEntries = true)
     public void deleteProduct(@NonNull Long id) {
-        productRepository.deleteById(id);
-        activityLogService.log(1L, "admin@example.com", "DELETE_PRODUCT", "PRODUCTS", "Deleted ID: " + id);
+        try {
+            productRepository.deleteById(id);
+            activityLogService.log(1L, "admin@example.com", "DELETE_PRODUCT", "PRODUCTS", "Deleted ID: " + id);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            String msg = "Could not delete product " + id + ": It is referenced by orders or other records. De-activate it instead if you wish to remove it from selection.";
+            logger.warn(msg);
+            throw new RuntimeException(msg); // Let handler convert to 500 or better yet handle explicitly
+        }
+    }
+
+    @Transactional
+    @CacheEvict(value = { "products", "productsByCategory", "productsByBrand", "featuredProducts" }, allEntries = true)
+    public void bulkDeleteProducts(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            throw new IllegalArgumentException("Product IDs cannot be empty");
+        }
+        
+        try {
+            productRepository.deleteAllById(ids);
+            productRepository.flush(); // Ensure integrity violations are caught immediately
+            activityLogService.log(1L, "admin@example.com", "BULK_DELETE_PRODUCT", "PRODUCTS", "Deleted Ids: " + ids);
+            logger.info("🗑️ Successfully deleted {} products.", ids.size());
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            String msg = "Bulk delete failed. One or more products are referenced in orders. Please delete them individually to see which ones are constrained.";
+            logger.error(msg, e);
+            throw new org.springframework.dao.DataIntegrityViolationException(msg, e);
+        } catch (Exception e) {
+            logger.error("Error occurred while deleting products: {}", ids, e);
+            throw new RuntimeException("An error occurred during bulk deletion: " + e.getMessage(), e);
+        }
     }
 
     @Transactional

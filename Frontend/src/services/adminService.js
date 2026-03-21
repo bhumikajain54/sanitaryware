@@ -65,7 +65,7 @@ export const bulkStockUpdate = (quantity) => apiCall('/admin/products/bulk-updat
 
 export const bulkDeleteProducts = (ids) => apiCall('/admin/products/bulk-delete', {
     method: 'DELETE',
-    body: { ids }
+    params: { ids: ids.join(',') }
 });
 
 /**
@@ -137,6 +137,11 @@ export const getOrderById = (id) => apiCall(`/admin/orders/${id}`);
 export const updateOrderStatus = (id, status) => apiCall(`/admin/orders/${id}/status`, {
     method: 'PUT',
     body: { status },
+});
+
+export const updateOrderTracking = (id, trackingData) => apiCall(`/admin/orders/${id}/tracking`, {
+    method: 'PUT',
+    body: trackingData,
 });
 
 export const deleteOrder = (id) => apiCall(`/admin/orders/${id}`, {
@@ -402,6 +407,7 @@ export default {
     getAdminOrders,
     getOrderById,
     updateOrderStatus,
+    updateOrderTracking,
     deleteOrder,
     exportOrders,
     exportOrdersPdf,

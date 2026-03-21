@@ -140,6 +140,28 @@ public class OrderService {
     }
 
     @Transactional
+    public Order updateTrackingDetails(Long id, String trackingNumber, String carrier, String estimatedDelivery, String trackingUrl) {
+        Order order = getOrderById(id);
+        order.setTrackingNumber(trackingNumber);
+        order.setCarrier(carrier);
+        order.setEstimatedDelivery(estimatedDelivery);
+        order.setTrackingUrl(trackingUrl);
+
+        // If tracking info is provided, ensure status is at least SHIPPED
+        if (trackingNumber != null && !trackingNumber.isEmpty()) {
+            if (order.getStatus() == OrderStatus.PENDING || order.getStatus() == OrderStatus.CONFIRMED || order.getStatus() == OrderStatus.PROCESSING) {
+                order.setStatus(OrderStatus.SHIPPED);
+                addStatusHistory(order, OrderStatus.SHIPPED, "Shipment details updated: " + carrier + " (" + trackingNumber + ")");
+            }
+        }
+
+        Order savedOrder = orderRepository.save(order);
+        activityLogService.log(1L, "admin@example.com", "UPDATE_TRACKING_DETAILS", "ORDERS",
+                "Updated tracking for " + savedOrder.getOrderNumber());
+        return savedOrder;
+    }
+
+    @Transactional
     public void cancelOrder(Long userId, Long orderId) {
         Order order = getOrderById(orderId);
         if (!order.getUser().getId().equals(userId)) {

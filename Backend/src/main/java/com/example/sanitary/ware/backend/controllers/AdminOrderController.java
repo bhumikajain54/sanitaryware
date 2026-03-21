@@ -83,6 +83,18 @@ public class AdminOrderController {
         return ResponseEntity.ok(updatedOrder);
     }
 
+    @PutMapping("/{id:[0-9]+}/tracking")
+    public ResponseEntity<Order> updateTrackingDetails(
+            @PathVariable Long id,
+            @RequestBody java.util.Map<String, String> payload) {
+        String trackingNumber = payload.get("trackingNumber");
+        String carrier = payload.get("carrier");
+        String estimatedDelivery = payload.get("estimatedDelivery");
+        String trackingUrl = payload.get("trackingUrl");
+
+        return ResponseEntity.ok(orderService.updateTrackingDetails(id, trackingNumber, carrier, estimatedDelivery, trackingUrl));
+    }
+
     @DeleteMapping("/{id:[0-9]+}")
     public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
         orderService.deleteOrder(id);

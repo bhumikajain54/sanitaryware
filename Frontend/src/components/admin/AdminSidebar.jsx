@@ -108,7 +108,6 @@ const AdminSidebar = ({ isMobileOpen, onMobileClose, onMobileToggle }) => {
               className="flex flex-col"
             >
               <h1 className="text-sm font-bold text-[var(--text-main)] whitespace-nowrap">Singhai Traders</h1>
-              <span className="text-xs text-teal-600 font-bold tracking-widest uppercase">Portal</span>
             </motion.div>
           )}
         </div>

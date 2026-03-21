@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import {
    MdFilterList,
    MdSearch,
@@ -22,6 +23,7 @@ import ProductSidebarFilter from '../../components/common/ProductSidebarFilter';
 import customerService from '../../services/customerService';
 import ComparisonBar from '../../components/common/ComparisonBar';
 import ComparisonModal from '../../components/common/ComparisonModal';
+import AddToCartButton from '../../components/common/AddToCartButton';
 
 /* ─── FilterDropdown ─── */
 const FilterDropdown = ({ label, activeCount, children }) => {
@@ -86,19 +88,21 @@ const CompactProductCard = ({ product, addToCart, toggleWishlist, isInWishlist, 
       >
          {/* Image */}
          <div className="relative aspect-square overflow-hidden bg-slate-50 flex items-center justify-center">
-            <img
-               src={imgSrc || '/Logo2.png'}
-               alt={product.name}
-               loading="lazy"
-               onError={(e) => {
-                  setHasError(true);
-                  setImgSrc('/Logo2.png');
-                  e.target.src = '/Logo2.png';
-                  e.target.classList.add('object-contain', 'p-4');
-                  e.target.classList.remove('object-cover');
-               }}
-               className={`w-full h-full ${hasError || !imgSrc || imgSrc === '/Logo2.png' ? 'object-contain p-4' : 'object-cover'} group-hover:scale-105 transition-transform duration-700 bg-slate-50`}
-            />
+            <Link to={`/product/${product.id}`} className="w-full h-full block">
+               <img
+                  src={imgSrc || '/Logo2.png'}
+                  alt={product.name}
+                  loading="lazy"
+                  onError={(e) => {
+                     setHasError(true);
+                     setImgSrc('/Logo2.png');
+                     e.target.src = '/Logo2.png';
+                     e.target.classList.add('object-contain', 'p-4');
+                     e.target.classList.remove('object-cover');
+                  }}
+                  className={`w-full h-full ${hasError || !imgSrc || imgSrc === '/Logo2.png' ? 'object-contain p-4' : 'object-cover'} group-hover:scale-105 transition-transform duration-700 bg-slate-50`}
+               />
+            </Link>
 
             {/* Badges */}
             <div className="absolute top-1.5 sm:top-2 left-1.5 sm:left-2 flex flex-col gap-1">
@@ -139,13 +143,11 @@ const CompactProductCard = ({ product, addToCart, toggleWishlist, isInWishlist, 
                   <MdFavorite size={14} className="sm:hidden" />
                   <MdFavorite size={16} className="hidden sm:block" />
                </button>
-               <button
-                  onClick={(e) => { e.stopPropagation(); addToCart(product, 1); }}
-                  className="w-7 h-7 sm:w-8 sm:h-8 bg-teal-600 text-white flex items-center justify-center rounded-lg shadow-lg hover:bg-teal-700 transition-transform hover:scale-110 active:scale-95"
-               >
-                  <MdShoppingCart size={14} className="sm:hidden" />
-                  <MdShoppingCart size={16} className="hidden sm:block" />
-               </button>
+               <AddToCartButton 
+                  product={product} 
+                  compact 
+                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl"
+               />
             </div>
          </div>
 
@@ -155,9 +157,11 @@ const CompactProductCard = ({ product, addToCart, toggleWishlist, isInWishlist, 
                <span className="truncate">{product.brand}</span>
                <span className="text-teal-600 truncate max-w-[45%] sm:max-w-[50%] text-right">{product.category}</span>
             </div>
-            <h3 className="font-bold text-slate-800 text-[11px] sm:text-sm leading-tight truncate group-hover:text-teal-600 transition-colors" title={product.name}>
-               {product.name}
-            </h3>
+            <Link to={`/product/${product.id}`} className="block">
+               <h3 className="font-bold text-slate-800 text-[11px] sm:text-sm leading-tight truncate group-hover:text-teal-600 transition-colors" title={product.name}>
+                  {product.name}
+               </h3>
+            </Link>
             <div className="mt-auto pt-1.5 sm:pt-2 flex items-baseline gap-1.5 sm:gap-2">
                <span className="text-sm sm:text-base font-black text-slate-900">₹{product.price.toLocaleString()}</span>
                {product.originalPrice > product.price && (
@@ -218,10 +222,10 @@ const Products = () => {
                   ...p, id,
                   name: p.name || 'Untitled Product', price,
                   originalPrice: parseFloat((p.originalPrice || p.mrp || 0).toString().replace(/[^0-9.]/g, '')) || (price * 1.2),
-                  image: p.mainImage || p.image || '/Logo2.png',
-                  mainImage: p.mainImage || p.image || '/Logo2.png',
-                  category: p.category?.name || (typeof p.category === 'string' ? p.category : 'General'),
-                  brand: p.brand?.name || (typeof p.brand === 'string' ? p.brand : 'Generic'),
+                   image: (Array.isArray(p.images) && p.images.length) ? p.images[0] : (p.mainImage || p.image || '/Logo2.png'),
+                   mainImage: (Array.isArray(p.images) && p.images.length) ? p.images[0] : (p.mainImage || p.image || '/Logo2.png'),
+                  category: typeof p.category === 'string' ? p.category : (p.category?.name || 'General'),
+                  brand: typeof p.brand === 'string' ? p.brand : (p.brand?.name || 'Generic'),
                   stock: Math.max(0, parseInt(stockValue)),
                   stockQuantity: Math.max(0, parseInt(stockValue)),
                   active: p.active !== undefined ? p.active : true,
@@ -236,11 +240,11 @@ const Products = () => {
             setPriceRange(maxP);
 
             const rawCats = Array.isArray(categoriesData) ? categoriesData : (categoriesData?.categories || []);
-            const uniqueCats = Array.from(new Set(rawCats.map(c => c.name || c)));
+            const uniqueCats = Array.from(new Set(rawCats.map(c => typeof c === 'string' ? c : (c?.name || 'Unknown'))));
             setCategories([{ value: 'all', label: 'All Categories' }, ...uniqueCats.map(name => ({ value: name, label: name }))]);
 
             const rawBrands = Array.isArray(brandsData) ? brandsData : (brandsData?.brands || []);
-            const uniqueBrands = Array.from(new Set(rawBrands.map(b => b.name || b)));
+            const uniqueBrands = Array.from(new Set(rawBrands.map(b => typeof b === 'string' ? b : (b?.name || 'Generic'))));
             setBrands([{ value: 'all', label: 'All Brands' }, ...uniqueBrands.map(name => ({ value: name, label: name }))]);
          } catch (err) {
             console.error('Data load failed', err);
@@ -487,29 +491,29 @@ const Products = () => {
                      ) : (
                         /* List view */
                         <div key={product.id} className="bg-white rounded-xl p-3 sm:p-4 border border-slate-100 flex gap-3 sm:gap-4 hover:border-teal-500 transition-all shadow-sm">
-                           <div className="w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 bg-slate-50 rounded-lg overflow-hidden flex-shrink-0">
+                           <Link to={`/product/${product.id}`} className="w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 bg-slate-50 rounded-lg overflow-hidden flex-shrink-0 group/img">
                               <img
                                  src={product.image || '/Logo2.png'}
                                  alt={product.name}
                                  onError={(e) => { e.target.src = '/Logo2.png'; e.target.classList.add('object-contain', 'p-2'); e.target.classList.remove('object-cover'); }}
-                                 className="w-full h-full object-cover"
+                                 className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-500"
                               />
-                           </div>
+                           </Link>
                            <div className="flex-1 min-w-0 flex items-center justify-between gap-3">
                               <div className="min-w-0">
-                                 <h3 className="font-bold text-slate-900 text-xs sm:text-sm mb-0.5 sm:mb-1 truncate">{product.name}</h3>
+                                 <Link to={`/product/${product.id}`} className="hover:text-teal-600 transition-colors">
+                                    <h3 className="font-bold text-slate-900 text-xs sm:text-sm mb-0.5 sm:mb-1 truncate">{product.name}</h3>
+                                 </Link>
                                  <p className="text-[8px] sm:text-[10px] text-slate-500 font-bold uppercase tracking-wider">
                                     {product.brand} • {product.category}
                                  </p>
                               </div>
                               <div className="text-right flex-shrink-0">
                                  <p className="font-black text-teal-600 text-sm sm:text-base">₹{product.price.toLocaleString()}</p>
-                                 <button
-                                    onClick={() => addToCart(product, 1)}
-                                    className="mt-1.5 sm:mt-2 px-3 sm:px-4 py-1 sm:py-1.5 bg-slate-900 text-white rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-wider hover:bg-teal-600 transition-colors"
-                                 >
-                                    Add to Cart
-                                 </button>
+                                 <AddToCartButton 
+                                    product={product} 
+                                    className="mt-2 text-xs py-2 px-4 rounded-xl" 
+                                 />
                               </div>
                            </div>
                         </div>

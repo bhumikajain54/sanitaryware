@@ -142,7 +142,7 @@ public class SecurityConfig {
                 configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
                 configuration.setAllowedHeaders(
                                 Arrays.asList("Authorization", "Content-Type", "Accept", "X-Requested-With", "Origin",
-                                                "x-user-id"));
+                                                "x-user-id", "x-rtb-fingerprint-id"));
                 configuration.setAllowCredentials(true);
                 configuration.setExposedHeaders(List.of("Authorization"));
 

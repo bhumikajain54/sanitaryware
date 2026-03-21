@@ -289,10 +289,10 @@ const Notifications = () => {
               </p>
             </div>
             <Link
-              to="/customer/preferences"
+              to="/customer/settings"
               className="flex-shrink-0 text-center px-4 sm:px-5 md:px-7 lg:px-8 py-2.5 sm:py-3 md:py-3.5 lg:py-4 bg-teal-600 text-white rounded-xl md:rounded-2xl font-black uppercase tracking-widest text-[9px] sm:text-[10px] md:text-xs hover:bg-teal-700 transition-all active:scale-95 shadow-xl shadow-teal-900/40 whitespace-nowrap w-full sm:w-auto"
             >
-              Manage Preferences
+              Manage Settings
             </Link>
           </div>
         </div>

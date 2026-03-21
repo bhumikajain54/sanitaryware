@@ -10,7 +10,6 @@ RUN mvn dependency:go-offline
 
 # Copy the source code and build the application
 COPY src ./src
-COPY uploads ./uploads
 RUN mvn clean package -DskipTests
 
 # Use a lightweight JRE image to run the application
@@ -27,9 +26,6 @@ WORKDIR /app
 
 # Copy the built Jar file from the build stage
 COPY --from=build /app/target/sanitary-ware-backend-0.0.1-SNAPSHOT.jar app.jar
-
-# Explicitly copy the uploads directory from the build stage
-COPY --from=build /app/uploads ./uploads
 
 # Expose port 8080
 EXPOSE 8080

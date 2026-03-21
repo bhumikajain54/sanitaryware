@@ -35,4 +35,6 @@ COPY --from=build /app/target/sanitary-ware-backend-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
 
 # Specify the command to run the application with dynamic port for Render
-ENTRYPOINT ["sh", "-c", "java -Dserver.port=${PORT:-8080} -jar app.jar"]
+# Added -Xmx and -Xms to fit in Render Free Tier (512MB)
+# Added explicit 0.0.0.0 binding to be safe
+ENTRYPOINT ["sh", "-c", "java -Xmx384m -Xms384m -Dserver.port=${PORT:-8080} -Daddress=0.0.0.0 -jar app.jar"]

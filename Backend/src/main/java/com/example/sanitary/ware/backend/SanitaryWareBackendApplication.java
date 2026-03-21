@@ -1,25 +1,19 @@
 package com.example.sanitary.ware.backend;
 
-import com.example.sanitary.ware.backend.services.FileStorageService;
-import org.springframework.boot.CommandLineRunner;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.context.annotation.Bean;
 
+@Slf4j
 @SpringBootApplication
 @EnableCaching
 public class SanitaryWareBackendApplication {
 
 	public static void main(String[] args) {
+		log.info("Starting Sanitary Ware Backend Application...");
 		SpringApplication.run(SanitaryWareBackendApplication.class, args);
-	}
-
-	@Bean
-	CommandLineRunner init(FileStorageService fileStorageService) {
-		return args -> {
-			fileStorageService.init();
-		};
+		log.info("BACKEND STARTED SUCCESSFULLY ON PORT: " + System.getProperty("server.port", System.getenv("PORT") != null ? System.getenv("PORT") : "8080"));
 	}
 
 }

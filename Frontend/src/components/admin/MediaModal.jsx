@@ -99,7 +99,8 @@ const MediaModal = ({ media, onClose, onSave }) => {
     e.preventDefault();
     onSave({
       ...formData,
-      uploaded: new Date().toISOString().split('T')[0]
+      uploaded: new Date().toISOString().split('T')[0],
+      file: selectedFile // Send actual file object to the parent for upload
     });
   };
 

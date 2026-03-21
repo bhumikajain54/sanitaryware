@@ -211,7 +211,12 @@ export const uploadMultipleMedia = (formData) => apiCall('/media/upload-multiple
     body: formData
 });
 
-export const deleteMedia = (id) => apiCall(`/media/${id}`, { method: 'DELETE' });
+export const deleteMedia = (id) => {
+    if (!id || id === 'undefined') {
+        return Promise.reject(new Error('Invalid Media ID provided'));
+    }
+    return apiCall(`/media/${id}`, { method: 'DELETE' });
+};
 
 /**
  * Content Management (Pages & Blogs)

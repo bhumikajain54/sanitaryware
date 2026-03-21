@@ -34,17 +34,32 @@ const AdminMedia = () => {
     []
   );
 
-  // Stabilize data items during loading to prevent infinite loop
-  // Stabilize data items and filter out duplicates
+  // Stabilize data items and transform strings to objects if necessary
   const mediaItems = useMemo(() => {
     if (!initialMedia) return [];
     
-    // Filter out duplicates based on URL or fileName
+    // Normalize data: backend returns List<String> (filenames)
+    // but the component expects objects with id, url, fileName, etc.
+    const normalized = initialMedia.map((item, index) => {
+      if (typeof item === 'string') {
+        const type = /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(item) ? 'Image' : 'Document';
+        return {
+          id: item, // Filename is the identifier for deletion
+          fileName: item,
+          url: `/api/media/${item}`,
+          type: type,
+          uploaded: 'Recent' // Backend doesn't provide date in the list
+        };
+      }
+      return item;
+    });
+
+    // Filter out duplicates based on ID or URL
     const uniqueFiles = [];
     const seen = new Set();
     
-    initialMedia.forEach(file => {
-      const identifier = file.url || file.fileName;
+    normalized.forEach(file => {
+      const identifier = file.id || file.url || file.fileName;
       if (!seen.has(identifier)) {
         seen.add(identifier);
         uniqueFiles.push(file);
@@ -74,6 +89,11 @@ const AdminMedia = () => {
   // Modal State
   const { isOpen, modalData: editingMedia, openModal, closeModal } = useAdminModal();
   const handleDeleteMedia = async (mediaId) => {
+    if (!mediaId || mediaId === 'undefined') {
+      error('Cannot delete: Invalid media identifier');
+      return;
+    }
+
     const confirmed = await confirm({
       title: 'Delete Media',
       message: 'Are you sure you want to delete this file? This might break links in products or posts.',
@@ -94,14 +114,29 @@ const AdminMedia = () => {
 
   const handleSaveMedia = useCallback(async (data) => {
     try {
-      await adminService.uploadMedia(data); // Simplified for now
-      success('Media uploaded successfully');
+      if (!data.file && !editingMedia) {
+        error('Please select a file to upload');
+        return;
+      }
+
+      if (data.file) {
+        const formData = new FormData();
+        formData.append('file', data.file);
+        // If the user changed the filename in the modal, we can't easily change it on disk
+        // without a backend update endpoint, so we just upload the file as is.
+        await adminService.uploadMedia(formData);
+        success('Media uploaded successfully');
+      } else {
+        // Fallback or metadata update (if backend supported it)
+        info('Metadata updates are not yet supported by the server');
+      }
+      
       refetch();
       closeModal();
     } catch (err) {
-      error('Failed to save media');
+      error(err.message || 'Failed to save media');
     }
-  }, [success, refetch, closeModal, error]);
+  }, [success, refetch, closeModal, error, info, editingMedia]);
 
   return (
     <div className="bg-[var(--admin-bg-primary)] min-h-screen font-sans">

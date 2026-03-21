@@ -104,6 +104,18 @@ public class FileStorageService {
         }
     }
 
+    public boolean delete(String filename) {
+        try {
+            Path filePath = this.root.resolve(filename).normalize();
+            if (!filePath.startsWith(this.root)) {
+                throw new SecurityException("Cannot delete file outside current directory.");
+            }
+            return Files.deleteIfExists(filePath);
+        } catch (IOException e) {
+            throw new RuntimeException("Could not delete file: " + filename, e);
+        }
+    }
+
     public List<String> getAllFiles() {
         try (Stream<Path> stream = Files.walk(this.root, 1)) {
             return stream

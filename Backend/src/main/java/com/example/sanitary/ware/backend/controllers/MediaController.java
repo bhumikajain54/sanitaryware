@@ -95,6 +95,27 @@ public class MediaController {
         }
     }
 
+    @DeleteMapping("/{filename:.+}")
+    public ResponseEntity<Map<String, String>> deleteFile(@PathVariable String filename) {
+        if (filename == null || filename.equals("undefined") || filename.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid filename provided"));
+        }
+
+        try {
+            String decodedName = URLDecoder.decode(filename, StandardCharsets.UTF_8);
+            boolean deleted = fileStorageService.delete(decodedName);
+            
+            if (deleted) {
+                return ResponseEntity.ok(Map.of("message", "File deleted successfully"));
+            } else {
+                return ResponseEntity.status(404).body(Map.of("error", "File not found: " + decodedName));
+            }
+        } catch (Exception e) {
+            log.error("Error deleting file: {}", filename, e);
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
+    }
+
     private String determineContentType(String filename) {
         String lower = filename.toLowerCase();
         if (lower.endsWith(".png"))

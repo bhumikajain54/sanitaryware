@@ -35,13 +35,43 @@ public class Product {
     @Column(columnDefinition = "TEXT")
     private String features;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "brand_id")
     private Brand brand;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id")
     private Category category;
+
+    @JsonProperty("brand")
+    public void setBrand(Object value) {
+        if (value instanceof String) {
+            this.brand = Brand.builder().name((String) value).build();
+        } else if (value instanceof Integer || value instanceof Long) {
+            this.brand = Brand.builder().id(Long.valueOf(value.toString())).build();
+        } else if (value instanceof java.util.Map) {
+            java.util.Map<?, ?> map = (java.util.Map<?, ?>) value;
+            Brand b = new Brand();
+            if (map.containsKey("id") && map.get("id") != null) b.setId(Long.valueOf(map.get("id").toString()));
+            if (map.containsKey("name")) b.setName((String) map.get("name"));
+            this.brand = b;
+        }
+    }
+
+    @JsonProperty("category")
+    public void setCategory(Object value) {
+        if (value instanceof String) {
+            this.category = Category.builder().name((String) value).build();
+        } else if (value instanceof Integer || value instanceof Long) {
+            this.category = Category.builder().id(Long.valueOf(value.toString())).build();
+        } else if (value instanceof java.util.Map) {
+            java.util.Map<?, ?> map = (java.util.Map<?, ?>) value;
+            Category c = new Category();
+            if (map.containsKey("id") && map.get("id") != null) c.setId(Long.valueOf(map.get("id").toString()));
+            if (map.containsKey("name")) c.setName((String) map.get("name"));
+            this.category = c;
+        }
+    }
 
     @Builder.Default
     @Column(nullable = false)

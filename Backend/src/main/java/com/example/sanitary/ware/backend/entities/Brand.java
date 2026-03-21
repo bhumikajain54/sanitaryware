@@ -18,6 +18,10 @@ import java.util.List;
 public class Brand {
 
     // Standard constructors provided by Lombok annotations (@NoArgsConstructor, @AllArgsConstructor)
+    @com.fasterxml.jackson.annotation.JsonCreator
+    public Brand(String name) {
+        this.name = name;
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

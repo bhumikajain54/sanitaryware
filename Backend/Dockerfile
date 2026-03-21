@@ -27,6 +27,9 @@ WORKDIR /app
 # Copy the built Jar file from the build stage
 COPY --from=build /app/target/sanitary-ware-backend-0.0.1-SNAPSHOT.jar app.jar
 
+# Copy existing media files to the container (Requirement: Pre-existing logos)
+COPY uploads/ ./uploads/
+
 # Expose port 8080
 EXPOSE 8080
 

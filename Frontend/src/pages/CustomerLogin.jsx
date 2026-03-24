@@ -190,7 +190,7 @@ const CustomerLogin = () => {
   }, []);
 
   const isLogin = mode === 'login';
-  const isAdminSetup = mode === 'adminSetup';
+  const isRegister = mode === 'register';
 
   // 3D tilt (desktop only)
   const x = useMotionValue(0);
@@ -245,13 +245,14 @@ const CustomerLogin = () => {
     e.preventDefault();
     if (!validateEmail(formData.email)) { alert('Please enter a valid email address'); return; }
 
-    if (mode === 'adminSetup') {
+    if (isRegister && adminExists === false) {
       if (formData.password !== formData.confirmPassword) { alert('Passwords do not match!'); return; }
       if (strength < 3) { alert('Admin password must be Strong'); return; }
       try {
         await registerAdmin({ firstName: formData.firstName, lastName: formData.lastName, email: formData.email, password: formData.password, phone: formData.phone });
-        alert('✅ Admin account created! Please log in.');
-        setAdminExists(true); setMode('login');
+        alert('✅ System Administrator created! Please log in.');
+        setAdminExists(true);
+        setMode('login');
         setFormData({ firstName: '', lastName: '', email: '', phone: '', password: '', confirmPassword: '' });
       } catch (err) { alert(err.message || 'Admin registration failed'); }
       return;
@@ -333,34 +334,6 @@ const CustomerLogin = () => {
       {/* ── Content ── */}
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-3 sm:px-4 py-20 sm:py-24 gap-3 sm:gap-4">
 
-        {/* Admin Setup Banner */}
-        <AnimatePresence>
-          {adminExists === false && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="w-full max-w-xs sm:max-w-sm md:max-w-2xl lg:max-w-5xl"
-            >
-              <button
-                onClick={() => { setMode('adminSetup'); setFormData({ firstName: '', lastName: '', email: '', phone: '', password: '', confirmPassword: '' }); }}
-                className={`w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-xl md:rounded-2xl border ${isAdminSetup ? 'bg-amber-500/20 border-amber-400/50 text-amber-300' : 'bg-amber-900/20 border-amber-600/30 text-amber-400 hover:bg-amber-900/30'} transition-all duration-300 group`}
-              >
-                <div className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center flex-shrink-0">
-                  <MdShield className="text-amber-400 text-xs sm:text-sm md:text-base" />
-                </div>
-                <div className="flex-1 text-left min-w-0">
-                  <p className="font-black text-[10px] sm:text-xs uppercase tracking-widest truncate">⚡ First-Time System Setup</p>
-                  <p className="text-[9px] sm:text-[10px] text-amber-500/70 font-medium hidden sm:block">No admin account detected — click to create the System Administrator</p>
-                </div>
-                <div className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest opacity-60 group-hover:opacity-100 transition-opacity whitespace-nowrap flex-shrink-0">
-                  {isAdminSetup ? '● ACTIVE' : 'SETUP →'}
-                </div>
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
         {/* ── Main Card ── */}
         <motion.div
           ref={cardRef}
@@ -378,27 +351,25 @@ const CustomerLogin = () => {
           {/* Flare lines */}
           <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-teal-400/50 to-transparent z-30" />
           <div className="absolute top-0 right-0 h-full w-[1px] bg-gradient-to-b from-transparent via-cyan-400/30 to-transparent z-30" />
-          {isAdminSetup && <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-amber-400/80 to-transparent z-30" />}
+          {isRegister && adminExists === false && <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-amber-400/80 to-transparent z-30" />}
 
           {/* ── Mobile: Single pane, tabs at top ── */}
           <div className="md:hidden flex flex-col min-h-[500px]">
-            {/* Tab switcher (hidden in adminSetup) */}
-            {!isAdminSetup && (
-              <div className="flex border-b border-white/5 bg-white/5">
-                <button
-                  onClick={() => { setMode('login'); setFormData({ firstName: '', lastName: '', email: '', phone: '', password: '', confirmPassword: '' }); }}
-                  className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-all ${isLogin ? 'text-teal-400 border-b-2 border-teal-400' : 'text-gray-500'}`}
-                >
-                  Sign In
-                </button>
-                <button
-                  onClick={() => { setMode('register'); setFormData({ firstName: '', lastName: '', email: '', phone: '', password: '', confirmPassword: '' }); }}
-                  className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-all ${mode === 'register' ? 'text-teal-400 border-b-2 border-teal-400' : 'text-gray-500'}`}
-                >
-                  Register
-                </button>
-              </div>
-            )}
+            {/* Tab switcher */}
+            <div className="flex border-b border-white/5 bg-white/5">
+              <button
+                onClick={() => { setMode('login'); setFormData({ firstName: '', lastName: '', email: '', phone: '', password: '', confirmPassword: '' }); }}
+                className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-all ${isLogin ? 'text-teal-400 border-b-2 border-teal-400' : 'text-gray-500'}`}
+              >
+                Sign In
+              </button>
+              <button
+                onClick={() => { setMode('register'); setFormData({ firstName: '', lastName: '', email: '', phone: '', password: '', confirmPassword: '' }); }}
+                className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest transition-all ${isRegister ? 'text-teal-400 border-b-2 border-teal-400' : 'text-gray-500'}`}
+              >
+                {adminExists === false ? 'System Setup' : 'Register'}
+              </button>
+            </div>
 
             {/* Form area */}
             <div className="flex-1 overflow-y-auto p-5 sm:p-6">
@@ -410,50 +381,48 @@ const CustomerLogin = () => {
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.3 }}
                 >
-                  {/* Title */}
                   <header className="mb-4">
-                    {mode === 'login' && (
+                    {isLogin ? (
                       <>
                         <h2 className="text-2xl sm:text-3xl font-extrabold text-white mb-1 tracking-tight leading-tight">
                           Log <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-cyan-500">In.</span>
                         </h2>
                         <p className="text-[9px] text-gray-400 font-medium tracking-wide border-l-2 border-teal-500/50 pl-3">Digital Concierge Access</p>
                       </>
-                    )}
-                    {mode === 'register' && (
-                      <>
-                        <h2 className="text-2xl sm:text-3xl font-extrabold text-white mb-1 tracking-tight leading-tight">
-                          Register <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-cyan-500">New.</span>
-                        </h2>
-                        <p className="text-[9px] text-gray-400 font-medium tracking-wide border-l-2 border-cyan-500/50 pl-3">Create Luxury Identity</p>
-                      </>
-                    )}
-                    {isAdminSetup && (
-                      <div className="flex items-center gap-2 mb-1">
-                        <MdAdminPanelSettings className="text-amber-400 text-2xl" />
-                        <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight">
-                          Admin <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-500">Setup.</span>
-                        </h2>
-                      </div>
+                    ) : (
+                      adminExists === false ? (
+                        <div className="flex items-center gap-2 mb-1">
+                          <MdAdminPanelSettings className="text-amber-400 text-2xl" />
+                          <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight">
+                            Admin <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-500">Setup.</span>
+                          </h2>
+                        </div>
+                      ) : (
+                        <>
+                          <h2 className="text-2xl sm:text-3xl font-extrabold text-white mb-1 tracking-tight leading-tight">
+                            Register <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-cyan-500">New.</span>
+                          </h2>
+                          <p className="text-[9px] text-gray-400 font-medium tracking-wide border-l-2 border-teal-500/50 pl-3">Create Luxury Identity</p>
+                        </>
+                      )
                     )}
                   </header>
 
-                  {/* Form */}
                   <form onSubmit={handleSubmit} className="space-y-2.5">
-                    {(mode === 'register' || isAdminSetup) && (
+                    {isRegister && (
                       <div className="grid grid-cols-2 gap-2">
-                        <InputField icon={MdPerson} type="text" name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleChange} accent={isAdminSetup ? 'amber' : undefined} />
-                        <InputField icon={MdPerson} type="text" name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleChange} accent={isAdminSetup ? 'amber' : undefined} />
+                        <InputField icon={MdPerson} type="text" name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleChange} accent={adminExists === false ? 'amber' : undefined} />
+                        <InputField icon={MdPerson} type="text" name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleChange} accent={adminExists === false ? 'amber' : undefined} />
                       </div>
                     )}
-                    <InputField icon={MdEmail} type="email" name="email" placeholder={isAdminSetup ? 'Admin Email' : 'Email Address'} value={formData.email} onChange={handleChange} accent={isAdminSetup ? 'amber' : undefined} />
-                    {(mode === 'register' || isAdminSetup) && (
-                      <InputField icon={MdPhone} type="tel" name="phone" placeholder="Contact Number" value={formData.phone} onChange={handleChange} accent={isAdminSetup ? 'amber' : undefined} />
+                    <InputField icon={MdEmail} type="email" name="email" placeholder={isRegister && adminExists === false ? 'Admin Email' : 'Email Address'} value={formData.email} onChange={handleChange} accent={isRegister && adminExists === false ? 'amber' : undefined} />
+                    {isRegister && (
+                      <InputField icon={MdPhone} type="tel" name="phone" placeholder="Contact Number" value={formData.phone} onChange={handleChange} accent={adminExists === false ? 'amber' : undefined} />
                     )}
-                    <InputField icon={MdLock} type={showPassword ? 'text' : 'password'} name="password" placeholder={isAdminSetup ? 'Admin Passphrase' : 'Password'} value={formData.password} onChange={handleChange} showPasswordToggle showPassword={showPassword} onTogglePassword={() => setShowPassword(!showPassword)} accent={isAdminSetup ? 'amber' : undefined} />
+                    <InputField icon={MdLock} type={showPassword ? 'text' : 'password'} name="password" placeholder={isRegister && adminExists === false ? 'Admin Passphrase' : 'Password'} value={formData.password} onChange={handleChange} showPasswordToggle showPassword={showPassword} onTogglePassword={() => setShowPassword(!showPassword)} accent={isRegister && adminExists === false ? 'amber' : undefined} />
                     {formData.password && <PasswordStrength strength={strength} rules={rules} currentStrength={currentStrength} password={formData.password} />}
-                    {(mode === 'register' || isAdminSetup) && (
-                      <InputField icon={MdLock} type={showConfirmPassword ? 'text' : 'password'} name="confirmPassword" placeholder="Confirm Password" value={formData.confirmPassword} onChange={handleChange} showPasswordToggle showPassword={showConfirmPassword} onTogglePassword={() => setShowConfirmPassword(!showConfirmPassword)} accent={isAdminSetup ? 'amber' : undefined} />
+                    {isRegister && (
+                      <InputField icon={MdLock} type={showConfirmPassword ? 'text' : 'password'} name="confirmPassword" placeholder="Confirm Password" value={formData.confirmPassword} onChange={handleChange} showPasswordToggle showPassword={showConfirmPassword} onTogglePassword={() => setShowConfirmPassword(!showConfirmPassword)} accent={adminExists === false ? 'amber' : undefined} />
                     )}
                     {isLogin && (
                       <div className="flex justify-end">
@@ -463,24 +432,18 @@ const CustomerLogin = () => {
                     <div className="pt-1">
                       <button
                         type="submit"
-                        className={`w-full py-3 rounded-xl font-black text-xs uppercase tracking-widest active:scale-95 transition-all shadow-xl ${isAdminSetup
+                        className={`w-full py-3 rounded-xl font-black text-xs uppercase tracking-widest active:scale-95 transition-all shadow-xl ${isRegister && adminExists === false
                           ? 'bg-gradient-to-r from-amber-500 to-yellow-600 text-[#0a0f16] shadow-amber-500/20'
                           : isLogin
                             ? 'bg-white text-[#0a0f16]'
                             : 'bg-gradient-to-r from-teal-500 to-cyan-600 text-white shadow-teal-500/20'
                           }`}
                       >
-                        {isAdminSetup ? 'Create Admin' : isLogin ? 'Authorize' : 'Initialize'}
+                        {isRegister && adminExists === false ? 'Create Admin' : isLogin ? 'Authorize' : 'Initialize'}
                       </button>
                     </div>
-                    {isAdminSetup && (
-                      <button type="button" onClick={() => setMode('login')} className="w-full text-center text-[9px] text-gray-600 hover:text-gray-400 transition-colors pt-1 uppercase tracking-widest">
-                        ← Back to Login
-                      </button>
-                    )}
                   </form>
-
-                  {!isAdminSetup && <SocialLogins />}
+                  {adminExists !== false && <SocialLogins />}
                 </motion.div>
               </AnimatePresence>
             </div>
@@ -489,8 +452,8 @@ const CustomerLogin = () => {
           {/* ── Desktop: Side-by-side panels ── */}
           <div className="hidden md:flex w-full h-[660px] lg:h-[700px] relative z-10">
 
-            {/* Login Form */}
-            <div className={`w-1/2 h-full flex items-center justify-center p-8 lg:p-10 transition-all duration-1000 ease-in-out ${mode !== 'login' ? 'opacity-0 pointer-events-none translate-x-20 scale-95' : 'opacity-100 scale-100'}`}>
+            {/* Login Section */}
+            <div className={`w-1/2 h-full flex items-center justify-center p-8 lg:p-10 transition-all duration-1000 ease-in-out ${!isLogin ? 'opacity-0 pointer-events-none translate-x-20 scale-95' : 'opacity-100 scale-100'}`}>
               <div className="w-full max-w-sm">
                 <header className="mb-5 lg:mb-6">
                   <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
@@ -508,7 +471,7 @@ const CustomerLogin = () => {
                     <button type="button" onClick={() => alert('Password reset link sent!')} className="text-[9px] lg:text-[10px] font-bold text-gray-500 hover:text-teal-400 transition-all uppercase tracking-widest">FORGOT?</button>
                   </div>
                   <MagneticButton>
-                    <button type="submit" className="w-full group relative flex items-center justify-center gap-3 bg-white text-[#0a0f16] py-3 lg:py-3.5 rounded-xl font-black text-xs overflow-hidden transition-transform active:scale-95 shadow-xl">
+                    <button type="submit" className="w-full relative overflow-hidden bg-white text-[#0a0f16] py-3 lg:py-3.5 rounded-xl font-black text-xs group active:scale-95 transition-all shadow-xl">
                       <span className="relative z-10 uppercase tracking-widest">Authorize</span>
                       <div className="absolute inset-0 bg-gradient-to-r from-teal-400 to-cyan-500 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
                     </button>
@@ -518,131 +481,102 @@ const CustomerLogin = () => {
               </div>
             </div>
 
-            {/* Register Form */}
-            <div className={`w-1/2 h-full flex items-center justify-center p-8 lg:p-10 transition-all duration-1000 ease-in-out absolute right-0 top-0 ${mode !== 'register' ? 'opacity-0 pointer-events-none -translate-x-20 scale-95' : 'opacity-100 scale-100'}`}>
+            {/* Register Section */}
+            <div className={`w-1/2 h-full flex items-center justify-center p-8 lg:p-10 transition-all duration-1000 ease-in-out absolute right-0 top-0 ${!isRegister ? 'opacity-0 pointer-events-none -translate-x-20 scale-95' : 'opacity-100 scale-100'}`}>
               <div className="w-full max-w-sm">
                 <header className="mb-4">
                   <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-                    <h2 className="text-4xl lg:text-5xl font-extrabold text-white mb-2 tracking-tight leading-tight">
-                      Register <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-cyan-500">New.</span>
-                    </h2>
-                    <p className="text-xs text-gray-400 font-medium tracking-wide border-l-2 border-cyan-500/50 pl-4">Create Luxury Identity</p>
+                    {adminExists === false ? (
+                      <div className="flex items-center gap-2 mb-2 justify-start">
+                        <MdAdminPanelSettings className="text-amber-400 text-2xl lg:text-3xl" />
+                        <h2 className="text-3xl lg:text-4xl font-extrabold text-white tracking-tight leading-tight">
+                          Admin <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-500">Setup.</span>
+                        </h2>
+                      </div>
+                    ) : (
+                      <>
+                        <h2 className="text-4xl lg:text-5xl font-extrabold text-white mb-2 tracking-tight leading-tight">
+                          Register <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-cyan-500">New.</span>
+                        </h2>
+                        <p className="text-xs text-gray-400 font-medium tracking-wide border-l-2 border-cyan-500/50 pl-4">Create Luxury Identity</p>
+                      </>
+                    )}
                   </motion.div>
                 </header>
-                <form onSubmit={handleSubmit} className="space-y-2.5 lg:space-y-3 overflow-y-auto max-h-[340px] lg:max-h-[360px] pr-2 custom-scrollbar">
+                <form onSubmit={handleSubmit} className="space-y-2.5 lg:space-y-3">
                   <div className="grid grid-cols-2 gap-2 lg:gap-3">
-                    <InputField icon={MdPerson} type="text" name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleChange} />
-                    <InputField icon={MdPerson} type="text" name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleChange} />
+                    <InputField icon={MdPerson} type="text" name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleChange} accent={adminExists === false ? 'amber' : undefined} />
+                    <InputField icon={MdPerson} type="text" name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleChange} accent={adminExists === false ? 'amber' : undefined} />
                   </div>
-                  <InputField icon={MdEmail} type="email" name="email" placeholder="Email Address" value={formData.email} onChange={handleChange} />
-                  <InputField icon={MdPhone} type="tel" name="phone" placeholder="Contact Number" value={formData.phone} onChange={handleChange} />
-                  <InputField icon={MdLock} type={showPassword ? 'text' : 'password'} name="password" placeholder="Passphrase" value={formData.password} onChange={handleChange} showPasswordToggle showPassword={showPassword} onTogglePassword={() => setShowPassword(!showPassword)} />
+                  <InputField icon={MdEmail} type="email" name="email" placeholder={adminExists === false ? 'Admin Email' : 'Email Address'} value={formData.email} onChange={handleChange} accent={adminExists === false ? 'amber' : undefined} />
+                  <InputField icon={MdPhone} type="tel" name="phone" placeholder="Contact Number" value={formData.phone} onChange={handleChange} accent={adminExists === false ? 'amber' : undefined} />
+                  <InputField icon={MdLock} type={showPassword ? 'text' : 'password'} name="password" placeholder={adminExists === false ? 'Admin passphrase' : 'Password'} value={formData.password} onChange={handleChange} showPasswordToggle showPassword={showPassword} onTogglePassword={() => setShowPassword(!showPassword)} accent={adminExists === false ? 'amber' : undefined} />
                   {formData.password && <PasswordStrength strength={strength} rules={rules} currentStrength={currentStrength} password={formData.password} />}
-                  <InputField icon={MdLock} type={showConfirmPassword ? 'text' : 'password'} name="confirmPassword" placeholder="Validate Passphrase" value={formData.confirmPassword} onChange={handleChange} showPasswordToggle showPassword={showConfirmPassword} onTogglePassword={() => setShowConfirmPassword(!showConfirmPassword)} />
+                  <InputField icon={MdLock} type={showConfirmPassword ? 'text' : 'password'} name="confirmPassword" placeholder="Confirm Password" value={formData.confirmPassword} onChange={handleChange} showPasswordToggle showPassword={showConfirmPassword} onTogglePassword={() => setShowConfirmPassword(!showConfirmPassword)} accent={adminExists === false ? 'amber' : undefined} />
                   <MagneticButton>
-                    <button type="submit" className="w-full relative overflow-hidden bg-gradient-to-r from-teal-500 to-cyan-600 text-white py-3 lg:py-3.5 rounded-xl font-black text-xs group shadow-[0_20px_40px_rgba(20,184,166,0.3)] active:scale-95 transition-all">
-                      <span className="relative z-10 uppercase tracking-widest">Initialize</span>
+                    <button type="submit" className={`w-full relative overflow-hidden py-3 lg:py-3.5 rounded-xl font-black text-xs group active:scale-95 transition-all shadow-xl ${adminExists === false ? 'bg-gradient-to-r from-amber-500 to-yellow-600 text-[#0a0f16]' : 'bg-gradient-to-r from-teal-500 to-cyan-600 text-white'}`}>
+                      <span className="relative z-10 uppercase tracking-widest">{adminExists === false ? 'Create Admin' : 'Confirm'}</span>
                       <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
-                      <span className="absolute inset-0 flex items-center justify-center text-[#0a0f16] translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-20 font-black uppercase">CONFIRM</span>
+                      <span className="absolute inset-0 flex items-center justify-center text-[#0a0f16] translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-20 font-black uppercase tracking-widest">START</span>
                     </button>
                   </MagneticButton>
                 </form>
-                <SocialLogins />
-              </div>
-            </div>
-
-            {/* Admin Setup Form */}
-            <div className={`w-1/2 h-full flex items-center justify-center p-8 lg:p-10 transition-all duration-1000 ease-in-out absolute right-0 top-0 ${mode !== 'adminSetup' ? 'opacity-0 pointer-events-none -translate-x-20 scale-95' : 'opacity-100 scale-100'}`}>
-              <div className="w-full max-w-sm">
-                <header className="mb-4">
-                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-                    <div className="flex items-center gap-2 mb-2 justify-start">
-                      <MdAdminPanelSettings className="text-amber-400 text-2xl lg:text-3xl" />
-                      <h2 className="text-3xl lg:text-4xl font-extrabold text-white tracking-tight leading-tight">
-                        Admin <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-500">Setup.</span>
-                      </h2>
-                    </div>
-                    <p className="text-[10px] text-amber-400/60 font-medium tracking-wide border-l-2 border-amber-500/50 pl-4">One-time system initialization</p>
-                  </motion.div>
-                </header>
-                <form onSubmit={handleSubmit} className="space-y-2.5 lg:space-y-3 overflow-y-auto max-h-[350px] lg:max-h-[380px] pr-2 custom-scrollbar">
-                  <div className="grid grid-cols-2 gap-2 lg:gap-3">
-                    <InputField icon={MdPerson} type="text" name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleChange} accent="amber" />
-                    <InputField icon={MdPerson} type="text" name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleChange} accent="amber" />
-                  </div>
-                  <InputField icon={MdEmail} type="email" name="email" placeholder="Admin Email" value={formData.email} onChange={handleChange} accent="amber" />
-                  <InputField icon={MdPhone} type="tel" name="phone" placeholder="Contact Number" value={formData.phone} onChange={handleChange} accent="amber" />
-                  <InputField icon={MdLock} type={showPassword ? 'text' : 'password'} name="password" placeholder="Admin Passphrase" value={formData.password} onChange={handleChange} showPasswordToggle showPassword={showPassword} onTogglePassword={() => setShowPassword(!showPassword)} accent="amber" />
-                  {formData.password && <PasswordStrength strength={strength} rules={rules} currentStrength={currentStrength} password={formData.password} />}
-                  <InputField icon={MdLock} type={showConfirmPassword ? 'text' : 'password'} name="confirmPassword" placeholder="Confirm Passphrase" value={formData.confirmPassword} onChange={handleChange} showPasswordToggle showPassword={showConfirmPassword} onTogglePassword={() => setShowConfirmPassword(!showConfirmPassword)} accent="amber" />
-                  <MagneticButton>
-                    <button type="submit" className="w-full relative overflow-hidden bg-gradient-to-r from-amber-500 to-yellow-600 text-[#0a0f16] py-3 lg:py-3.5 rounded-xl font-black text-xs group shadow-[0_20px_40px_rgba(245,158,11,0.3)] active:scale-95 transition-all">
-                      <span className="relative z-10 uppercase flex items-center justify-center gap-2 tracking-widest"><MdShield className="text-sm" /> Create Admin</span>
-                      <div className="absolute inset-0 bg-[#0a0f16] translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
-                      <span className="absolute inset-0 flex items-center justify-center text-amber-400 translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-20 font-black text-xs uppercase">INITIALIZE SYSTEM</span>
-                    </button>
-                  </MagneticButton>
-                  <button type="button" onClick={() => setMode('login')} className="w-full text-center text-[10px] text-gray-600 hover:text-gray-400 transition-colors pt-1 uppercase tracking-widest">
-                    ← Back to Login
-                  </button>
-                </form>
+                {adminExists !== false && <SocialLogins />}
               </div>
             </div>
 
             {/* Sliding Overlay */}
-            {mode !== 'adminSetup' && (
-              <motion.div
-                animate={{
-                  x: isLogin ? '100.5%' : '0%',
-                  borderRadius: isLogin ? '100px 24px 24px 100px' : '24px 100px 100px 24px'
-                }}
-                transition={{ type: 'spring', stiffness: 80, damping: 15 }}
-                className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-br from-teal-600/60 to-cyan-800/60 backdrop-blur-3xl z-20 flex items-center justify-center p-8 lg:p-12 text-white border-x border-white/10 group"
-              >
-                <div className="text-center relative">
-                  <AnimatePresence mode="wait">
+            <motion.div
+              animate={{
+                x: isLogin ? '100.5%' : '0%',
+                borderRadius: isLogin ? '100px 24px 24px 100px' : '24px 100px 100px 24px'
+              }}
+              transition={{ type: 'spring', stiffness: 80, damping: 15 }}
+              className="absolute top-0 left-0 w-1/2 h-full bg-gradient-to-br from-teal-600/60 to-cyan-800/60 backdrop-blur-3xl z-20 flex items-center justify-center p-8 lg:p-12 text-white border-x border-white/10 group"
+            >
+              <div className="text-center relative">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={isLogin ? 'info-login' : 'info-signup'}
+                    initial={{ opacity: 0, scale: 0.8, filter: 'blur(10px)' }}
+                    animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                    exit={{ opacity: 0, scale: 1.2, filter: 'blur(10px)' }}
+                    transition={{ duration: 0.6 }}
+                  >
                     <motion.div
-                      key={isLogin ? 'info-login' : 'info-signup'}
-                      initial={{ opacity: 0, scale: 0.8, filter: 'blur(10px)' }}
-                      animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-                      exit={{ opacity: 0, scale: 1.2, filter: 'blur(10px)' }}
-                      transition={{ duration: 0.6 }}
+                      animate={{ rotate: isLogin ? 3 : -3, y: [0, -5, 0] }}
+                      transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                      className="w-20 h-20 md:w-24 md:h-24 lg:w-32 lg:h-32 bg-white/10 backdrop-blur-2xl rounded-[2rem] lg:rounded-[40px] flex items-center justify-center mx-auto mb-6 lg:mb-12 shadow-2xl p-4 lg:p-6 border border-white/20"
                     >
-                      <motion.div
-                        animate={{ rotate: isLogin ? 3 : -3, y: [0, -5, 0] }}
-                        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                        className="w-20 h-20 md:w-24 md:h-24 lg:w-32 lg:h-32 bg-white/10 backdrop-blur-2xl rounded-[2rem] lg:rounded-[40px] flex items-center justify-center mx-auto mb-6 lg:mb-12 shadow-2xl p-4 lg:p-6 border border-white/20"
-                      >
-                        <div className="w-8 h-8 lg:w-10 lg:h-10 bg-slate-950 rounded-lg p-1 flex-shrink-0">
-                          <img src="/Logo2.png" alt="Logo" className="w-full h-full object-contain invert" />
-                        </div>
-                      </motion.div>
-                      {isLogin ? (
-                        <>
-                          <h3 className="text-3xl md:text-4xl lg:text-5xl font-black mb-3 lg:mb-6 leading-tight tracking-tighter">NEW <br />DISCOVERY.</h3>
-                          <p className="text-teal-50/70 mb-6 lg:mb-12 text-sm lg:text-lg font-medium tracking-wide max-w-xs mx-auto italic">Crafting luxury environments.</p>
-                          <button onClick={toggleMode} className="group relative px-8 lg:px-12 py-3 lg:py-5 rounded-full font-black text-xs lg:text-sm uppercase tracking-[0.2em] border-2 border-white/20 overflow-hidden transition-all hover:border-white">
-                            <span className="relative z-10">Sign Up</span>
-                            <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
-                            <span className="absolute inset-0 flex items-center justify-center text-[#0a0f16] translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-20 font-black">START</span>
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <h3 className="text-3xl md:text-4xl lg:text-5xl font-black mb-3 lg:mb-6 leading-tight tracking-tighter">RETURN <br />CUSTOMER.</h3>
-                          <p className="text-teal-50/70 mb-6 lg:mb-12 text-sm lg:text-lg font-medium tracking-wide max-w-xs mx-auto italic">Resume premium management.</p>
-                          <button onClick={toggleMode} className="group relative px-8 lg:px-12 py-3 lg:py-5 rounded-full font-black text-xs lg:text-sm uppercase tracking-[0.2em] border-2 border-white/20 overflow-hidden transition-all hover:border-white">
-                            <span className="relative z-10">Sign In</span>
-                            <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
-                            <span className="absolute inset-0 flex items-center justify-center text-[#0a0f16] translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-20 font-black">WELCOME</span>
-                          </button>
-                        </>
-                      )}
+                      <div className="w-8 h-8 lg:w-10 lg:h-10 bg-slate-950 rounded-lg p-1 flex-shrink-0">
+                        <img src="/Logo2.png" alt="Logo" className="w-full h-full object-contain invert" />
+                      </div>
                     </motion.div>
-                  </AnimatePresence>
-                </div>
-              </motion.div>
-            )}
+                    {isLogin ? (
+                      <>
+                        <h3 className="text-3xl md:text-4xl lg:text-5xl font-black mb-3 lg:mb-6 leading-tight tracking-tighter">NEW <br />DISCOVERY.</h3>
+                        <p className="text-teal-50/70 mb-6 lg:mb-12 text-sm lg:text-lg font-medium tracking-wide max-w-xs mx-auto italic">Crafting luxury environments.</p>
+                        <button onClick={toggleMode} className="group relative px-8 lg:px-12 py-3 lg:py-5 rounded-full font-black text-xs lg:text-sm uppercase tracking-[0.2em] border-2 border-white/20 overflow-hidden transition-all hover:border-white">
+                          <span className="relative z-10">Sign Up</span>
+                          <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+                          <span className="absolute inset-0 flex items-center justify-center text-[#0a0f16] translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-20 font-black">START</span>
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <h3 className="text-3xl md:text-4xl lg:text-5xl font-black mb-3 lg:mb-6 leading-tight tracking-tighter">RETURN <br />CUSTOMER.</h3>
+                        <p className="text-teal-50/70 mb-6 lg:mb-12 text-sm lg:text-lg font-medium tracking-wide max-w-xs mx-auto italic">Resume premium management.</p>
+                        <button onClick={toggleMode} className="group relative px-8 lg:px-12 py-3 lg:py-5 rounded-full font-black text-xs lg:text-sm uppercase tracking-[0.2em] border-2 border-white/20 overflow-hidden transition-all hover:border-white">
+                          <span className="relative z-10">Sign In</span>
+                          <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+                          <span className="absolute inset-0 flex items-center justify-center text-[#0a0f16] translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-20 font-black">WELCOME</span>
+                        </button>
+                      </>
+                    )}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+            </motion.div>
           </div>
         </motion.div>
       </div>

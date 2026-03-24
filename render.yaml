@@ -3,16 +3,16 @@ services:
     name: sanitaryware-backend
     env: docker
     repo: https://github.com/bhumikajain54/sanitaryware
-    rootDir: Backend
+    rootDir: .
     plan: free
     region: oregon
     envVars:
       - key: DATASOURCE_URL
-        value: jdbc:postgresql://ep-falling-glitter-aj7qi373-pooler.c-3.us-east-2.aws.neon.tech/neondb?sslmode=require
+        value: jdbc:postgresql://ep-broad-queen-aeecsanz-pooler.c-3.us-east-2.aws.neon.tech/neondb?sslmode=require
       - key: DATASOURCE_USER
         value: neondb_owner
       - key: DATASOURCE_PASSWORD
-        value: npg_Ja7x0EgvMjwQ
+        value: npg_sd92hGqtkolx
       - key: FRONTEND_URL
         value: "*"
     healthCheckPath: /api/health/db

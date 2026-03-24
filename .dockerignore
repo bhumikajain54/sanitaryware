@@ -1,0 +1,19 @@
+# Exclude irrelevant files to speed up Docker context transfer
+**/.git
+**/.mvn
+**/mvnw
+**/mvnw.cmd
+**/target
+**/.idea
+**/.vscode
+**/.env
+**/log.txt
+**/*.log
+**/*.zip
+**/node_modules
+Frontend/
+README.md
+render.yaml
+netlify.toml
+Dockerfile
+.dockerignore

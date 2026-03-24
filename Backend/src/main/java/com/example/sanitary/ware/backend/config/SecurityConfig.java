@@ -78,7 +78,7 @@ public class SecurityConfig {
                                                 .permitAll()
 
                                                 // 4. Admin Endpoints
-                                                .requestMatchers("/api/admin/**", "/api/banners/admin/**")
+                                                .requestMatchers("/api/admin/**", "/api/banners/admin/**", "/api/tally/**")
                                                 .hasRole("ADMIN")
 
                                                 // 5. Brand Organizer Endpoints (Allow ADMIN as well)

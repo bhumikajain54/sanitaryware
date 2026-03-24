@@ -1,6 +1,6 @@
 package com.example.sanitary.ware.backend.controllers;
 
-import com.example.sanitary.ware.backend.dto.tally.TallySyncResponseDTO;
+import com.example.sanitary.ware.backend.dto.tally.*;
 import com.example.sanitary.ware.backend.entities.Address;
 import com.example.sanitary.ware.backend.entities.Product;
 import com.example.sanitary.ware.backend.entities.User;
@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -41,7 +42,56 @@ public class AdminTallyController {
     }
 
     /**
-     * Sync product to Tally as Stock Item
+     * Get Tally sync status
+     */
+    @GetMapping("/status")
+    public ResponseEntity<Map<String, Object>> getTallyStatus() {
+        boolean connected = tallyIntegrationService.testConnection();
+        long unsyncedInvoices = billingService.getUnsyncedInvoices().size();
+
+        return ResponseEntity.ok(Map.of(
+                "connected", connected,
+                "unsyncedInvoices", unsyncedInvoices,
+                "message", connected ? "Synced successfully" : "Tally not connected"));
+    }
+
+    /**
+     * Fetch all Ledgers from Tally
+     */
+    @GetMapping("/ledgers")
+    public ResponseEntity<List<TallyLedgerDTO>> getLedgers() {
+        return ResponseEntity.ok(tallyIntegrationService.getLedgersFromTally());
+    }
+
+    /**
+     * Fetch all stock items from Tally
+     */
+    @GetMapping("/stock-items")
+    public ResponseEntity<List<TallyProductDTO>> getStockItems() {
+        return ResponseEntity.ok(tallyIntegrationService.getStockItemsFromTally());
+    }
+
+    /**
+     * Create a new ledger in Tally
+     */
+    @PostMapping("/ledger")
+    public ResponseEntity<TallySyncResponseDTO> createLedger(@RequestBody TallyLedgerDTO ledgerDTO) {
+        if (ledgerDTO.getParent() == null || ledgerDTO.getParent().isEmpty()) {
+            ledgerDTO.setParent("Sundry Debtors");
+        }
+        return ResponseEntity.ok(tallyIntegrationService.syncLedger(ledgerDTO));
+    }
+
+    /**
+     * Create a sales voucher in Tally (direct entry)
+     */
+    @PostMapping("/voucher/sales")
+    public ResponseEntity<TallySyncResponseDTO> createSalesVoucher(@RequestBody TallySalesVoucherDTO voucherDTO) {
+        return ResponseEntity.ok(tallyIntegrationService.syncSalesVoucher(voucherDTO));
+    }
+
+    /**
+     * Sync single product to Tally
      */
     @PostMapping("/sync-product/{productId}")
     public ResponseEntity<TallySyncResponseDTO> syncProduct(@PathVariable Long productId) {
@@ -51,7 +101,7 @@ public class AdminTallyController {
     }
 
     /**
-     * Sync customer to Tally as Ledger
+     * Sync single customer to Tally
      */
     @PostMapping("/sync-customer/{customerId}")
     public ResponseEntity<TallySyncResponseDTO> syncCustomer(
@@ -71,79 +121,11 @@ public class AdminTallyController {
     }
 
     /**
-     * Sync all products to Tally
-     */
-    @PostMapping("/sync-all-products")
-    public ResponseEntity<Map<String, Object>> syncAllProducts() {
-        var products = productService.getAllProducts("", null, null, null, null, 0, 10000).getContent();
-
-        int successCount = 0;
-        int failedCount = 0;
-
-        for (Product product : products) {
-            try {
-                TallySyncResponseDTO response = billingService.syncProductToTally(product);
-                if (response.getSuccess()) {
-                    successCount++;
-                } else {
-                    failedCount++;
-                }
-            } catch (Exception e) {
-                failedCount++;
-            }
-        }
-
-        return ResponseEntity.ok(Map.of(
-                "total", products.size(),
-                "success", successCount,
-                "failed", failedCount));
-    }
-
-    /**
-     * Get Tally sync status
-     */
-    @GetMapping("/status")
-    public ResponseEntity<Map<String, Object>> getTallyStatus() {
-        boolean connected = tallyIntegrationService.testConnection();
-        long unsyncedInvoices = billingService.getUnsyncedInvoices().size();
-
-        return ResponseEntity.ok(Map.of(
-                "connected", connected,
-                "unsyncedInvoices", unsyncedInvoices,
-                "message", connected ? "Tally is connected and ready" : "Tally is not connected"));
-    }
-
-    /**
-     * Fetch all Ledgers from Tally
-     */
-    @GetMapping("/ledgers")
-    public ResponseEntity<java.util.List<com.example.sanitary.ware.backend.dto.tally.TallyLedgerDTO>> getLedgers() {
-        return ResponseEntity.ok(tallyIntegrationService.getLedgersFromTally());
-    }
-
-    /**
-     * Create Purchase Voucher (Manual/Test)
-     */
-    @PostMapping("/purchase-voucher")
-    public ResponseEntity<TallySyncResponseDTO> createPurchaseVoucher(
-            @RequestBody com.example.sanitary.ware.backend.dto.tally.TallyPurchaseVoucherDTO voucher) {
-        return ResponseEntity.ok(tallyIntegrationService.syncPurchaseVoucher(voucher));
-    }
-
-    /**
-     * Sync stock items from Tally to local database
+     * Sync stock counts from Tally to local database
      */
     @PostMapping("/sync-stock")
     public ResponseEntity<Map<String, Object>> syncStock() {
         billingService.syncAllStockFromTally();
         return ResponseEntity.ok(Map.of("message", "Stock synchronization completed successfully"));
-    }
-
-    /**
-     * Fetch all Voucher Types from Tally
-     */
-    @GetMapping("/voucher-types")
-    public ResponseEntity<java.util.List<com.example.sanitary.ware.backend.dto.tally.TallyVoucherTypeDTO>> getVoucherTypes() {
-        return ResponseEntity.ok(tallyIntegrationService.getVoucherTypesFromTally());
     }
 }

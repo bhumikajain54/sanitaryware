@@ -94,8 +94,11 @@ api.interceptors.response.use(
 const apiCall = async (endpoint, options = {}) => {
     const { method = 'GET', body, headers, ...rest } = options;
 
+    // Ensure endpoint doesn't start with a slash to avoid replacing the baseURL's path
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
+
     return api({
-        url: endpoint,
+        url: cleanEndpoint,
         method,
         data: body,
         headers,

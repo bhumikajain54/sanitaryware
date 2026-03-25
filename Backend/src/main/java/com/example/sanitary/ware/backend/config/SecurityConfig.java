@@ -31,20 +31,20 @@ public class SecurityConfig {
 
         @Bean
         public HttpFirewall allowUrlEncodedSlashHttpFirewall() {
-            StrictHttpFirewall firewall = new StrictHttpFirewall();
-            // Allow common characters in filenames that are normally restricted
-            firewall.setAllowUrlEncodedSlash(true);
-            firewall.setAllowUrlEncodedDoubleSlash(true);
-            firewall.setAllowUrlEncodedPercent(true);
-            firewall.setAllowUrlEncodedPeriod(true);
-            firewall.setAllowSemicolon(true);
-            firewall.setAllowBackSlash(true);
-            return firewall;
+                StrictHttpFirewall firewall = new StrictHttpFirewall();
+                // Allow common characters in filenames that are normally restricted
+                firewall.setAllowUrlEncodedSlash(true);
+                firewall.setAllowUrlEncodedDoubleSlash(true);
+                firewall.setAllowUrlEncodedPercent(true);
+                firewall.setAllowUrlEncodedPeriod(true);
+                firewall.setAllowSemicolon(true);
+                firewall.setAllowBackSlash(true);
+                return firewall;
         }
 
         @Bean
         public WebSecurityCustomizer webSecurityCustomizer() {
-            return (web) -> web.httpFirewall(allowUrlEncodedSlashHttpFirewall());
+                return (web) -> web.httpFirewall(allowUrlEncodedSlashHttpFirewall());
         }
 
         @Bean
@@ -56,7 +56,8 @@ public class SecurityConfig {
                                                 // 1. Auth Endpoints
                                                 .requestMatchers("/api/auth/**").permitAll()
 
-                                                // 2. Actuator & Custom health checks - must be public for Docker/Render health
+                                                // 2. Actuator & Custom health checks - must be public for Docker/Render
+                                                // health
                                                 // checks
                                                 .requestMatchers("/actuator/health", "/actuator/info", "/api/health/**")
                                                 .permitAll()
@@ -74,12 +75,14 @@ public class SecurityConfig {
                                                                 "/api/contact", "/api/contact/**",
                                                                 "/api/content/**",
                                                                 "/api/debug", "/api/debug/**",
-                                                                "/api/admin/tally/status", "/api/admin/tally/test-connection",
+                                                                "/api/admin/tally/status",
+                                                                "/api/admin/tally/test-connection",
                                                                 "/uploads/**")
                                                 .permitAll()
 
                                                 // 4. Admin Endpoints
-                                                .requestMatchers("/api/admin/**", "/api/banners/admin/**", "/api/tally/**")
+                                                .requestMatchers("/api/admin/**", "/api/banners/admin/**",
+                                                                "/api/tally/**")
                                                 .hasRole("ADMIN")
 
                                                 // 5. Brand Organizer Endpoints (Allow ADMIN as well)
@@ -129,8 +132,9 @@ public class SecurityConfig {
                 // Allow specific origins including the environment variable
                 List<String> allowedOrigins = Arrays.asList(
                                 "http://localhost:5173",
+                                "http://localhost:5174",
                                 "http://localhost:3000",
-                                "http://localhost:5174");
+                                "https://singhai-traders.netlify.app");
 
                 configuration.setAllowedOrigins(allowedOrigins);
 

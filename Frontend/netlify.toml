@@ -15,7 +15,7 @@
 # Forward all /api calls to your live backend server
 [[redirects]]
   from = "/api/*"
-  to = "https://sanitaryware-backend.onrender.com/api/:splat"
+  to = "http://localhost:8080/api/:splat"
   status = 200
   force = true
 

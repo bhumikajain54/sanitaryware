@@ -18,6 +18,11 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AuthController {
 
+    @GetMapping("/tally-check")
+    public ResponseEntity<String> debugTallyCheck() {
+        return ResponseEntity.ok("Prefix /api is working!");
+    }
+
     private final AuthService authService;
     private final CustomerService customerService;
 

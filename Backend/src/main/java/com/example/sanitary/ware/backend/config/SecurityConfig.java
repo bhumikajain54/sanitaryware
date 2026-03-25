@@ -74,6 +74,7 @@ public class SecurityConfig {
                                                                 "/api/contact", "/api/contact/**",
                                                                 "/api/content/**",
                                                                 "/api/debug", "/api/debug/**",
+                                                                "/api/admin/tally/status", "/api/admin/tally/test-connection",
                                                                 "/uploads/**")
                                                 .permitAll()
 
@@ -133,11 +134,12 @@ public class SecurityConfig {
 
                 configuration.setAllowedOrigins(allowedOrigins);
 
-                // Use patterns for more flexible matching (e.g. Vercel preview or wildcard)
+                // Use patterns for more flexible matching (e.g. Vercel preview)
                 configuration.setAllowedOriginPatterns(Arrays.asList(
                                 frontendUrl,
                                 "http://localhost:*",
-                                "*"));
+                                "https://*.vercel.app",
+                                "https://*.render.com"));
 
                 configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
                 configuration.setAllowedHeaders(

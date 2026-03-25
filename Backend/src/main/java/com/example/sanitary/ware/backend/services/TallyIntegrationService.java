@@ -27,7 +27,7 @@ public class TallyIntegrationService {
      */
     public boolean testConnection() {
         if (!tallyProperties.isEnabled()) {
-            log.warn("Tally integration is disabled");
+            log.debug("Tally integration is disabled");
             return false;
         }
 
@@ -35,19 +35,38 @@ public class TallyIntegrationService {
             String xml = xmlBuilder.buildTestConnectionXml();
             String response = sendToTally(xml);
 
-            // Check if response contains company information
-            boolean connected = response != null && response.contains("<COMPANY>");
+            // Log raw response for debugging (shortened)
+            if (response != null && response.length() > 0) {
+                log.debug("Tally raw response: {}", response.length() > 200 ? response.substring(0, 200) + "..." : response);
+            }
+
+            // Robust case-insensitive check
+            String upperResponse = response != null ? response.toUpperCase() : "";
+            boolean hasError = upperResponse.contains("<LINEERROR>") || upperResponse.contains("<ERROR>");
+            boolean connected = upperResponse.contains("<ENVELOPE") && !hasError;
 
             if (connected) {
-                log.info("Successfully connected to Tally at {}:{}",
-                        tallyProperties.getHost(), tallyProperties.getPort());
+                String companyName = extractXmlValue(response, "COMPANYNAME");
+                if (companyName == null) companyName = extractXmlValue(response, "COMPANY");
+                
+                log.info("Successfully connected to Tally at {}:{} (Active Company: {})",
+                        tallyProperties.getHost(), tallyProperties.getPort(), 
+                        companyName != null ? companyName : "Connected (No name found)");
+            } else if (hasError) {
+                String error = extractErrorMessage(response);
+                log.warn("Tally connected but returned error: {}", error);
             } else {
-                log.error("Failed to connect to Tally. Response: {}", response);
+                log.warn("Tally connection test failed. Response was: {}", response != null ? 
+                    (response.length() > 200 ? response.substring(0, 200) + "..." : response) : "empty");
             }
 
             return connected;
+        } catch (org.springframework.web.client.ResourceAccessException e) {
+            log.warn("Tally server is not reachable at {}:{}. Ensure Tally is running and HTTP services are enabled.", 
+                    tallyProperties.getHost(), tallyProperties.getPort());
+            return false;
         } catch (Exception e) {
-            log.error("Error testing Tally connection: {}", e.getMessage(), e);
+            log.error("Unexpected error testing Tally connection: {}", e.getMessage());
             return false;
         }
     }
@@ -571,20 +590,18 @@ public class TallyIntegrationService {
     /**
      * Extract value from XML tag
      */
-    private String extractXmlValue(String xml, String tagName) {
-        String openTag = "<" + tagName + ">";
-        String closeTag = "</" + tagName + ">";
+    private String extractXmlValue(String xml, String tag) {
+        if (xml == null || tag == null) return null;
+        String upperXml = xml.toUpperCase();
+        String upperTagStart = "<" + tag.toUpperCase() + ">";
+        String upperTagEnd = "</" + tag.toUpperCase() + ">";
 
-        int startIndex = xml.indexOf(openTag);
-        if (startIndex == -1) {
-            return null;
+        int start = upperXml.indexOf(upperTagStart);
+        int end = upperXml.indexOf(upperTagEnd);
+
+        if (start != -1 && end != -1) {
+            return xml.substring(start + upperTagStart.length(), end).trim();
         }
-
-        int endIndex = xml.indexOf(closeTag, startIndex);
-        if (endIndex == -1) {
-            return null;
-        }
-
-        return xml.substring(startIndex + openTag.length(), endIndex).trim();
+        return null;
     }
 }

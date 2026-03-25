@@ -10,6 +10,7 @@ import com.example.sanitary.ware.backend.services.BillingService;
 import com.example.sanitary.ware.backend.services.ProductService;
 import com.example.sanitary.ware.backend.services.TallyIntegrationService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,6 +23,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/admin/tally")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+@Slf4j
 public class AdminTallyController {
 
     private final TallyIntegrationService tallyIntegrationService;
@@ -35,6 +38,7 @@ public class AdminTallyController {
      */
     @GetMapping("/test-connection")
     public ResponseEntity<Map<String, Object>> testConnection() {
+        log.info("Testing Tally connection...");
         boolean connected = tallyIntegrationService.testConnection();
         return ResponseEntity.ok(Map.of(
                 "connected", connected,
@@ -46,6 +50,7 @@ public class AdminTallyController {
      */
     @GetMapping("/status")
     public ResponseEntity<Map<String, Object>> getTallyStatus() {
+        log.debug("Fetching Tally status...");
         boolean connected = tallyIntegrationService.testConnection();
         long unsyncedInvoices = billingService.getUnsyncedInvoices().size();
 

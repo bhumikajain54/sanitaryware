@@ -15,6 +15,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/admin/billing")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 @RequiredArgsConstructor
 public class AdminBillingController {
 

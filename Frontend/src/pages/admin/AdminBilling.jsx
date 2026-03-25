@@ -529,11 +529,10 @@ const AdminBilling = () => {
           </div>
         </div>
 
-        {/* Stats Cards - 3 Columns */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 mb-8 sm:mb-12">
+        {/* Stats Cards - 2 Columns */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 mb-8 sm:mb-12">
           {loadingStats ? (
             <>
-              <div className="bg-[var(--admin-bg-secondary)] border border-[var(--border-main)] rounded-2xl sm:rounded-3xl p-8 sm:p-10 shadow-lg animate-pulse h-40"></div>
               <div className="bg-[var(--admin-bg-secondary)] border border-[var(--border-main)] rounded-2xl sm:rounded-3xl p-8 sm:p-10 shadow-lg animate-pulse h-40"></div>
               <div className="bg-[var(--admin-bg-secondary)] border border-[var(--border-main)] rounded-2xl sm:rounded-3xl p-8 sm:p-10 shadow-lg animate-pulse h-40"></div>
             </>
@@ -555,18 +554,6 @@ const AdminBilling = () => {
                 <h3 className={`text-3xl sm:text-5xl font-black tracking-tight ${billingStats?.unsyncedBills > 0 ? 'text-orange-600' : 'text-green-600'}`}>
                   {billingStats?.unsyncedBills || 0} Pending
                 </h3>
-              </div>
-
-              <div className="bg-[var(--admin-bg-secondary)] border border-[var(--border-main)] rounded-2xl sm:rounded-3xl p-8 sm:p-10 shadow-lg hover:shadow-xl transition-all">
-                <p className="text-xs sm:text-sm font-bold text-[var(--admin-text-secondary)] uppercase tracking-widest mb-3">
-                  Tally Handshake
-                </p>
-                <div className="flex items-center gap-3 mt-2">
-                  <div className={`w-3 sm:w-4 h-3 sm:h-4 rounded-full ${billingStats?.tallyOnline ? 'bg-green-500 shadow-[0_0_12px_rgba(34,197,94,0.6)] animate-pulse' : 'bg-red-500'}`}></div>
-                  <h3 className={`text-xl sm:text-3xl font-black uppercase tracking-widest ${billingStats?.tallyOnline ? 'text-green-600' : 'text-red-600'}`}>
-                    {billingStats?.tallyOnline ? 'Online' : 'Offline'}
-                  </h3>
-                </div>
               </div>
             </>
           )}

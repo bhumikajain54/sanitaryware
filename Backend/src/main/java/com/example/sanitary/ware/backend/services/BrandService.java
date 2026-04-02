@@ -105,7 +105,10 @@ public class BrandService {
                         brand.setDescription(dto.getDescription());
                         brand.setCountry(dto.getCountry());
                         brand.setStatus(dto.getStatus());
-                        if (dto.getLogo() != null) brand.setLogo(dto.getLogo());
+                        // Convert CSV string logo to byte[] if needed, or handle appropriately
+                        if (dto.getLogo() != null) {
+                            brand.setLogo(dto.getLogo().getBytes(StandardCharsets.UTF_8));
+                        }
                     } else {
                         brand = Brand.builder()
                                 .name(normalizedName)
@@ -113,7 +116,7 @@ public class BrandService {
                                 .description(dto.getDescription())
                                 .country(dto.getCountry())
                                 .status(dto.getStatus())
-                                .logo(dto.getLogo())
+                                .logo(dto.getLogo() != null ? dto.getLogo().getBytes(StandardCharsets.UTF_8) : null)
                                 .build();
                         // Add to maps so subsequent rows can find it
                         nameMap.put(normalizedName.toLowerCase(), brand);
@@ -155,7 +158,7 @@ public class BrandService {
                 brand.getDescription(),
                 brand.getCountry(),
                 brand.getStatus(),
-                brand.getLogo())).collect(Collectors.toList());
+                brand.getLogo() != null ? new String(brand.getLogo(), StandardCharsets.UTF_8) : null)).collect(Collectors.toList());
 
         StatefulBeanToCsv<BrandCsvDTO> beanToCsv = new StatefulBeanToCsvBuilder<BrandCsvDTO>(writer)
                 .withApplyQuotesToAll(false)
@@ -235,11 +238,11 @@ public class BrandService {
         if (files != null && !files.isEmpty()) {
             boolean changed = false;
             for (Brand b : brands) {
-                if (b.getLogo() == null || b.getLogo().isEmpty() || b.getLogo().equals("null")) {
+                if (b.getLogo() == null || b.getLogo().length == 0) {
                     String likelyFile = b.getName().trim() + ".png";
                     for (String f : files) {
                         if (f.toLowerCase().endsWith("_" + likelyFile.toLowerCase()) || f.equalsIgnoreCase(likelyFile)) {
-                            b.setLogo("/api/media/" + f);
+                            b.setLogo(("/api/media/" + f).getBytes(StandardCharsets.UTF_8));
                             brandRepository.save(b);
                             changed = true;
                             break;
@@ -263,17 +266,9 @@ public class BrandService {
             throw new RuntimeException("Brand name is required");
         }
 
+        // Base64 logo in JSON is automatically decoded to byte[] by Jackson.
+        // No further binary-to-file conversion needed as we store it in BYTEA column.
         String normalizedName = brand.getName().trim();
-
-        // 1. Handle Base64 Logo if present
-        if (brand.getLogo() != null && brand.getLogo().startsWith("data:image")) {
-            try {
-                String filename = saveBase64Image(brand.getLogo());
-                brand.setLogo("/api/media/" + filename);
-            } catch (Exception e) {
-                // Keep as is or handle error
-            }
-        }
 
         // Check for existing brand with same name (case-insensitive)
         Optional<Brand> existing = brandRepository.findByNameIgnoreCase(normalizedName);
@@ -290,23 +285,7 @@ public class BrandService {
         return saved;
     }
 
-    private String saveBase64Image(String base64Content) throws Exception {
-        String[] parts = base64Content.split(",");
-        String metadata = parts[0];
-        String base64Data = parts[1];
-        
-        String extension = ".png";
-        if (metadata.contains("jpeg")) extension = ".jpg";
-        else if (metadata.contains("webp")) extension = ".webp";
-        else if (metadata.contains("gif")) extension = ".gif";
 
-        byte[] decodedBytes = java.util.Base64.getDecoder().decode(base64Data);
-        String filename = "brand_" + java.util.UUID.randomUUID().toString().substring(0, 8) + extension;
-        
-        // Use the common root from FileStorageService for consistency
-        java.nio.file.Files.write(fileStorageService.getRootPath().resolve(filename), decodedBytes);
-        return filename;
-    }
 
     private String generateCode(String name) {
         if (name == null || name.isEmpty())
@@ -334,26 +313,11 @@ public class BrandService {
         if (brand.getStatus() != null) {
             existingBrand.setStatus(brand.getStatus());
         }
-        if (brand.getLogo() != null) {
-            String logoValue = brand.getLogo().trim();
-            if (logoValue.startsWith("data:image")) {
-                try {
-                    String filename = saveBase64Image(logoValue);
-                    existingBrand.setLogo("/api/media/" + filename);
-                } catch (Exception e) {
-                    // Log error but keep existing logo to prevent data loss
-                }
-            } else if (logoValue.isEmpty() || logoValue.equalsIgnoreCase("null") || logoValue.equalsIgnoreCase("clear")) {
-                existingBrand.setLogo(null);
-            } else {
-                // If the user didn't pick a new file (so it's already a URL), keep the current logo
-                existingBrand.setLogo(logoValue);
-            }
-        } else {
-            // Frontend explicitly sent null to clear the logo
+        if (brand.getLogo() != null && brand.getLogo().length > 0) {
+            existingBrand.setLogo(brand.getLogo());
+        } else if (brand.getLogo() == null) {
             existingBrand.setLogo(null);
         }
-        // Removing the 'else' that was sets logo to null if not provided
         if (brand.getWebsite() != null) {
             existingBrand.setWebsite(brand.getWebsite());
         }

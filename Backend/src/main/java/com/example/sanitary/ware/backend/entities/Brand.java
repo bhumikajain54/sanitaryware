@@ -44,6 +44,31 @@ public class Brand {
     @Column(columnDefinition = "BYTEA")
     private byte[] logo;
 
+    @com.fasterxml.jackson.annotation.JsonProperty("logo")
+    public void setLogo(Object value) {
+        if (value == null) {
+            this.logo = null;
+            return;
+        }
+        if (value instanceof byte[]) {
+            this.logo = (byte[]) value;
+        } else if (value instanceof String) {
+            String str = (String) value;
+            if (str.startsWith("data:")) {
+                // Strip the "data:image/png;base64," prefix for Jackson
+                this.logo = java.util.Base64.getDecoder().decode(str.substring(str.indexOf(",") + 1));
+            } else if (!str.isEmpty()) {
+                // Handle raw base64 string or URL (though URL won't decode, this prevents crash)
+                try {
+                    this.logo = java.util.Base64.getDecoder().decode(str);
+                } catch (IllegalArgumentException e) {
+                    // If it's a URL or invalid, we ignore it to prevent 400 error
+                    // Optionally we could fetch the URL bytes here
+                }
+            }
+        }
+    }
+
     @Column(columnDefinition = "TEXT")
     private String website;
 

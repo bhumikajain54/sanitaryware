@@ -32,11 +32,11 @@ public class MediaController {
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Map<String, String>> uploadFile(
-            @AuthenticationPrincipal User user,
+            @AuthenticationPrincipal Object principal,
             @RequestParam("file") MultipartFile file) {
         String filename = fileStorageService.save(file);
 
-        if (user != null) {
+        if (principal instanceof User user) {
             activityLogService.log(user.getId(), user.getEmail(), "FILE_UPLOAD", "MEDIA", "Uploaded: " + filename);
         }
 

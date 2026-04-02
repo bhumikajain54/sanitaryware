@@ -9,5 +9,6 @@ public interface BrandRepository extends JpaRepository<Brand, Long> {
 
     Optional<Brand> findByName(String name);
 
-    Optional<Brand> findByNameIgnoreCase(String name);
+    @org.springframework.data.jpa.repository.Query("SELECT b FROM Brand b WHERE TRIM(LOWER(b.name)) = TRIM(LOWER(:name))")
+    Optional<Brand> findByNameIgnoreCase(@org.springframework.data.repository.query.Param("name") String name);
 }

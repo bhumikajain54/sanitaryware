@@ -17,7 +17,8 @@ import java.util.List;
 @Table(name = "brands")
 public class Brand {
 
-    // Standard constructors provided by Lombok annotations (@NoArgsConstructor, @AllArgsConstructor)
+    // Standard constructors provided by Lombok annotations (@NoArgsConstructor,
+    // @AllArgsConstructor)
     @com.fasterxml.jackson.annotation.JsonCreator
     public Brand(String name) {
         this.name = name;
@@ -40,7 +41,6 @@ public class Brand {
 
     private String status; // e.g., ACTIVE, INACTIVE
 
-    @Column(columnDefinition = "TEXT")
     private String logo;
 
     @Column(columnDefinition = "TEXT")

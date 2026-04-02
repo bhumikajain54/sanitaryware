@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: sanitaryware-backend
+    name: sanitaryware-1
     env: docker
     repo: https://github.com/bhumikajain54/sanitaryware
     rootDir: .

@@ -33,8 +33,10 @@ public class Category {
     @Column(unique = true, nullable = false)
     private String name;
 
+    @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(columnDefinition = "TEXT")
     private String image;
 
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)

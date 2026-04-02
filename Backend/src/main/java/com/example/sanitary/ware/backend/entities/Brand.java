@@ -33,14 +33,17 @@ public class Brand {
     @Column(unique = true, nullable = true)
     private String code;
 
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     private String country;
 
     private String status; // e.g., ACTIVE, INACTIVE
 
+    @Column(columnDefinition = "TEXT")
     private String logo;
 
+    @Column(columnDefinition = "TEXT")
     private String website;
 
     @OneToMany(mappedBy = "brand", cascade = CascadeType.ALL)

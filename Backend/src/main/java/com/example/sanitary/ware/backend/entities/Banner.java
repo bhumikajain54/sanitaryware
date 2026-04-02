@@ -19,13 +19,13 @@ public class Banner {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "image_url", nullable = false)
+    @Column(name = "image_url", columnDefinition = "TEXT", nullable = false)
     private String imageUrl;
 
     private String title;
     private String description;
 
-    @Column(name = "link_url")
+    @Column(name = "link_url", columnDefinition = "TEXT")
     private String linkUrl;
 
     @Builder.Default

@@ -41,7 +41,6 @@ public class Brand {
 
     private String status; // e.g., ACTIVE, INACTIVE
 
-    @Lob
     @Column(columnDefinition = "BYTEA")
     private byte[] logo;
 

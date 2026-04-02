@@ -33,6 +33,7 @@ public class CMSPage {
     @Column(columnDefinition = "TEXT")
     private String content;
 
+    @Column(columnDefinition = "TEXT")
     private String metaDescription;
 
     private boolean active;

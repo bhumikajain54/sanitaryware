@@ -17,15 +17,6 @@ import java.util.List;
 @Table(name = "categories")
 public class Category {
 
-    @com.fasterxml.jackson.annotation.JsonCreator
-    public Category(String value) {
-        try {
-            this.id = Long.parseLong(value);
-        } catch (NumberFormatException e) {
-            this.name = value;
-        }
-    }
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

@@ -37,4 +37,4 @@ EXPOSE 8080
 # Specify the command to run the application with dynamic port for Render
 # Added -Xmx and -Xms to fit in Render Free Tier (512MB)
 # Added explicit 0.0.0.0 binding to be safe
-ENTRYPOINT ["sh", "-c", "java -Xmx384m -Xms384m -Dserver.port=${PORT:-8080} -Daddress=0.0.0.0 -jar app.jar"]
+ENTRYPOINT ["sh", "-c", "java -Xmx256m -Xms256m -Dserver.port=${PORT:-8080} -Daddress=0.0.0.0 -jar app.jar"]

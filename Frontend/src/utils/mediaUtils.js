@@ -23,8 +23,14 @@ export const formatMediaUrl = (src) => {
   const isLikelyBase64 = !isBase64 && cleanSrc.length > 200 && !/\s/.test(cleanSrc);
 
   if ((isBase64 || isLikelyBase64) && !cleanSrc.startsWith('data:')) {
+    // If it starts with a slash but is clearly base64 (/9j/...), we treat it as raw data
     if (cleanSrc.startsWith('iVBORw0KG')) return `data:image/png;base64,${cleanSrc}`;
-    if (cleanSrc.startsWith('/9j/') || cleanSrc.startsWith('9j/')) return `data:image/jpeg;base64,${cleanSrc}`;
+    if (cleanSrc.startsWith('/9j/') || cleanSrc.startsWith('9j/')) {
+        // If it starts with /9j/, it might have been intended as a path, but it's raw data.
+        // We strip the leading slash if it exists before adding the prefix for maximum compatibility.
+        const dataStr = cleanSrc.startsWith('/') ? cleanSrc.substring(1) : cleanSrc;
+        return `data:image/jpeg;base64,${dataStr}`;
+    }
     if (cleanSrc.startsWith('R0lGODlh')) return `data:image/gif;base64,${cleanSrc}`;
     if (cleanSrc.startsWith('UklGR')) return `data:image/webp;base64,${cleanSrc}`;
     

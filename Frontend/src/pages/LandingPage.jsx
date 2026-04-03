@@ -193,7 +193,7 @@ const LandingPage = () => {
               className="relative"
             >
               <div className="absolute -top-4 -left-4 w-24 sm:w-32 md:w-40 h-24 sm:h-32 md:h-40 bg-teal-100/50 rounded-full blur-2xl md:blur-3xl" />
-              <img
+              <SafeImage
                 src="/showroom_premium.png"
                 alt="Showroom"
                 className="relative z-10 rounded-2xl sm:rounded-[2rem] md:rounded-[2.5rem] shadow-[0_20px_50px_-5px_rgba(0,0,0,0.1)] w-full transform -rotate-1 sm:-rotate-2"

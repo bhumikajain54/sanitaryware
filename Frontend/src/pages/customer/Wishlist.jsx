@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { MdFavorite, MdDelete, MdShoppingCart, MdArrowBack } from 'react-icons/md';
 import { useWishlist } from '../../context/WishlistContext';
 import { useCart } from '../../context/CartContext';
+import SafeImage from '../../components/common/SafeImage';
 
 const Wishlist = () => {
   const { wishlistItems, removeFromWishlist, clearWishlist, getWishlistCount } = useWishlist();
@@ -96,8 +97,8 @@ const Wishlist = () => {
               >
                 {/* Product image */}
                 <div className="relative h-28 sm:h-40 md:h-56 lg:h-80 overflow-hidden bg-[var(--bg-app)] p-2 sm:p-3 md:p-5 lg:p-8">
-                  <img
-                    src={item.image || (item.images && item.images[0]) || 'https://www.shutterstock.com/image-vector/default-ui-image-placeholder-wireframes-600nw-1037719192.jpg'}
+                  <SafeImage
+                    src={item.image || (item.images && item.images[0])}
                     alt={item.name}
                     className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-700"
                   />

@@ -11,6 +11,8 @@ import {
   MdCheckCircle, MdCameraAlt, MdHistory, MdSecurity,
   MdKeyboardArrowRight, MdLock, MdVisibility, MdVisibilityOff, MdShield
 } from 'react-icons/md';
+import SafeImage from '../../components/common/SafeImage';
+import { formatMediaUrl } from '../../utils/mediaUtils';
 
 /* ─── Input field with icon ─── */
 const InputField = ({ label, value, icon: Icon, type = 'text', disabled, onChange, suffix }) => (
@@ -76,6 +78,9 @@ const Profile = () => {
         email: user.email || user.username || '',
         phone: user.phone || ''
       });
+      if (user.profileImage) {
+        setProfileImage(user.profileImage);
+      }
     }
   }, [user]);
 
@@ -201,7 +206,7 @@ const Profile = () => {
                   <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-32 lg:h-32 bg-[var(--bg-card)] rounded-2xl md:rounded-3xl flex items-center justify-center shadow-xl shadow-teal-500/10 border-2 md:border-4 border-[var(--bg-card)] overflow-hidden">
                     <div className="w-full h-full bg-gradient-to-br from-teal-500 to-cyan-600 rounded-xl md:rounded-2xl flex items-center justify-center overflow-hidden">
                       {profileImage ? (
-                        <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
+                        <SafeImage src={profileImage} alt="Profile" className="w-full h-full object-cover" />
                       ) : (
                         <span className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-white font-black">{avatarLetter}</span>
                       )}

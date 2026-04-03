@@ -11,6 +11,8 @@ import {
   MdClose, MdLocationOn, MdPayment as MdPaymentIcon
 } from 'react-icons/md';
 import { StatCard, Card, Badge, Skeleton } from '../../components/common/DashboardUI';
+import SafeImage from '../../components/common/SafeImage';
+import { formatMediaUrl } from '../../utils/mediaUtils';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -158,7 +160,11 @@ const Dashboard = () => {
                               <div className="flex items-center gap-2 sm:gap-2.5 md:gap-3">
                                 <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-10 lg:h-10 rounded-lg overflow-hidden border border-[var(--border-main)] flex-shrink-0 bg-slate-50 flex items-center justify-center">
                                   {product?.mainImage || product?.image ? (
-                                    <img src={product.mainImage || product.image} alt="" className="w-full h-full object-cover" />
+                                    <SafeImage 
+                                      src={product.mainImage || product.image} 
+                                      alt="" 
+                                      className="w-full h-full object-cover" 
+                                    />
                                   ) : (
                                     <MdShoppingBag className="text-slate-300 text-xs sm:text-sm md:text-base" />
                                   )}
@@ -242,7 +248,7 @@ const Dashboard = () => {
                 >
                   <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 xl:w-16 xl:h-16 bg-white dark:bg-slate-200 rounded-lg sm:rounded-xl md:rounded-2xl flex items-center justify-center mb-1.5 sm:mb-2 md:mb-3 shadow-sm group-hover:scale-110 transition-transform overflow-hidden p-1 sm:p-1.5 md:p-2">
                     <img
-                      src={brand.logo || brand.image} alt={brand.name}
+                      src={formatMediaUrl(brand.logo || brand.image)} alt={brand.name}
                       className="w-full h-full object-contain grayscale group-hover:grayscale-0 transition-all"
                       onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/100?text=' + (brand.name ? brand.name[0] : 'B'); }}
                     />
@@ -361,7 +367,7 @@ const Dashboard = () => {
                       return (
                         <div key={idx} className="flex items-center gap-2.5 sm:gap-3 md:gap-4 p-2.5 sm:p-3 md:p-4 bg-[var(--bg-app)]/50 rounded-xl sm:rounded-2xl border border-[var(--border-main)] hover:border-teal-500/20 transition-all">
                           <div className="w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-lg sm:rounded-xl bg-white p-0.5 sm:p-1 border border-[var(--border-main)] overflow-hidden flex-shrink-0">
-                            <img src={product.image || product.mainImage || '/Logo2.png'} alt="" className="w-full h-full object-contain" />
+                            <SafeImage src={product.image || product.mainImage} alt="" className="w-full h-full object-contain" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-[10px] sm:text-xs md:text-sm font-bold text-[var(--text-main)] truncate">{product.name || 'Premium Product'}</p>

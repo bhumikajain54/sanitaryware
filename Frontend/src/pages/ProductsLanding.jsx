@@ -25,6 +25,7 @@ import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../context/WishlistContext';
 import ProductSidebarFilter from '../components/common/ProductSidebarFilter';
 import customerService from '../services/customerService';
+import { formatMediaUrl } from '../utils/mediaUtils';
 
 const ProductsLanding = () => {
   const [searchParams] = useSearchParams();
@@ -95,7 +96,7 @@ const ProductsLanding = () => {
             rating: parseFloat(p.rating) || 0,
             reviews: parseInt(p.reviews) || 0,
             badge: p.badge || (stock === 0 ? 'Out of Stock' : (p.isNew ? 'New Arrival' : '')),
-            image: p.image || p.imageUrl || p.mainImage || '/Logo2.png'
+            image: formatMediaUrl(p.image || p.imageUrl || p.mainImage)
           };
         });
 

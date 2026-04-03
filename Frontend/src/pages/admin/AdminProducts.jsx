@@ -30,6 +30,7 @@ import { useAdminFilter } from '../../hooks/useAdminFilter';
 import AdminFilterPanel from '../../components/admin/AdminFilterPanel';
 import { generateProductListPDF } from '../../utils/pdfGenerator';
 import adminService from '../../services/adminService';
+import { formatMediaUrl } from '../../utils/mediaUtils';
 
 const AdminProducts = () => {
   const { success, error, info } = useAdminToast();
@@ -64,8 +65,8 @@ const AdminProducts = () => {
         ...item,
         id: item.id,
         name: item.name || 'Untitled Product',
-        image: item.mainImage || item.image || '/Logo2.png',
-        mainImage: item.mainImage || item.image || '/Logo2.png',
+        image: formatMediaUrl(item.mainImage || item.image),
+        mainImage: formatMediaUrl(item.mainImage || item.image),
         price: typeof item.price === 'number' ? item.price : parseFloat(String(item.price || 0).replace(/[^0-9.]/g, '')),
         stock: Math.max(0, parseInt(stockValue)),
         stockQuantity: Math.max(0, parseInt(stockValue)),

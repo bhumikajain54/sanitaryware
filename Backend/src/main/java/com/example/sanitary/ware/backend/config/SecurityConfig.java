@@ -59,7 +59,7 @@ public class SecurityConfig {
                                                 // 2. Actuator & Custom health checks - must be public for Docker/Render
                                                 // health
                                                 // checks
-                                                .requestMatchers("/actuator/health", "/actuator/info", "/api/health/**")
+                                                .requestMatchers("/", "/actuator/**", "/api/health/**")
                                                 .permitAll()
 
                                                 // 3. Public Endpoints (Accessible without login)

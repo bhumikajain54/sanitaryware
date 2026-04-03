@@ -239,7 +239,7 @@ public class ProductService {
         product.setStockQuantity(stock);
 
         if (dto.getMainImage() != null)
-            product.setMainImage(dto.getMainImage().trim());
+            product.setMainImage(formatImagePath(dto.getMainImage().trim()));
         product.setActive(dto.getActive() == null || Boolean.parseBoolean(dto.getActive().trim()));
         product.setFeatured(Boolean.parseBoolean(dto.getFeatured() != null ? dto.getFeatured().trim() : "false"));
 
@@ -622,6 +622,9 @@ public class ProductService {
         }
 
         resolveEntities(product);
+        if (product.getMainImage() != null) {
+            product.setMainImage(formatImagePath(product.getMainImage()));
+        }
         Product saved = productRepository.save(product);
         activityLogService.log(1L, "admin@example.com", "CREATE_PRODUCT", "PRODUCTS", "Created: " + saved.getName());
         return saved;
@@ -647,7 +650,7 @@ public class ProductService {
         }
 
         if (product.getMainImage() != null)
-            existingProduct.setMainImage(product.getMainImage());
+            existingProduct.setMainImage(formatImagePath(product.getMainImage()));
 
         if (product.getDescription() != null)
             existingProduct.setDescription(product.getDescription());
@@ -805,5 +808,25 @@ public class ProductService {
         activityLogService.log(1L, "admin@example.com", "BULK_UPDATE_STOCK", "PRODUCTS",
                 "Updated stock for all " + updatedCount + " products to " + quantity);
         return updatedCount;
+    }
+
+    private String formatImagePath(String path) {
+        if (path == null || path.trim().isEmpty())
+            return null;
+        String trimmed = path.trim();
+        // Check if it's already a proper data URI or a URL
+        if (trimmed.startsWith("data:") || trimmed.startsWith("http://") || trimmed.startsWith("https://")
+                || trimmed.startsWith("/api/media/")) {
+            return trimmed;
+        }
+        // Check if it's a raw JPEG base64 string (starts with /9j/)
+        if (trimmed.startsWith("/9j/")) {
+            return "data:image/jpeg;base64," + trimmed;
+        }
+        // Check if it's a raw PNG base64 string
+        if (trimmed.startsWith("iVBORw0KGgo")) {
+            return "data:image/png;base64," + trimmed;
+        }
+        return trimmed;
     }
 }

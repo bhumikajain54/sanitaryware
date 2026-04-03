@@ -228,9 +228,7 @@ public class CategoryService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Category getOrCreateByName(String name) {
-        if (name == null || name.trim().isEmpty()) return null;
-        String normalizedName = name.trim();
-        return categoryRepository.findByNameIgnoreCase(normalizedName)
+        return categoryRepository.findByName(name)
                 .orElseGet(() -> {
                     try {
                         Category newCategory = new Category();

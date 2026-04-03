@@ -56,8 +56,6 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final BrandRepository brandRepository;
     private final CategoryRepository categoryRepository;
-    private final BrandService brandService;
-    private final CategoryService categoryService;
     private final ActivityLogService activityLogService;
     private final jakarta.validation.Validator validator;
 
@@ -683,8 +681,8 @@ public class ProductService {
             return null;
         if (category.getId() != null) {
             return categoryRepository.findById(category.getId()).orElse(null);
-        } else if (category.getName() != null && !category.getName().trim().isEmpty()) {
-            return categoryService.getOrCreateByName(category.getName());
+        } else if (category.getName() != null) {
+            return categoryRepository.findByName(category.getName()).orElse(null);
         }
         return null;
     }
@@ -694,8 +692,8 @@ public class ProductService {
             return null;
         if (brand.getId() != null) {
             return brandRepository.findById(brand.getId()).orElse(null);
-        } else if (brand.getName() != null && !brand.getName().trim().isEmpty()) {
-            return brandService.getOrCreateByName(brand.getName());
+        } else if (brand.getName() != null) {
+            return brandRepository.findByName(brand.getName()).orElse(null);
         }
         return null;
     }

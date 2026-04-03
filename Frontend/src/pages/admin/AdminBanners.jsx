@@ -347,14 +347,14 @@ const BannerModal = ({ banner, onClose, onSave }) => {
                                             onChange={async (e) => {
                                                 const file = e.target.files[0];
                                                 if (file) {
-                                                    const uploadFormData = new FormData();
-                                                    uploadFormData.append('file', file);
                                                     try {
-                                                        const response = await adminService.uploadMedia(uploadFormData);
-                                                        const imageUrl = response.url || response.data?.url || response;
-                                                        setFormData({ ...formData, imageUrl: imageUrl });
+                                                        const reader = new FileReader();
+                                                        reader.readAsDataURL(file);
+                                                        reader.onload = () => {
+                                                            setFormData({ ...formData, imageUrl: reader.result });
+                                                        };
                                                     } catch (err) {
-                                                        console.error('Upload failed:', err);
+                                                        console.error('File conversion failed:', err);
                                                     }
                                                 }
                                             }}
@@ -364,7 +364,7 @@ const BannerModal = ({ banner, onClose, onSave }) => {
                                             className="flex items-center justify-center gap-3 w-full py-4 bg-slate-50 dark:bg-slate-800/50 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-teal-500 hover:bg-teal-50/50 dark:hover:bg-teal-900/10 transition-all text-xs font-black text-slate-500 uppercase tracking-widest"
                                         >
                                             <MdCloudUpload className="text-xl text-teal-500" />
-                                            <span>Upload Locally</span>
+                                            <span>ARMOR: SECURE IMAGE</span>
                                         </label>
                                     </div>
                                 </div>

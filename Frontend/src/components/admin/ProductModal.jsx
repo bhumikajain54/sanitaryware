@@ -58,6 +58,15 @@ const ProductModal = ({ product, brands = [], categories = [], onClose, onSave }
     }
   };
 
+  const fileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsUploading(true);
@@ -65,15 +74,17 @@ const ProductModal = ({ product, brands = [], categories = [], onClose, onSave }
     try {
       let finalImageUrl = formData.image;
 
-      // 1. Upload new image if selected
+      // 1. Convert to Base64 if a new file is selected (Base64 Armor)
       if (imageFile) {
-        const uploadData = new FormData();
-        uploadData.append('file', imageFile);
-        const uploadRes = await adminService.uploadMedia(uploadData);
-        finalImageUrl = uploadRes.url;
+        try {
+          finalImageUrl = await fileToBase64(imageFile);
+        } catch (err) {
+          console.error('Base64 conversion failed:', err);
+          throw new Error('Failed to process image file');
+        }
       }
 
-      // 2. Process features string into a clean string for backend
+      // 2. Process features string and prepare data for database storage
       const processedData = {
         ...formData,
         mainImage: finalImageUrl,
@@ -83,8 +94,8 @@ const ProductModal = ({ product, brands = [], categories = [], onClose, onSave }
 
       await onSave(processedData);
     } catch (err) {
-      console.error('Upload error:', err);
-      alert('Failed to upload image. Please try again.');
+      console.error('Save error:', err);
+      alert('Failed to save product: ' + err.message);
     } finally {
       setIsUploading(false);
     }

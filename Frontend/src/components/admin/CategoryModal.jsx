@@ -14,6 +14,8 @@ const CategoryModal = ({ category, onClose, onSave }) => {
     description: '',
     status: 'active',
   });
+  const [imageFile, setImageFile] = useState(null);
+  const [preview, setPreview] = useState(category?.image || null);
 
   useEffect(() => {
     if (category) {
@@ -22,12 +24,38 @@ const CategoryModal = ({ category, onClose, onSave }) => {
         description: category.description || '',
         status: category.status || 'active',
       });
+      setPreview(category.image || null);
     }
   }, [category]);
 
-  const handleSubmit = (e) => {
+  const fileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSave(formData);
+    try {
+      let finalImage = preview;
+      if (imageFile) {
+        finalImage = await fileToBase64(imageFile);
+      }
+      onSave({ ...formData, image: finalImage });
+    } catch (err) {
+      console.error('Category save error:', err);
+    }
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      setPreview(URL.createObjectURL(file));
+    }
   };
 
   return (
@@ -57,9 +85,9 @@ const CategoryModal = ({ category, onClose, onSave }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="p-3 sm:p-10 max-h-[90vh] overflow-y-auto scrollbar-hide">
-          <div className="grid grid-cols-3 gap-3 sm:gap-10">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-10">
             {/* Main Form Area (Left) */}
-            <div className="col-span-2 space-y-3 sm:space-y-8">
+            <div className="md:col-span-2 space-y-3 sm:space-y-8">
               {/* Category Name */}
               <div className="space-y-1 sm:space-y-3">
                 <label className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 ml-2 sm:ml-4">
@@ -77,6 +105,29 @@ const CategoryModal = ({ category, onClose, onSave }) => {
                     placeholder="e.g., Faucets, Shower Heads"
                     className="w-full pl-7 sm:pl-14 pr-3 sm:pr-6 py-2 sm:py-5 bg-white dark:bg-slate-900 border-2 border-transparent focus:border-teal-500 dark:focus:border-teal-500 rounded-xl sm:rounded-3xl outline-none transition-all dark:text-white font-bold text-[8px] sm:text-lg placeholder:text-slate-300 shadow-sm"
                   />
+                </div>
+              </div>
+
+               {/* Category Image Upload (Base64 Armor) */}
+               <div className="space-y-1 sm:space-y-3">
+                <label className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 ml-2 sm:ml-4">
+                  Category Thumbnail
+                </label>
+                <div className="relative group border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-3xl p-4 sm:p-8 bg-white dark:bg-slate-900/50 hover:bg-slate-50 transition-all flex flex-col items-center justify-center min-h-[140px] sm:min-h-[180px] cursor-pointer overflow-hidden">
+                   <input type="file" accept="image/*" onChange={handleFileChange} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
+                   {preview ? (
+                      <div className="w-full h-full absolute inset-0">
+                         <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <p className="text-white font-black text-xs uppercase tracking-widest bg-slate-900/50 px-4 py-2 rounded-full backdrop-blur-md">Secure Armor Active</p>
+                         </div>
+                      </div>
+                   ) : (
+                      <div className="text-center">
+                        <MdCategory className="mx-auto text-3xl sm:text-5xl text-slate-300 group-hover:text-teal-500 transition-colors mb-2" />
+                        <p className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-tighter">Click to link permanent image</p>
+                      </div>
+                   )}
                 </div>
               </div>
 
@@ -120,11 +171,11 @@ const CategoryModal = ({ category, onClose, onSave }) => {
             </div>
 
             {/* Sidebar / Info Panel (Right) */}
-            <div className="col-span-1 space-y-3 sm:space-y-8">
+            <div className="md:col-span-1 space-y-3 sm:space-y-8">
               {/* Status Selector */}
-              <div className="bg-white dark:bg-slate-900/50 rounded-xl sm:rounded-[2rem] p-2 sm:p-8 border border-white dark:border-slate-700 shadow-sm">
-                <h3 className="text-[6px] sm:text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2 sm:mb-6 flex items-center gap-1 sm:gap-2">
-                  <MdInfo className="text-[8px] sm:text-base" /> Visibility Status
+              <div className="bg-white dark:bg-slate-900/50 rounded-xl sm:rounded-[2rem] p-4 sm:p-8 border border-white dark:border-slate-700 shadow-sm">
+                <h3 className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2 sm:mb-6 flex items-center gap-1 sm:gap-2">
+                  <MdInfo className="text-base" /> Visibility Status
                 </h3>
                 <div className="space-y-1 sm:space-y-3">
                   <button

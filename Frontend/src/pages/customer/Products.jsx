@@ -277,7 +277,6 @@ const Products = () => {
       }
    };
 
-   const QUICK_CATS = ['All', 'WC', 'Basin', 'Faucet', 'Shower'];
    const hasActiveFilters = !selectedCategories.includes('all') || !selectedBrands.includes('all') || priceRange < maxProductPrice || searchQuery;
 
    return (
@@ -335,22 +334,6 @@ const Products = () => {
 
                {/* Row 2: Filter bar — desktop only */}
                <div className="hidden sm:flex flex-wrap items-center gap-2 md:gap-3 pb-0.5">
-
-                  {/* Quick category pills */}
-                  <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar pr-3 sm:pr-4 border-r border-slate-100 mr-1 sm:mr-2">
-                     {QUICK_CATS.map(cat => (
-                        <button
-                           key={cat}
-                           onClick={() => { setSelectedCategories(cat === 'All' ? ['all'] : [cat]); setCurrentPage(1); }}
-                           className={`whitespace-nowrap px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all border ${(cat === 'All' ? selectedCategories.includes('all') : selectedCategories.includes(cat))
-                              ? 'bg-slate-900 text-white border-slate-900'
-                              : 'bg-white text-slate-500 border-slate-200 hover:border-slate-400'
-                              }`}
-                        >
-                           {cat}
-                        </button>
-                     ))}
-                  </div>
 
                   {/* Dropdown filters */}
                   <FilterDropdown label="Category" activeCount={selectedCategories.includes('all') ? 0 : selectedCategories.length}>
@@ -600,24 +583,6 @@ const Products = () => {
                         </select>
                      </div>
 
-                     {/* Quick category pills in drawer */}
-                     <div className="px-4 sm:px-5 py-3 sm:py-4 border-b border-slate-100">
-                        <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Quick Filter</p>
-                        <div className="flex flex-wrap gap-2">
-                           {QUICK_CATS.map(cat => (
-                              <button
-                                 key={cat}
-                                 onClick={() => { setSelectedCategories(cat === 'All' ? ['all'] : [cat]); setCurrentPage(1); }}
-                                 className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border transition-all ${(cat === 'All' ? selectedCategories.includes('all') : selectedCategories.includes(cat))
-                                    ? 'bg-slate-900 text-white border-slate-900'
-                                    : 'bg-white text-slate-500 border-slate-200'
-                                    }`}
-                              >
-                                 {cat}
-                              </button>
-                           ))}
-                        </div>
-                     </div>
 
                      <div className="p-4 sm:p-5">
                         <ProductSidebarFilter

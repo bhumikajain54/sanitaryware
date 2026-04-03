@@ -45,7 +45,9 @@ public class Product {
 
     @JsonProperty("brand")
     public void setBrand(Object value) {
-        if (value instanceof String) {
+        if (value instanceof Brand) {
+            this.brand = (Brand) value;
+        } else if (value instanceof String) {
             this.brand = Brand.builder().name((String) value).build();
         } else if (value instanceof Integer || value instanceof Long) {
             this.brand = Brand.builder().id(Long.valueOf(value.toString())).build();
@@ -60,7 +62,9 @@ public class Product {
 
     @JsonProperty("category")
     public void setCategory(Object value) {
-        if (value instanceof String) {
+        if (value instanceof Category) {
+            this.category = (Category) value;
+        } else if (value instanceof String) {
             this.category = Category.builder().name((String) value).build();
         } else if (value instanceof Integer || value instanceof Long) {
             this.category = Category.builder().id(Long.valueOf(value.toString())).build();
@@ -77,10 +81,11 @@ public class Product {
     @Column(nullable = false)
     private Double price = 0.0;
 
+    @Builder.Default
     @JsonProperty("stockQuantity")
     @JsonAlias({ "stock", "quantity" })
     @Column(name = "stock_quantity")
-    private Integer stockQuantity;
+    private Integer stockQuantity = 0;
 
     @Builder.Default
     private Boolean active = true;

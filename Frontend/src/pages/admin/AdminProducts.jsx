@@ -511,12 +511,23 @@ const AdminProducts = () => {
           onClose={closeModal}
           onSave={async (data) => {
             try {
-              const stockValue = parseInt(data.stock.toString().replace(/[^0-9]/g, '')) || 0;
+              const stockValue = parseInt(data.stock?.toString().replace(/[^0-9]/g, '')) || 0;
+
+              // Clean data for backend: only send what the entity expects
               const sanitizedData = {
-                ...modalData, ...data,
-                price: parseFloat(data.price.toString().replace(/[^0-9.]/g, '')) || 0,
-                stock: stockValue, stockQuantity: stockValue, quantity: stockValue, qty: stockValue, inventory: stockValue
+                id: modalData?.id || undefined,
+                name: data.name?.trim(),
+                description: data.description || '',
+                features: data.features || '',
+                price: parseFloat(data.price?.toString().replace(/[^0-9.]/g, '')) || 0,
+                stockQuantity: stockValue,
+                mainImage: data.mainImage || '',
+                active: data.status === 'active',
+                featured: modalData?.featured || false,
+                brand: data.brand,
+                category: data.category
               };
+
               if (modalData?.id) {
                 await adminService.updateProduct(modalData.id, sanitizedData);
                 success('Product updated successfully');
@@ -524,14 +535,18 @@ const AdminProducts = () => {
                 await adminService.createProduct(sanitizedData);
                 success('Product created successfully');
               }
-              if (sanitizedData.stock === 0) {
+
+              if (stockValue === 0) {
                 try {
                   await adminService.sendStockAlert({ id: modalData?.id || 'NEW', name: sanitizedData.name, stock: 0 });
                   info(`Stock Alert sent for ${sanitizedData.name}`);
                 } catch (alertErr) { console.warn('Failed to send stock alert:', alertErr); }
               }
               refetch(); closeModal();
-            } catch (err) { error('Failed to save product changes'); }
+            } catch (err) {
+              console.error('Save error:', err);
+              error(err.message || 'Failed to save product changes');
+            }
           }}
         />
       )}

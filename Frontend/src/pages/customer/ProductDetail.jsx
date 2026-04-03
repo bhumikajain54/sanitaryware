@@ -15,13 +15,18 @@ import { useAuth } from '../../context/AuthContext';
 import { useWishlist } from '../../context/WishlistContext';
 import customerService from '../../services/customerService';
 import AddToCartButton from '../../components/common/AddToCartButton';
+import SafeImage from '../../components/common/SafeImage';
 import { toast } from 'react-hot-toast';
+
+import { formatMediaUrl } from '../../utils/mediaUtils';
 
 /* ─── Premium Image Zoom Component ─── */
 const ImageGallery = ({ images, name }) => {
   const [active, setActive] = useState(0);
   const [zoom, setZoom] = useState({ x: 0, y: 0, show: false });
   const containerRef = useRef(null);
+
+  const activeSrc = formatMediaUrl(images[active]);
 
   const handleMouseMove = (e) => {
     if (!containerRef.current) return;
@@ -43,7 +48,7 @@ const ImageGallery = ({ images, name }) => {
             className={`w-16 h-16 md:w-20 md:h-20 rounded-xl border-2 transition-all flex-shrink-0 bg-white dark:bg-slate-800 p-1.5 ${active === i ? 'border-teal-500 shadow-md ring-2 ring-teal-50 dark:ring-teal-900/20' : 'border-slate-100 dark:border-slate-700 hover:border-slate-300'
               }`}
           >
-            <img src={img} alt={name} className="w-full h-full object-contain" />
+            <SafeImage src={img} alt={name} className="w-full h-full object-contain" />
           </button>
         ))}
       </div>
@@ -56,10 +61,8 @@ const ImageGallery = ({ images, name }) => {
           onMouseLeave={() => setZoom({ ...zoom, show: false })}
           className="aspect-square bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-xl shadow-slate-200/50 dark:shadow-none overflow-hidden cursor-zoom-in relative group"
         >
-          <motion.img
+          <SafeImage
             key={active}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
             src={images[active]}
             alt={name}
             className="w-full h-full object-contain p-8 md:p-12"
@@ -74,7 +77,7 @@ const ImageGallery = ({ images, name }) => {
                 exit={{ opacity: 0 }}
                 className="absolute inset-0 z-10 pointer-events-none hidden md:block rounded-3xl"
                 style={{
-                  backgroundImage: `url(${images[active]})`,
+                  backgroundImage: `url(${activeSrc})`,
                   backgroundPosition: `${zoom.x}% ${zoom.y}%`,
                   backgroundSize: '220%',
                   backgroundRepeat: 'no-repeat',
@@ -607,7 +610,7 @@ const ProductDetail = () => {
             >
               <div className="aspect-square bg-slate-50 dark:bg-slate-800 rounded-[1.75rem] overflow-hidden mb-5 p-6 relative">
                 <Link to={`/product/${item.id}`}>
-                  <img src={item.image || '/Logo2.png'} alt={item.name} className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-700 mix-blend-multiply dark:mix-blend-normal" />
+                  <SafeImage src={item.image} alt={item.name} className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-700 mix-blend-multiply dark:mix-blend-normal" />
                 </Link>
                 <button className="absolute bottom-4 right-4 w-10 h-10 bg-white dark:bg-slate-700 text-slate-400 hover:text-rose-500 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-110">
                   <MdFavoriteBorder size={18} />

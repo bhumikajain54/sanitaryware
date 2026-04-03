@@ -86,9 +86,20 @@ public class FileStorageService {
      * Loads a file resource with security and 404 handling (Requirement 1 & 6).
      */
     public Resource load(String filename) {
+        if (filename == null || filename.isBlank()) {
+            return null;
+        }
+
         try {
             // Normalize path to prevent ../ attacks
-            Path filePath = this.root.resolve(filename).normalize();
+            // Catch InvalidPathException for cases like base64 data being passed as filename
+            Path filePath;
+            try {
+                filePath = this.root.resolve(filename).normalize();
+            } catch (java.nio.file.InvalidPathException e) {
+                return null;
+            }
+
             if (!filePath.startsWith(this.root)) {
                 return null; // Security violation
             }

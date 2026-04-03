@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { MdImage } from 'react-icons/md';
+import { formatMediaUrl } from '../../utils/mediaUtils';
 
 /**
  * Senior-level Robust Image Component.
@@ -10,22 +11,7 @@ const SafeImage = ({ src, alt, className, ...props }) => {
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  let cleanSrc = src;
-  if (typeof src === 'string') {
-    cleanSrc = src.replace(/https?:\/\/localhost:8080/i, '');
-    
-    // Skip transformation for special URLs (blobs, data-uris, etc)
-    const isSpecial = cleanSrc.startsWith('/api/') || 
-                      cleanSrc.startsWith('data:') || 
-                      cleanSrc.startsWith('blob:') || 
-                      cleanSrc.startsWith('http');
-
-    if (!isSpecial && cleanSrc.length > 0) {
-        if (cleanSrc.startsWith('media/')) cleanSrc = '/api/' + cleanSrc;
-        else if (cleanSrc.startsWith('/media/')) cleanSrc = '/api' + cleanSrc;
-        else if (!cleanSrc.startsWith('/')) cleanSrc = '/api/media/' + cleanSrc;
-    }
-  }
+  const cleanSrc = formatMediaUrl(src);
 
   // Fallback for errors or missing source
   if (error || !src) {

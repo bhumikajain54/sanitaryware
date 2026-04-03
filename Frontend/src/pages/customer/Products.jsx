@@ -24,6 +24,7 @@ import customerService from '../../services/customerService';
 import ComparisonBar from '../../components/common/ComparisonBar';
 import ComparisonModal from '../../components/common/ComparisonModal';
 import AddToCartButton from '../../components/common/AddToCartButton';
+import SafeImage from '../../components/common/SafeImage';
 
 /* ─── FilterDropdown ─── */
 const FilterDropdown = ({ label, activeCount, children }) => {
@@ -89,18 +90,13 @@ const CompactProductCard = ({ product, addToCart, toggleWishlist, isInWishlist, 
          {/* Image */}
          <div className="relative aspect-square overflow-hidden bg-slate-50 flex items-center justify-center">
             <Link to={`/product/${product.id}`} className="w-full h-full block">
-               <img
-                  src={imgSrc || '/Logo2.png'}
+               <SafeImage
+                  src={product.image}
                   alt={product.name}
-                  loading="lazy"
-                  onError={(e) => {
-                     setHasError(true);
-                     setImgSrc('/Logo2.png');
-                     e.target.src = '/Logo2.png';
-                     e.target.classList.add('object-contain', 'p-4');
-                     e.target.classList.remove('object-cover');
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 bg-slate-50"
+                  onErrorCapture={(e) => {
+                     e.currentTarget.src = '/Logo2.png';
                   }}
-                  className={`w-full h-full ${hasError || !imgSrc || imgSrc === '/Logo2.png' ? 'object-contain p-4' : 'object-cover'} group-hover:scale-105 transition-transform duration-700 bg-slate-50`}
                />
             </Link>
 
@@ -492,10 +488,9 @@ const Products = () => {
                         /* List view */
                         <div key={product.id} className="bg-white rounded-xl p-3 sm:p-4 border border-slate-100 flex gap-3 sm:gap-4 hover:border-teal-500 transition-all shadow-sm">
                            <Link to={`/product/${product.id}`} className="w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 bg-slate-50 rounded-lg overflow-hidden flex-shrink-0 group/img">
-                              <img
-                                 src={product.image || '/Logo2.png'}
+                              <SafeImage
+                                 src={product.image}
                                  alt={product.name}
-                                 onError={(e) => { e.target.src = '/Logo2.png'; e.target.classList.add('object-contain', 'p-2'); e.target.classList.remove('object-cover'); }}
                                  className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-500"
                               />
                            </Link>

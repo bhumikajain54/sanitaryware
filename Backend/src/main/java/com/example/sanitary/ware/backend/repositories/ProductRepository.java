@@ -22,13 +22,13 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
         @Query(value = "SELECT p FROM Product p " +
                         "LEFT JOIN FETCH p.brand " +
                         "LEFT JOIN FETCH p.category " +
-                        "WHERE (:query IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%'))) " +
+                        "WHERE (CAST(:query AS text) IS NULL OR LOWER(CAST(p.name AS text)) LIKE LOWER(CONCAT('%', CAST(:query AS text), '%'))) " +
                         "AND (:categoryId IS NULL OR p.category.id = :categoryId) " +
                         "AND (:brandId IS NULL OR p.brand.id = :brandId) " +
                         "AND (:minPrice IS NULL OR p.price >= :minPrice) " +
                         "AND (:maxPrice IS NULL OR p.price <= :maxPrice)",
                 countQuery = "SELECT count(p) FROM Product p WHERE " +
-                        "(:query IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%'))) " +
+                        "(CAST(:query AS text) IS NULL OR LOWER(CAST(p.name AS text)) LIKE LOWER(CONCAT('%', CAST(:query AS text), '%'))) " +
                         "AND (:categoryId IS NULL OR p.category.id = :categoryId) " +
                         "AND (:brandId IS NULL OR p.brand.id = :brandId) " +
                         "AND (:minPrice IS NULL OR p.price >= :minPrice) " +
@@ -40,7 +40,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
                         @Param("maxPrice") Double maxPrice,
                         Pageable pageable);
 
-        @Query("SELECT p FROM Product p LEFT JOIN FETCH p.brand LEFT JOIN FETCH p.category WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%'))")
+        @Query("SELECT p FROM Product p LEFT JOIN FETCH p.brand LEFT JOIN FETCH p.category WHERE LOWER(CAST(p.name AS text)) LIKE LOWER(CONCAT('%', CAST(:query AS text), '%'))")
         List<Product> searchByName(@Param("query") String query);
 
         java.util.Optional<Product> findByName(String name);

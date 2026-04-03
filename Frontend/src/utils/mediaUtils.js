@@ -6,44 +6,68 @@ export const formatMediaUrl = (src) => {
   if (!src || typeof src !== 'string') return '/Logo2.png';
 
   const trimmed = src.trim();
-  let cleanSrc = trimmed.replace(/https?:\/\/localhost:8080/i, '');
+  // Strip common database character leaks and ensure base64 integrity
+  let cleanSrc = trimmed.replace(/[\n\r\s]/g, '').replace(/https?:\/\/localhost:8080/i, '');
+
+  // Handle existing data URIs by peeling the prefix for deep scanning
+  let dataPrefix = "";
+  if (cleanSrc.startsWith('data:')) {
+      const commaIdx = cleanSrc.indexOf(',');
+      if (commaIdx !== -1) {
+          dataPrefix = cleanSrc.substring(0, commaIdx + 1);
+          cleanSrc = cleanSrc.substring(commaIdx + 1);
+      }
+  }
+
+  // 1. Deep Scan: Remove specialized Vivo/Oppo/Android metadata wrappers (starts with 9kAW)
+  if (cleanSrc.includes('9kAW3') || cleanSrc.includes('XQB3dG1r')) {
+      const jpegStartIdx = cleanSrc.indexOf('/9j/');
+      const rawJpegStartIdx = cleanSrc.indexOf('9j/');
+      
+      if (jpegStartIdx !== -1) {
+          cleanSrc = cleanSrc.substring(jpegStartIdx);
+          dataPrefix = "data:image/jpeg;base64,"; // Force correct header
+      } else if (rawJpegStartIdx !== -1) {
+          cleanSrc = cleanSrc.substring(rawJpegStartIdx);
+          dataPrefix = "data:image/jpeg;base64,"; // Force correct header
+      }
+  }
 
   // Detect raw base64 data (if prefix is missing)
-  // Common JPEG base64 starts with /9j/ or 9j/
   const isBase64 = cleanSrc.length > 50 && (
     cleanSrc.startsWith('iVBORw0KG') || // PNG
     cleanSrc.startsWith('/9j/') ||      // JPEG
     cleanSrc.startsWith('9j/') ||       // JPEG (no leading slash)
     cleanSrc.startsWith('R0lGODlh') ||  // GIF
-    cleanSrc.startsWith('UklGR') ||     // WEBP
-    cleanSrc.startsWith('9kAW3')        // Specialized / Watermarked formats
+    cleanSrc.startsWith('UklGR')        // WEBP
   );
 
-  // Recovery: If it's exceptionally long and has no whitespace, it's almost certainly broken Base64
-  const isLikelyBase64 = !isBase64 && cleanSrc.length > 200 && !/\s/.test(cleanSrc);
-
-  if ((isBase64 || isLikelyBase64) && !cleanSrc.startsWith('data:')) {
-    // If it starts with a slash but is clearly base64 (/9j/...), we treat it as raw data
+  // 2. Resolve RAW missing headers OR Re-apply peeled headers
+  if (isBase64) {
     if (cleanSrc.startsWith('iVBORw0KG')) return `data:image/png;base64,${cleanSrc}`;
     if (cleanSrc.startsWith('/9j/') || cleanSrc.startsWith('9j/')) {
-        // If it starts with /9j/, it might have been intended as a path, but it's raw data.
-        // We strip the leading slash if it exists before adding the prefix for maximum compatibility.
         const dataStr = cleanSrc.startsWith('/') ? cleanSrc.substring(1) : cleanSrc;
         return `data:image/jpeg;base64,${dataStr}`;
     }
     if (cleanSrc.startsWith('R0lGODlh')) return `data:image/gif;base64,${cleanSrc}`;
     if (cleanSrc.startsWith('UklGR')) return `data:image/webp;base64,${cleanSrc}`;
-    
-    // Fallback for 9kAW3 or other raw formats
-    return `data:image/jpeg;base64,${cleanSrc}`;
+  }
+
+  // If we peeled a prefix and cleaned the body, return the re-combined string
+  if (dataPrefix && cleanSrc.length > 50) {
+      return dataPrefix + cleanSrc;
+  }
+
+  // 3. Length Guard: If it's a suspiciously long raw string that missed markers
+  if (cleanSrc.length > 200 && !dataPrefix && !cleanSrc.includes('/') && !cleanSrc.includes('http')) {
+      return `data:image/jpeg;base64,${cleanSrc}`;
   }
 
   // Skip transformation for special URLs (blobs, data-uris, http, etc)
   const isSpecial = cleanSrc.startsWith('/api/') || 
-                    cleanSrc.startsWith('data:') || 
+                    dataPrefix || 
                     cleanSrc.startsWith('blob:') || 
-                    cleanSrc.startsWith('http') ||
-                    isBase64 || isLikelyBase64;
+                    cleanSrc.startsWith('http');
 
   if (!isSpecial && cleanSrc.length > 0) {
     if (cleanSrc.startsWith('media/')) return `/api/${cleanSrc}`;

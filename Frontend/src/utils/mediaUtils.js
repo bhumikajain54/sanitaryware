@@ -19,17 +19,30 @@ export const formatMediaUrl = (src) => {
       }
   }
 
-  // 1. Deep Scan: Remove specialized Vivo/Oppo/Android metadata wrappers (starts with 9kAW)
+  // 1. Deep Scan: Remove specialized Vivo/Oppo/Android metadata wrappers
+  // These can be at the START or the END of the string.
   if (cleanSrc.includes('9kAW3') || cleanSrc.includes('XQB3dG1r')) {
+      const metadataStartIdx = cleanSrc.indexOf('9kAW3');
       const jpegStartIdx = cleanSrc.indexOf('/9j/');
       const rawJpegStartIdx = cleanSrc.indexOf('9j/');
       
-      if (jpegStartIdx !== -1) {
+      // Case A: Image starts correctly but has junk at the end
+      if ((jpegStartIdx === 0 || rawJpegStartIdx === 0) && metadataStartIdx > 0) {
+          cleanSrc = cleanSrc.substring(0, metadataStartIdx);
+      } 
+      // Case B: Junk at the start, need to find the real image
+      else if (jpegStartIdx !== -1) {
           cleanSrc = cleanSrc.substring(jpegStartIdx);
-          dataPrefix = "data:image/jpeg;base64,"; // Force correct header
+          dataPrefix = "data:image/jpeg;base64,"; 
       } else if (rawJpegStartIdx !== -1) {
           cleanSrc = cleanSrc.substring(rawJpegStartIdx);
-          dataPrefix = "data:image/jpeg;base64,"; // Force correct header
+          dataPrefix = "data:image/jpeg;base64,";
+      }
+
+      // Final cleanup: if metadata marker is still there at the very end, chop it
+      const finalMetadataCheck = cleanSrc.indexOf('9kAW3');
+      if (finalMetadataCheck > 50) { // Only if it's not the actual start of a raw-raw string
+          cleanSrc = cleanSrc.substring(0, finalMetadataCheck);
       }
   }
 

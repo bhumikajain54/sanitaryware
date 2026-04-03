@@ -15,14 +15,21 @@ export const formatMediaUrl = (src) => {
     cleanSrc.startsWith('/9j/') ||      // JPEG
     cleanSrc.startsWith('9j/') ||       // JPEG (no leading slash)
     cleanSrc.startsWith('R0lGODlh') ||  // GIF
-    cleanSrc.startsWith('UklGR')        // WEBP
+    cleanSrc.startsWith('UklGR') ||     // WEBP
+    cleanSrc.startsWith('9kAW3')        // Specialized / Watermarked formats
   );
 
-  if (isBase64 && !cleanSrc.startsWith('data:')) {
+  // Recovery: If it's exceptionally long and has no whitespace, it's almost certainly broken Base64
+  const isLikelyBase64 = !isBase64 && cleanSrc.length > 200 && !/\s/.test(cleanSrc);
+
+  if ((isBase64 || isLikelyBase64) && !cleanSrc.startsWith('data:')) {
     if (cleanSrc.startsWith('iVBORw0KG')) return `data:image/png;base64,${cleanSrc}`;
     if (cleanSrc.startsWith('/9j/') || cleanSrc.startsWith('9j/')) return `data:image/jpeg;base64,${cleanSrc}`;
     if (cleanSrc.startsWith('R0lGODlh')) return `data:image/gif;base64,${cleanSrc}`;
     if (cleanSrc.startsWith('UklGR')) return `data:image/webp;base64,${cleanSrc}`;
+    
+    // Fallback for 9kAW3 or other raw formats
+    return `data:image/jpeg;base64,${cleanSrc}`;
   }
 
   // Skip transformation for special URLs (blobs, data-uris, http, etc)
@@ -30,7 +37,7 @@ export const formatMediaUrl = (src) => {
                     cleanSrc.startsWith('data:') || 
                     cleanSrc.startsWith('blob:') || 
                     cleanSrc.startsWith('http') ||
-                    isBase64;
+                    isBase64 || isLikelyBase64;
 
   if (!isSpecial && cleanSrc.length > 0) {
     if (cleanSrc.startsWith('media/')) return `/api/${cleanSrc}`;

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+import { formatMediaUrl } from '../../utils/mediaUtils';
 
 const HeroSlider = ({ banners = [] }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -8,7 +9,7 @@ const HeroSlider = ({ banners = [] }) => {
   // Map backend field names if they are different (for compatibility)
   const displayBanners = banners.map(b => ({
     ...b,
-    imageUrl: b.imageUrl || b.image,
+    imageUrl: formatMediaUrl(b.imageUrl || b.image),
     description: b.description || b.subtitle,
     linkUrl: b.linkUrl || b.link || '/shop'
   })).filter(b => b.active !== false); // Filter out inactive ones

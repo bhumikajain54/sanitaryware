@@ -20,6 +20,8 @@ import {
 import { FaFacebookF, FaInstagram } from 'react-icons/fa';
 import customerService from '../services/customerService';
 import HeroSlider from '../components/home/HeroSlider';
+import SafeImage from '../components/common/SafeImage';
+import { formatMediaUrl } from '../utils/mediaUtils';
 
 // ─── Skeleton Components ──────────────────────────────────────────────────────
 const CategorySkeleton = () => (
@@ -256,7 +258,7 @@ const LandingPage = () => {
                 className="group relative h-[160px] sm:h-[240px] md:h-[340px] lg:h-[420px] xl:h-[450px] rounded-2xl sm:rounded-[1.5rem] lg:rounded-[2.5rem] overflow-hidden shadow-2xl"
               >
                 <img
-                  src={cat.image || '/Logo2.png'}
+                  src={formatMediaUrl(cat.image)}
                   alt={cat.name}
                   loading={idx > 1 ? 'lazy' : 'eager'}
                   onError={(e) => {
@@ -317,7 +319,7 @@ const LandingPage = () => {
               >
                 <div className="aspect-square overflow-hidden bg-white">
                   <img
-                    src={product.image || '/Logo2.png'}
+                    src={formatMediaUrl(product.image)}
                     alt={product.name}
                     loading={idx > 1 ? 'lazy' : 'eager'}
                     onError={(e) => {
@@ -370,13 +372,30 @@ const LandingPage = () => {
 
           <div className="flex flex-wrap justify-center items-center gap-x-8 sm:gap-x-12 md:gap-x-16 gap-y-6 sm:gap-y-8 md:gap-y-12 opacity-60 grayscale hover:grayscale-0 transition-all">
             {brands.map((brand, idx) => (
-              <motion.img
+              <motion.div
                 key={idx}
-                whileHover={{ scale: 1.1, opacity: 1 }}
-                src={brand.logo}
-                alt={brand.name}
-                className="h-7 sm:h-9 md:h-12 lg:h-16 w-auto object-contain cursor-pointer"
-              />
+                whileHover={{ scale: 1.05 }}
+                className="flex flex-col items-center group cursor-pointer"
+              >
+                <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center p-4 sm:p-6 transition-all group-hover:shadow-xl group-hover:border-teal-100 group-hover:bg-white overflow-hidden relative">
+                  {!brand.logo || brand.logo === 'null' ? (
+                    <div className="flex flex-col items-center justify-center text-center">
+                      <span className="text-xl sm:text-2xl md:text-3xl font-black text-teal-600/30 group-hover:text-teal-600/60 transition-colors uppercase">
+                        {brand.name?.substring(0, 2) || 'B'}
+                      </span>
+                      <span className="text-[8px] md:text-[10px] font-black text-slate-300 uppercase tracking-tighter mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {brand.name}
+                      </span>
+                    </div>
+                  ) : (
+                    <SafeImage
+                      src={brand.logo}
+                      alt={brand.name}
+                      className="w-full h-full object-contain filter grayscale group-hover:grayscale-0 transition-all duration-500"
+                    />
+                  )}
+                </div>
+              </motion.div>
             ))}
           </div>
         </div>

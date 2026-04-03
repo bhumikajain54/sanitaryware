@@ -68,15 +68,6 @@ const AddProduct = () => {
     });
   };
 
-  const fileToBase64 = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = (error) => reject(error);
-    });
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setUploading(true);
@@ -84,22 +75,22 @@ const AddProduct = () => {
     try {
       let finalImageUrl = formData.image;
 
-      // 1. Convert to Base64 if a new file is selected (Base64 Armor)
+      // 1. Upload image if a new file is selected
       if (imageFile) {
-        try {
-          finalImageUrl = await fileToBase64(imageFile);
-        } catch (err) {
-          console.error('Base64 conversion failed:', err);
-          throw new Error('Failed to process image file');
-        }
+        const uploadData = new FormData();
+        uploadData.append('file', imageFile);
+        
+        // This assumes adminService.uploadMedia exists or we use a direct fetch
+        const uploadRes = await adminService.uploadMedia(uploadData);
+        finalImageUrl = uploadRes.url;
       }
 
-      // 2. Prepare final product data with direct DB storage
+      // 2. Prepare final product data
       const newProduct = {
         ...formData,
-        mainImage: finalImageUrl, // Map to backend entity field for persistence
+        mainImage: finalImageUrl, // Map to backend entity field
         price: parseFloat(formData.price),
-        stockQuantity: parseInt(formData.stock || 0),
+        stockQuantity: parseInt(formData.stock || 0), // Map to backend field
         active: formData.inStock,
       };
 
@@ -108,7 +99,7 @@ const AddProduct = () => {
       navigate('/admin/products');
     } catch (err) {
       console.error('Failed to add product:', err);
-      alert(err.response?.data?.message || 'Failed to add product: ' + err.message);
+      alert(err.response?.data?.message || 'Failed to add product. Please try again.');
     } finally {
       setUploading(false);
     }

@@ -21,9 +21,13 @@ public class AdminProductController {
     private final ProductService productService;
 
     @GetMapping
-    public ResponseEntity<List<Product>> getAllProducts() {
+    public ResponseEntity<List<Product>> getAllProducts(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) {
         return ResponseEntity
-                .ok(productService.getAllProducts("", null, null, null, null, 0, Integer.MAX_VALUE).getContent());
+                .ok(productService.getAllProducts("", null, null, null, null, 
+                    page != null ? page : 0, 
+                    size != null ? size : 50).getContent());
     }
 
     @PostMapping("/import")

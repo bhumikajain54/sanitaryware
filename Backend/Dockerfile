@@ -37,4 +37,4 @@ EXPOSE 8080
 # Specify the command to run the application with dynamic port for Render
 # Memory optimization for Render Free Tier (512MB)
 # Explicit 0.0.0.0 binding on the provided PORT
-ENTRYPOINT ["sh", "-c", "java -Xmx256m -Xms224m -Dserver.port=${PORT:-8080} -Dserver.address=0.0.0.0 -jar app.jar"]
+ENTRYPOINT ["sh", "-c", "java -Xmx384m -Xms320m -XX:+UseG1GC -Dserver.port=${PORT:-8080} -Dserver.address=0.0.0.0 -jar app.jar"]

@@ -29,7 +29,7 @@ public class ProductController {
         return ResponseEntity
                 .ok(productService
                         .getAllProducts(keyword, categoryId, brandId, minPrice, maxPrice, page != null ? page : 0,
-                                size != null ? size : Integer.MAX_VALUE)
+                                size != null ? size : 20)
                         .getContent());
     }
 

@@ -19,19 +19,20 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
         List<Product> findByFeaturedTrue();
 
-        @Query(value = "SELECT * FROM products p WHERE " +
-                        "(CAST(:query AS text) IS NULL OR CAST(p.name AS text) ILIKE '%' || CAST(:query AS text) || '%') " +
-                        "AND (CAST(:categoryId AS bigint) IS NULL OR p.category_id = CAST(:categoryId AS bigint)) " +
-                        "AND (CAST(:brandId AS bigint) IS NULL OR p.brand_id = CAST(:brandId AS bigint)) " +
-                        "AND (CAST(:minPrice AS double precision) IS NULL OR p.price >= CAST(:minPrice AS double precision)) " +
-                        "AND (CAST(:maxPrice AS double precision) IS NULL OR p.price <= CAST(:maxPrice AS double precision))", 
-                countQuery = "SELECT count(*) FROM products p WHERE " +
-                        "(CAST(:query AS text) IS NULL OR CAST(p.name AS text) ILIKE '%' || CAST(:query AS text) || '%') " +
-                        "AND (CAST(:categoryId AS bigint) IS NULL OR p.category_id = CAST(:categoryId AS bigint)) " +
-                        "AND (CAST(:brandId AS bigint) IS NULL OR p.brand_id = CAST(:brandId AS bigint)) " +
-                        "AND (CAST(:minPrice AS double precision) IS NULL OR p.price >= CAST(:minPrice AS double precision)) " +
-                        "AND (CAST(:maxPrice AS double precision) IS NULL OR p.price <= CAST(:maxPrice AS double precision))",
-                nativeQuery = true)
+        @Query(value = "SELECT p FROM Product p " +
+                        "LEFT JOIN FETCH p.brand " +
+                        "LEFT JOIN FETCH p.category " +
+                        "WHERE (:query IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%'))) " +
+                        "AND (:categoryId IS NULL OR p.category.id = :categoryId) " +
+                        "AND (:brandId IS NULL OR p.brand.id = :brandId) " +
+                        "AND (:minPrice IS NULL OR p.price >= :minPrice) " +
+                        "AND (:maxPrice IS NULL OR p.price <= :maxPrice)",
+                countQuery = "SELECT count(p) FROM Product p WHERE " +
+                        "(:query IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%'))) " +
+                        "AND (:categoryId IS NULL OR p.category.id = :categoryId) " +
+                        "AND (:brandId IS NULL OR p.brand.id = :brandId) " +
+                        "AND (:minPrice IS NULL OR p.price >= :minPrice) " +
+                        "AND (:maxPrice IS NULL OR p.price <= :maxPrice)")
         Page<Product> searchProducts(@Param("query") String query,
                         @Param("categoryId") Long categoryId,
                         @Param("brandId") Long brandId,
@@ -39,7 +40,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
                         @Param("maxPrice") Double maxPrice,
                         Pageable pageable);
 
-        @Query(value = "SELECT * FROM products p WHERE CAST(p.name AS text) ILIKE '%' || CAST(:query AS text) || '%'", nativeQuery = true)
+        @Query("SELECT p FROM Product p LEFT JOIN FETCH p.brand LEFT JOIN FETCH p.category WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%'))")
         List<Product> searchByName(@Param("query") String query);
 
         java.util.Optional<Product> findByName(String name);

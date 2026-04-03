@@ -25,6 +25,18 @@
   status = 200
   force = true
 
+[[redirects]]
+  from = "/uploads/*"
+  to = "https://sanitaryware-xu94.onrender.com/uploads/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/media/*"
+  to = "https://sanitaryware-xu94.onrender.com/media/:splat"
+  status = 200
+  force = true
+
 # ============================================
 # SPA ROUTING CONFIGURATION
 # ============================================

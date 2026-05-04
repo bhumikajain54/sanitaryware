@@ -42,8 +42,12 @@ public class MediaController {
 
         Map<String, String> response = new HashMap<>();
         response.put("filename", filename);
-        // Return relative URL for the frontend to use
-        response.put("url", "/api/media/" + filename);
+        
+        // If it's a full URL (Cloudinary), return it directly. 
+        // Otherwise, return the local proxy path.
+        String url = filename.startsWith("http") ? filename : "/api/media/" + filename;
+        response.put("url", url);
+        
         return ResponseEntity.ok(response);
     }
 

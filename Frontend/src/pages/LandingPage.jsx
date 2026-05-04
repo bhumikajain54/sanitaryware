@@ -90,8 +90,10 @@ const LandingPage = () => {
           : (productsData?.content || productsData?.data || []);
         const normalizedProducts = rawProducts.map(p => ({
           ...p,
+          id: p.id || p.productId,
           brand: p.brand && typeof p.brand === 'object' ? p.brand.name : (p.brand || 'No Brand'),
           category: p.category && typeof p.category === 'object' ? p.category.name : (p.category || 'No Category'),
+          image: (Array.isArray(p.images) && p.images.length) ? p.images[0] : (p.mainImage || p.image || '/Logo2.png'),
         })).slice(0, 4);
 
         setProducts(normalizedProducts);

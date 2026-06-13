@@ -36,6 +36,9 @@ public class CMSPage {
     @Column(columnDefinition = "TEXT")
     private String metaDescription;
 
+    @Column(name = "image_url", columnDefinition = "TEXT")
+    private String imageUrl;
+
     private boolean active;
 
     private LocalDateTime updatedAt;

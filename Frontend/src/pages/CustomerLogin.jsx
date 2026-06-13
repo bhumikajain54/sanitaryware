@@ -593,8 +593,7 @@ const CustomerLogin = () => {
 
 // ─── Wrapper ─────────────────────────────────────────────────────────────────
 const WrappedCustomerLogin = (props) => {
-  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-  if (!clientId) return <CustomerLogin {...props} />;
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'dummy-client-id-to-prevent-crash';
   return (
     <GoogleOAuthProvider clientId={clientId}>
       <CustomerLogin {...props} />

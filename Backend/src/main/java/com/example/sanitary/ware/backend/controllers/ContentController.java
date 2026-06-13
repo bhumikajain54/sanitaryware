@@ -2,6 +2,10 @@ package com.example.sanitary.ware.backend.controllers;
 
 import com.example.sanitary.ware.backend.entities.CMSPage;
 import com.example.sanitary.ware.backend.services.CMSPageService;
+import com.example.sanitary.ware.backend.entities.Feature;
+import com.example.sanitary.ware.backend.entities.Stat;
+import com.example.sanitary.ware.backend.repositories.FeatureRepository;
+import com.example.sanitary.ware.backend.repositories.StatRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +19,18 @@ import java.util.List;
 public class ContentController {
 
     private final CMSPageService pageService;
+    private final StatRepository statRepository;
+    private final FeatureRepository featureRepository;
+
+    @GetMapping("/stats")
+    public ResponseEntity<List<Stat>> getStats() {
+        return ResponseEntity.ok(statRepository.findAll());
+    }
+
+    @GetMapping("/features")
+    public ResponseEntity<List<Feature>> getFeatures() {
+        return ResponseEntity.ok(featureRepository.findAll());
+    }
 
     @GetMapping
     public ResponseEntity<List<CMSPage>> getAllPages() {

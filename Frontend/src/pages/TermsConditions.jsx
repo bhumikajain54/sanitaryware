@@ -1,66 +1,50 @@
-import { motion } from 'framer-motion';
-import { MdGavel, MdUpdate, MdCheckCircle, MdInfo } from 'react-icons/md';
+import { useState, useEffect } from 'react';
+import customerService from '../services/customerService';
+import { MdErrorOutline } from 'react-icons/md';
 
 const TermsConditions = () => {
+  const [page, setPage] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPage = async () => {
+      try {
+        const data = await customerService.getPageBySlug('terms');
+        setPage(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPage();
+  }, []);
+
+  if (loading) return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><div className="animate-spin w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full" /></div>;
+
+  if (!page || page.error) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 text-center">
+        <MdErrorOutline className="text-6xl text-slate-300 mb-4" />
+        <h2 className="text-2xl font-bold text-slate-800 uppercase">Terms & Conditions</h2>
+        <p className="text-slate-500 mt-2">Content is currently being updated.</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-slate-50 py-16 px-4 md:px-8">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div className="text-center space-y-4">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-teal-600/10 rounded-3xl text-teal-600 mb-4">
-            <MdGavel size={40} />
-          </div>
-          <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">Terms & Conditions</h1>
-          <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Agreement between User and Singhai Traders</p>
-        </div>
-
-        <div className="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-xl border border-slate-100 space-y-8">
-          <section className="space-y-4">
-            <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
-              <MdInfo className="text-teal-600" />
-              1. Acceptance of Terms
-            </h2>
-            <p className="text-slate-600 leading-relaxed font-medium">
-              By accessing and using this website, you accept and agree to be bound by the terms and provision of this agreement. In addition, when using these particular services, you shall be subject to any posted guidelines or rules applicable to such services.
-            </p>
-          </section>
-
-          <section className="space-y-4">
-            <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
-              <MdCheckCircle className="text-teal-600" />
-              2. Privacy Policy
-            </h2>
-            <p className="text-slate-600 leading-relaxed font-medium">
-              Your use of the site is also governed by our Privacy Policy. Please review our Privacy Policy, which also governs the Site and informs users of our data collection practices.
-            </p>
-          </section>
-
-          <section className="space-y-4">
-            <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
-              <MdInfo className="text-teal-600" />
-              3. Electronic Communications
-            </h2>
-            <p className="text-slate-600 leading-relaxed font-medium">
-              Visiting this site or sending emails to Singhai Traders constitutes electronic communications. You consent to receive electronic communications and you agree that all agreements, notices, disclosures and other communications that we provide to you electronically, via email and on the Site, satisfy any legal requirement that such communications be in writing.
-            </p>
-          </section>
-
-          <section className="space-y-4">
-            <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
-              <MdInfo className="text-teal-600" />
-              4. Your Account
-            </h2>
-            <p className="text-slate-600 leading-relaxed font-medium">
-              If you use this site, you are responsible for maintaining the confidentiality of your account and password and for restricting access to your computer, and you agree to accept responsibility for all activities that occur under your account or password.
-            </p>
-          </section>
-
-          <div className="pt-8 border-t border-slate-100 flex items-center justify-between">
-            <div className="flex items-center gap-2 text-slate-400 font-black uppercase tracking-widest text-[10px]">
-              <MdUpdate />
-              Last Updated: March 2026
-            </div>
-          </div>
-        </div>
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto bg-white p-6 sm:p-10 lg:p-16 shadow-xl rounded-3xl border border-slate-100">
+        {page.imageUrl && (
+          <img src={page.imageUrl} alt={page.title} className="w-full h-48 sm:h-64 lg:h-80 object-cover rounded-2xl mb-8 shadow-sm" />
+        )}
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 mb-8 uppercase tracking-tighter border-b border-slate-100 pb-6">
+          {page.title}
+        </h1>
+        <div 
+          className="prose prose-sm sm:prose-base lg:prose-lg prose-slate max-w-none prose-headings:font-black prose-headings:uppercase prose-headings:tracking-tight prose-p:leading-relaxed prose-a:text-teal-600 hover:prose-a:text-teal-500"
+          dangerouslySetInnerHTML={{ __html: page.content }} 
+        />
       </div>
     </div>
   );

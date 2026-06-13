@@ -19,9 +19,9 @@ import {
   MdReceipt,
   MdSync,
   MdPayment,
-  MdDescription,
   MdEditNote,
-  MdLocationOn
+  MdLocationOn,
+  MdQueryStats
 } from 'react-icons/md';
 import { useAuth } from '../../context/AuthContext';
 
@@ -57,9 +57,9 @@ const AdminSidebar = ({ isMobileOpen, onMobileClose, onMobileToggle }) => {
       '/admin/customers': () => import('../../pages/admin/AdminCustomers'),
       '/admin/testimonials': () => import('../../pages/admin/AdminTestimonials'),
       '/admin/banners': () => import('../../pages/admin/AdminBanners'),
-      '/admin/inquiries': () => import('../../pages/admin/AdminInquiries'),
       '/admin/media': () => import('../../pages/admin/AdminMedia'),
       '/admin/content': () => import('../../pages/admin/AdminContent'),
+      '/admin/stats': () => import('../../pages/admin/AdminStats'),
     };
 
     if (routes[path]) {
@@ -80,10 +80,10 @@ const AdminSidebar = ({ isMobileOpen, onMobileClose, onMobileToggle }) => {
     { name: 'Order Notepad', path: '/admin/order-drafts', icon: MdEditNote, color: 'amber' },
     { name: 'Tally Sync', path: '/admin/tally', icon: MdSync, color: 'rose' },
     { name: 'Testimonials', path: '/admin/testimonials', icon: MdSentimentSatisfied, color: 'yellow' },
-    { name: 'Banners', path: '/admin/banners', icon: MdViewCarousel, color: 'rose' },
     { name: 'Inquiries', path: '/admin/inquiries', icon: MdChat, color: 'emerald' },
     { name: 'Media', path: '/admin/media', icon: MdImage, color: 'orange' },
     { name: 'Content', path: '/admin/content', icon: MdArticle, color: 'green' },
+    { name: 'Stats', path: '/admin/stats', icon: MdQueryStats, color: 'teal' },
   ];
 
   const handleLogout = () => {

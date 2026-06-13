@@ -31,6 +31,7 @@ public class CMSPageService {
                 .status(dto.getStatus())
                 .content(dto.getContent())
                 .metaDescription(dto.getMetaDescription())
+                .imageUrl(dto.getImageUrl())
                 .active(dto.isActive())
                 .build();
         return pageRepository.save(page);
@@ -47,6 +48,7 @@ public class CMSPageService {
         page.setStatus(dto.getStatus());
         page.setContent(dto.getContent());
         page.setMetaDescription(dto.getMetaDescription());
+        page.setImageUrl(dto.getImageUrl());
         page.setActive(dto.isActive());
 
         return pageRepository.save(page);

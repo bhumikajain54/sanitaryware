@@ -29,7 +29,7 @@ const HeroSlider = ({ banners = [] }) => {
     // Fallback Banner if data load fails
     displayBanners.push({
       id: 'default-1',
-      imageUrl: 'https://images.unsplash.com/photo-1584622050111-993a426fbf0a?auto=format&fit=crop&q=80',
+      imageUrl: 'https://images.unsplash.com/photo-1600566752355-35792bedcfea?auto=format&fit=crop&q=80',
       title: 'Modern Sanitary Excellence',
       description: 'Experience the finest collection of premium bath fittings and sanitary ware designed for luxury living.',
       linkUrl: '/shop',

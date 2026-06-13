@@ -60,6 +60,7 @@ const AdminContent = lazy(() => import('./pages/admin/AdminContent'));
 const AdminNotifications = lazy(() => import('./pages/admin/AdminNotifications'));
 const AdminBilling = lazy(() => import('./pages/admin/AdminBilling'));
 const AdminQuotations = lazy(() => import('./pages/admin/AdminQuotations'));
+const AdminStats = lazy(() => import('./pages/admin/AdminStats'));
 const AdminTally = lazy(() => import('./pages/admin/AdminTally'));
 const AdminTallyLedgers = lazy(() => import('./pages/admin/AdminTallyLedgers'));
 const AdminTallyVouchers = lazy(() => import('./pages/admin/AdminTallyVouchers'));
@@ -211,6 +212,7 @@ function App() {
                   <Route path="billing" element={<AdminBilling />} />
                   <Route path="quotations" element={<AdminQuotations />} />
                   <Route path="order-drafts" element={<AdminOrderDrafts />} />
+                  <Route path="stats" element={<AdminStats />} />
                   <Route path="tally" element={<AdminTally />} />
                   <Route path="tally/ledgers" element={<AdminTallyLedgers />} />
                   <Route path="tally/vouchers" element={<AdminTallyVouchers />} />

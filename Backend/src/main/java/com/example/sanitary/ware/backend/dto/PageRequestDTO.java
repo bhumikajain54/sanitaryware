@@ -10,5 +10,6 @@ public class PageRequestDTO {
     private String status;
     private String content;
     private String metaDescription;
+    private String imageUrl;
     private boolean active;
 }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { MdClose, MdSave, MdCancel } from 'react-icons/md';
+import adminService from '../../services/adminService';
 
 const ContentModal = ({ content, onClose, onSave }) => {
   const [formData, setFormData] = useState({
@@ -10,6 +11,7 @@ const ContentModal = ({ content, onClose, onSave }) => {
     status: 'Draft',
     content: '',
     metaDescription: '',
+    imageUrl: '',
     active: true
   });
 
@@ -23,10 +25,36 @@ const ContentModal = ({ content, onClose, onSave }) => {
         status: content.status || 'Draft',
         content: content.content || '',
         metaDescription: content.metaDescription || '',
+        imageUrl: content.imageUrl || '',
         active: content.active ?? true
       });
     }
   }, [content]);
+
+  const handleFileSelect = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const allowed = ['image/svg+xml', 'image/png', 'image/jpeg', 'image/gif', 'image/webp'];
+    if (!allowed.includes(file.type)) {
+      alert('Please select an image file');
+      return;
+    }
+    
+    const uploadFormData = new FormData();
+    uploadFormData.append('file', file);
+    try {
+        const response = await adminService.uploadMedia(uploadFormData);
+        const uploadedUrl = response.url || response.data?.url || (typeof response === 'string' ? response : null);
+        if (uploadedUrl) {
+            setFormData(prev => ({ ...prev, imageUrl: uploadedUrl }));
+        } else {
+            console.error('Failed to extract URL from response: ', response);
+        }
+    } catch (err) {
+        console.error('Upload failed:', err);
+        alert('Failed to upload image. Please try again.');
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -159,6 +187,25 @@ const ContentModal = ({ content, onClose, onSave }) => {
                   className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-[var(--admin-bg-primary)] border-2 border-transparent focus:border-teal-500 dark:focus:border-teal-500 rounded-xl outline-none transition-all dark:text-white text-[10px] sm:text-xs font-medium resize-none"
                   placeholder="Enter a brief summary for search engines..."
                 />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 ml-1">
+                  Page Image
+                </label>
+                <div className="flex flex-col gap-2">
+                   {formData.imageUrl && (
+                      <div className="h-24 w-full bg-slate-100 dark:bg-slate-800 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+                        <img src={formData.imageUrl} alt="preview" className="h-full w-full object-cover" />
+                      </div>
+                   )}
+                   <input
+                     type="file"
+                     accept="image/*"
+                     onChange={handleFileSelect}
+                     className="w-full px-3 sm:px-4 py-2 bg-[var(--admin-bg-primary)] border-2 border-dashed border-slate-300 dark:border-slate-600 focus:border-teal-500 dark:focus:border-teal-500 rounded-xl outline-none transition-all dark:text-white text-[10px] sm:text-xs font-medium cursor-pointer"
+                   />
+                </div>
               </div>
 
               <div className="space-y-1.5">

@@ -227,14 +227,38 @@ export const deleteMedia = (id) => {
  * Content Management (Pages & Blogs)
  */
 export const getContentPages = () => apiCall('/admin/content/pages');
-export const saveContentPage = (data) => {
-    const id = data.id;
-    return apiCall(id ? `/admin/content/pages/${id}` : '/admin/content/pages', {
-        method: id ? 'PUT' : 'POST',
+export const saveContentPage = async (data) => {
+    const isUpdate = !!data.id;
+    const method = isUpdate ? 'PUT' : 'POST';
+    const url = isUpdate ? `/admin/content/pages/${data.id}` : '/admin/content/pages';
+    return await apiCall(url, {
+        method,
         body: data
     });
 };
-export const deleteContentPage = (id) => apiCall(`/admin/content/pages/${id}`, { method: 'DELETE' });
+
+export const deleteContentPage = async (id) => {
+    return await apiCall(`/admin/content/pages/${id}`, { method: 'DELETE' });
+};
+
+// ── Stats ──────────────────────────────────────────────────────────────
+export const getStats = async () => {
+    return await apiCall('/admin/stats');
+};
+
+export const saveStat = async (data) => {
+    const isUpdate = !!data.id;
+    const method = isUpdate ? 'PUT' : 'POST';
+    const url = isUpdate ? `/admin/stats/${data.id}` : '/admin/stats';
+    return await apiCall(url, {
+        method,
+        body: data
+    });
+};
+
+export const deleteStat = async (id) => {
+    return await apiCall(`/admin/stats/${id}`, { method: 'DELETE' });
+};
 
 /**
  * Testimonials
@@ -451,6 +475,9 @@ export default {
     getContentPages,
     saveContentPage,
     deleteContentPage,
+    getStats,
+    saveStat,
+    deleteStat,
     saveTestimonial,
     // Billing & Tally
     generateInvoice,

@@ -8,7 +8,18 @@ import {
   MdCheckCircle,
   MdCancel,
   MdSave,
-  MdClose
+  MdClose,
+  MdStar,
+  MdVerified,
+  MdOutlineWorkspacePremium,
+  MdLocationOn,
+  MdSecurity,
+  MdHandshake,
+  MdInventory,
+  MdLocalShipping,
+  MdShoppingCart,
+  MdPhone,
+  MdEmail
 } from 'react-icons/md';
 import { 
   useAdminSearch, 
@@ -18,6 +29,41 @@ import {
   useAdminConfirm
 } from '../../hooks/useAdmin';
 import adminService from '../../services/adminService';
+
+const iconMap = {
+  MdStar: <MdStar />,
+  MdVerified: <MdVerified />,
+  MdOutlineWorkspacePremium: <MdOutlineWorkspacePremium />,
+  MdLocationOn: <MdLocationOn />,
+  MdSecurity: <MdSecurity />,
+  MdHandshake: <MdHandshake />,
+  MdInventory: <MdInventory />,
+  MdLocalShipping: <MdLocalShipping />,
+  MdShoppingCart: <MdShoppingCart />,
+  MdPhone: <MdPhone />,
+  MdEmail: <MdEmail />
+};
+
+const renderIcon = (iconName, className) => {
+  if (!iconName) return <MdQueryStats className={className} />;
+  
+  if (iconName.startsWith('http') || iconName.startsWith('/')) {
+    return <img src={iconName} alt="icon" className={`w-full h-full object-contain p-1 ${className}`} />;
+  }
+  if (iconName.includes('<img') || iconName.includes('src=')) {
+    const match = iconName.match(/src=["'](.*?)["']/);
+    if (match && match[1]) {
+      return <img src={match[1]} alt="icon" className={`w-full h-full object-contain p-1 ${className}`} />;
+    }
+  }
+  
+  const IconComponent = iconMap[iconName];
+  if (IconComponent) {
+    return <IconComponent.type className={className} />;
+  }
+  
+  return <MdQueryStats className={className} />;
+};
 
 // Modal component for creating/editing stats
 const StatModal = ({ content, onClose, onSave }) => {
@@ -252,7 +298,7 @@ const AdminStats = () => {
                       <td className="px-2 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
                         <div className="flex items-center gap-1.5 sm:gap-4">
                            <div className="w-6 h-6 sm:w-12 sm:h-12 bg-cyan-50 dark:bg-cyan-900/20 rounded-md sm:rounded-2xl flex items-center justify-center text-cyan-600 dark:text-cyan-400 border border-cyan-100 dark:border-cyan-800 shadow-sm transition-transform group-hover:scale-110">
-                             <MdQueryStats className="text-sm sm:text-2xl" />
+                             {renderIcon(page.icon, "text-sm sm:text-2xl")}
                            </div>
                            <div>
                               <span className="font-black text-[var(--admin-text-primary)] uppercase tracking-tight text-[10px] sm:text-sm block leading-none">{page.value}</span>

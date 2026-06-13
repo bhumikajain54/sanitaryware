@@ -21,7 +21,8 @@ import {
   MdPayment,
   MdEditNote,
   MdLocationOn,
-  MdQueryStats
+  MdQueryStats,
+  MdDescription
 } from 'react-icons/md';
 import { useAuth } from '../../context/AuthContext';
 

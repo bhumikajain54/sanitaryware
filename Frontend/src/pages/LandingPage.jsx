@@ -389,84 +389,88 @@ const LandingPage = () => {
       </section>
 
       {/* ── Brands ────────────────────────────────────────────────────────────── */}
-      <section id="brands" className="py-12 sm:py-16 md:py-20 lg:py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14 md:mb-20">
-            <h3 className="text-teal-600 font-black tracking-widest uppercase mb-2 sm:mb-3 md:mb-4 text-xs sm:text-sm">Authorized Dealer</h3>
-            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-slate-950">Trusted by World-Class Brands</h2>
-          </div>
-
-          <div className="flex flex-wrap justify-center items-center gap-x-8 sm:gap-x-12 md:gap-x-16 gap-y-6 sm:gap-y-8 md:gap-y-12 opacity-60 grayscale hover:grayscale-0 transition-all">
-            {brands.map((brand, idx) => (
-              <motion.div
-                key={idx}
-                whileHover={{ scale: 1.05 }}
-                className="flex flex-col items-center group cursor-pointer"
-              >
-                <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center p-4 sm:p-6 transition-all group-hover:shadow-xl group-hover:border-teal-100 group-hover:bg-white overflow-hidden relative">
-                  {!brand.logo || brand.logo === 'null' ? (
-                    <div className="flex flex-col items-center justify-center text-center">
-                      <span className="text-xl sm:text-2xl md:text-3xl font-black text-teal-600/30 group-hover:text-teal-600/60 transition-colors uppercase">
-                        {brand.name?.substring(0, 2) || 'B'}
-                      </span>
-                      <span className="text-[8px] md:text-[10px] font-black text-slate-300 uppercase tracking-tighter mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        {brand.name}
-                      </span>
-                    </div>
-                  ) : (
-                    <SafeImage
-                      src={brand.logo}
-                      alt={brand.name}
-                      className="w-full h-full object-contain filter grayscale group-hover:grayscale-0 transition-all duration-500"
-                    />
-                  )}
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Testimonials ──────────────────────────────────────────────────────── */}
-      <section className="py-10 sm:py-14 md:py-20 lg:py-24 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Stack on mobile, side-by-side on md+ */}
-          <div className="flex flex-col md:grid md:grid-cols-3 gap-6 md:gap-8 lg:gap-12 items-start md:items-center">
-
-            {/* Label */}
-            <div className="md:col-span-1">
-              <h3 className="text-teal-600 text-xs sm:text-sm md:text-base font-black tracking-widest uppercase mb-1 sm:mb-2 md:mb-4">Reviews</h3>
-              <h2 className="text-2xl sm:text-3xl md:text-3xl lg:text-4xl font-black text-slate-950 mb-2 md:mb-4 lg:mb-6 leading-tight uppercase tracking-tighter">
-                Client <span className="text-teal-600 italic">Intel.</span>
-              </h2>
-              <p className="text-slate-600 text-sm sm:text-base md:text-base lg:text-lg leading-relaxed">
-                Excellence is not an act, but a habit. Read how we've helped shape high-end architectural projects.
-              </p>
+      {brands && brands.length > 0 && (
+        <section id="brands" className="py-12 sm:py-16 md:py-20 lg:py-24 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14 md:mb-20">
+              <h3 className="text-teal-600 font-black tracking-widest uppercase mb-2 sm:mb-3 md:mb-4 text-xs sm:text-sm">Authorized Dealer</h3>
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-slate-950">Trusted by World-Class Brands</h2>
             </div>
 
-            {/* Cards */}
-            <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6 lg:gap-8 w-full">
-              {testimonials.map((t, idx) => (
-                <div key={idx} className="bg-white p-5 sm:p-6 md:p-7 lg:p-10 rounded-2xl sm:rounded-3xl shadow-lg border border-slate-100 flex flex-col h-full">
-                  <div className="flex gap-0.5 sm:gap-1 text-yellow-400 mb-3 md:mb-4 lg:mb-6">
-                    {[...Array(t.rating || 5)].map((_, i) => <MdStar key={i} className="text-base sm:text-lg md:text-[20px]" />)}
+            <div className="flex flex-wrap justify-center items-center gap-x-8 sm:gap-x-12 md:gap-x-16 gap-y-6 sm:gap-y-8 md:gap-y-12 opacity-60 grayscale hover:grayscale-0 transition-all">
+              {brands.map((brand, idx) => (
+                <motion.div
+                  key={idx}
+                  whileHover={{ scale: 1.05 }}
+                  className="flex flex-col items-center group cursor-pointer"
+                >
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center p-4 sm:p-6 transition-all group-hover:shadow-xl group-hover:border-teal-100 group-hover:bg-white overflow-hidden relative">
+                    {!brand.logo || brand.logo === 'null' ? (
+                      <div className="flex flex-col items-center justify-center text-center">
+                        <span className="text-xl sm:text-2xl md:text-3xl font-black text-teal-600/30 group-hover:text-teal-600/60 transition-colors uppercase">
+                          {brand.name?.substring(0, 2) || 'B'}
+                        </span>
+                        <span className="text-[8px] md:text-[10px] font-black text-slate-300 uppercase tracking-tighter mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          {brand.name}
+                        </span>
+                      </div>
+                    ) : (
+                      <SafeImage
+                        src={brand.logo}
+                        alt={brand.name}
+                        className="w-full h-full object-contain filter grayscale group-hover:grayscale-0 transition-all duration-500"
+                      />
+                    )}
                   </div>
-                  <p className="text-slate-600 italic text-sm sm:text-sm md:text-base lg:text-lg mb-4 md:mb-6 lg:mb-8 leading-relaxed line-clamp-4">
-                    "{t.comment}"
-                  </p>
-                  <div className="flex items-center gap-3 md:gap-4 mt-auto">
-                    <div className="w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-slate-200 rounded-full shrink-0" />
-                    <div className="min-w-0">
-                      <h4 className="font-extrabold text-slate-950 text-sm sm:text-base truncate uppercase tracking-tighter">{t.name}</h4>
-                      <p className="text-xs sm:text-sm text-slate-500 font-medium truncate uppercase">{t.role}</p>
-                    </div>
-                  </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
+
+      {/* ── Testimonials ──────────────────────────────────────────────────────── */}
+      {testimonials && testimonials.length > 0 && (
+        <section className="py-10 sm:py-14 md:py-20 lg:py-24 bg-slate-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Stack on mobile, side-by-side on md+ */}
+            <div className="flex flex-col md:grid md:grid-cols-3 gap-6 md:gap-8 lg:gap-12 items-start md:items-center">
+
+              {/* Label */}
+              <div className="md:col-span-1">
+                <h3 className="text-teal-600 text-xs sm:text-sm md:text-base font-black tracking-widest uppercase mb-1 sm:mb-2 md:mb-4">Reviews</h3>
+                <h2 className="text-2xl sm:text-3xl md:text-3xl lg:text-4xl font-black text-slate-950 mb-2 md:mb-4 lg:mb-6 leading-tight uppercase tracking-tighter">
+                  Client <span className="text-teal-600 italic">Intel.</span>
+                </h2>
+                <p className="text-slate-600 text-sm sm:text-base md:text-base lg:text-lg leading-relaxed">
+                  Excellence is not an act, but a habit. Read how we've helped shape high-end architectural projects.
+                </p>
+              </div>
+
+              {/* Cards */}
+              <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6 lg:gap-8 w-full">
+                {testimonials.map((t, idx) => (
+                  <div key={idx} className="bg-white p-5 sm:p-6 md:p-7 lg:p-10 rounded-2xl sm:rounded-3xl shadow-lg border border-slate-100 flex flex-col h-full">
+                    <div className="flex gap-0.5 sm:gap-1 text-yellow-400 mb-3 md:mb-4 lg:mb-6">
+                      {[...Array(t.rating || 5)].map((_, i) => <MdStar key={i} className="text-base sm:text-lg md:text-[20px]" />)}
+                    </div>
+                    <p className="text-slate-600 italic text-sm sm:text-sm md:text-base lg:text-lg mb-4 md:mb-6 lg:mb-8 leading-relaxed line-clamp-4">
+                      "{t.comment}"
+                    </p>
+                    <div className="flex items-center gap-3 md:gap-4 mt-auto">
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-slate-200 rounded-full shrink-0" />
+                      <div className="min-w-0">
+                        <h4 className="font-extrabold text-slate-950 text-sm sm:text-base truncate uppercase tracking-tighter">{t.name}</h4>
+                        <p className="text-xs sm:text-sm text-slate-500 font-medium truncate uppercase">{t.role}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ── CTA ───────────────────────────────────────────────────────────────── */}
       <section className="py-6 sm:py-8 md:py-10 px-3 sm:px-4 md:px-6 lg:px-8">

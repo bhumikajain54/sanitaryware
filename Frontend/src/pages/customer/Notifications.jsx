@@ -66,6 +66,7 @@ const Notifications = () => {
         notifications.filter(n => !n.isRead).map(n => customerService.markNotificationAsRead(n.id))
       );
       fetchNotifications();
+      window.dispatchEvent(new Event('notificationsUpdated'));
       toast.success('All marked as read');
     } catch (err) {
       toast.error('Failed to mark all as read');
@@ -76,6 +77,7 @@ const Notifications = () => {
     try {
       await customerService.deleteNotification(id);
       setNotifications(prev => prev.filter(n => n.id !== id));
+      window.dispatchEvent(new Event('notificationsUpdated'));
       toast.success('Notification deleted');
     } catch (err) {
       toast.error('Failed to delete notification');
@@ -86,6 +88,7 @@ const Notifications = () => {
     try {
       await customerService.markNotificationAsRead(id);
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+      window.dispatchEvent(new Event('notificationsUpdated'));
     } catch (err) {
       toast.error('Failed to mark as read');
     }

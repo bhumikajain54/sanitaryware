@@ -1,5 +1,6 @@
 import { useNavigate, Link } from 'react-router-dom';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import customerService from '../../services/customerService';
 import { MdShoppingCart, MdFavorite, MdNotifications, MdPerson, MdSettings, MdLogout, MdKeyboardArrowDown, MdNightlight, MdWbSunny, MdLocalShipping, MdLocalOffer, MdMessage, MdError, MdCheckCircle, MdDelete } from 'react-icons/md';
 import { FiMenu, FiSearch } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
@@ -25,38 +26,50 @@ const CustomerHeader = ({ onMenuClick }) => {
   const cartCount = getCartCount();
   const wishlistCount = getWishlistCount();
 
-  // Load unread notifications count
-  useEffect(() => {
-    const loadUnreadCount = () => {
-      const savedNotifications = localStorage.getItem('notifications');
-      if (savedNotifications) {
-        try {
-          const notifications = JSON.parse(savedNotifications);
-          const unread = notifications.filter(n => !n.isRead).length;
-          setUnreadCount(unread);
-          setNotifications(notifications);
-        } catch (error) {
-          console.error('Error parsing notifications:', error);
-          setUnreadCount(0);
-          setNotifications([]);
-        }
+  // Fetch notifications from API
+  const fetchNotifications = useCallback(async () => {
+    if (!isAuthenticated) {
+      setNotifications([]);
+      setUnreadCount(0);
+      return;
+    }
+    try {
+      const data = await customerService.getNotifications();
+      if (data) {
+        setNotifications(data);
+        setUnreadCount(data.filter(n => !n.isRead).length);
       }
-    };
+    } catch (err) {
+      // Silence network errors quietly
+      if (err.message !== 'Network Error' && err.code !== 'ECONNREFUSED') {
+        console.error('Failed to fetch notifications:', err);
+      }
+    }
+  }, [isAuthenticated]);
 
-    // Load initially
-    loadUnreadCount();
+  useEffect(() => {
+    fetchNotifications();
 
-    // Listen for storage changes (when notifications are updated)
-    window.addEventListener('storage', loadUnreadCount);
-    
-    // Custom event for same-tab updates
-    window.addEventListener('notificationsUpdated', loadUnreadCount);
+    if (!isAuthenticated) return;
 
+    // Refresh notifications every 30 seconds when tab is active
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        fetchNotifications();
+      }
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [fetchNotifications, isAuthenticated]);
+
+  useEffect(() => {
+    window.addEventListener('notificationsUpdated', fetchNotifications);
+    window.addEventListener('storage', fetchNotifications);
     return () => {
-      window.removeEventListener('storage', loadUnreadCount);
-      window.removeEventListener('notificationsUpdated', loadUnreadCount);
+      window.removeEventListener('notificationsUpdated', fetchNotifications);
+      window.removeEventListener('storage', fetchNotifications);
     };
-  }, []);
+  }, [fetchNotifications]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -80,18 +93,29 @@ const CustomerHeader = ({ onMenuClick }) => {
     MdCheckCircle
   };
 
-  const markAsRead = (id) => {
-    const updated = notifications.map(n => n.id === id ? { ...n, isRead: true } : n);
-    setNotifications(updated);
-    localStorage.setItem('notifications', JSON.stringify(updated));
-    window.dispatchEvent(new Event('notificationsUpdated'));
+  const markAsRead = async (id) => {
+    try {
+      await customerService.markNotificationAsRead(id);
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+      setUnreadCount(prev => Math.max(0, prev - 1));
+      window.dispatchEvent(new Event('notificationsUpdated'));
+    } catch (err) {
+      console.error('Failed to mark notification as read:', err);
+    }
   };
 
-  const deleteNotification = (id) => {
-    const updated = notifications.filter(n => n.id !== id);
-    setNotifications(updated);
-    localStorage.setItem('notifications', JSON.stringify(updated));
-    window.dispatchEvent(new Event('notificationsUpdated'));
+  const deleteNotification = async (id) => {
+    try {
+      await customerService.deleteNotification(id);
+      setNotifications(prev => prev.filter(n => n.id !== id));
+      setUnreadCount(prev => {
+        const notif = notifications.find(n => n.id === id);
+        return notif && !notif.isRead ? Math.max(0, prev - 1) : prev;
+      });
+      window.dispatchEvent(new Event('notificationsUpdated'));
+    } catch (err) {
+      console.error('Failed to delete notification:', err);
+    }
   };
 
   const handleLogout = () => {

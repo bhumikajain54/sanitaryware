@@ -194,13 +194,29 @@ export const getActivityLogs = () => apiCall('/customer/activity-logs');
 // ============================================
 
 export const getNotifications = async () => {
-    return await apiCall('/notifications');
+    try {
+        const data = await apiCall('/notifications');
+        const deletedIds = JSON.parse(localStorage.getItem('deleted_notifications') || '[]');
+        return data ? data.filter(n => !deletedIds.includes(n.id)) : [];
+    } catch (error) {
+        console.error('Error fetching notifications:', error);
+        return [];
+    }
 };
 
 export const markNotificationAsRead = async (id) => {
     return await apiCall(`/notifications/${id}/read`, {
         method: 'POST'
     });
+};
+
+export const deleteNotification = async (id) => {
+    const deletedIds = JSON.parse(localStorage.getItem('deleted_notifications') || '[]');
+    if (!deletedIds.includes(id)) {
+        deletedIds.push(id);
+        localStorage.setItem('deleted_notifications', JSON.stringify(deletedIds));
+    }
+    return { success: true };
 };
 
 export default {
@@ -253,9 +269,9 @@ export default {
     updatePreferences,
     getPageBySlug,
     getStats,
-    getFeatures,
     getNotifications,
     markNotificationAsRead,
+    deleteNotification,
     getActivityLogs,
     getWalletBalance,
     getWalletHistory,

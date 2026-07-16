@@ -225,10 +225,11 @@ const Deliveries = () => {
                <motion.div key={order.id} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.05 }}>
                  <div 
                    onClick={() => setSelectedOrder(order)}
+                   style={{ backgroundColor: selectedOrder?.id === order.id ? 'var(--bg-app)' : 'var(--bg-card)' }}
                    className={`p-4 rounded-2xl border transition-all cursor-pointer group relative overflow-hidden ${
                      selectedOrder?.id === order.id 
-                     ? 'bg-white border-teal-500 shadow-xl shadow-teal-500/5 ring-1 ring-teal-500/20' 
-                     : 'bg-[var(--bg-card)] border-[var(--border-main)] hover:border-teal-400'
+                     ? 'border-teal-500 shadow-xl shadow-teal-500/5 ring-1 ring-teal-500/20' 
+                     : 'border-[var(--border-main)] hover:border-teal-400'
                    }`}
                  >
                    {selectedOrder?.id === order.id && (
@@ -237,8 +238,8 @@ const Deliveries = () => {
                    <div className="flex items-center gap-4">
                       <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border ${
                         order.status?.toLowerCase().includes('deliver') 
-                        ? 'bg-emerald-50 border-emerald-100 text-emerald-600' 
-                        : 'bg-sky-50 border-sky-100 text-sky-600'
+                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' 
+                        : 'bg-sky-500/10 border-sky-500/20 text-sky-500'
                       }`}>
                          <MdLocalShipping className="text-xl" />
                       </div>

@@ -121,7 +121,7 @@ const Notifications = () => {
 
           <button
             onClick={markAllAsRead}
-            className="flex-shrink-0 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 bg-white border border-gray-100 rounded-xl md:rounded-2xl font-black uppercase tracking-widest text-[9px] sm:text-[10px] md:text-xs text-gray-400 hover:text-teal-600 hover:border-teal-100 transition-all shadow-sm w-fit"
+            className="flex-shrink-0 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 bg-[var(--bg-card)] border border-[var(--border-subtle)] rounded-xl md:rounded-2xl font-black uppercase tracking-widest text-[9px] sm:text-[10px] md:text-xs text-[var(--text-muted)] hover:text-teal-600 hover:border-teal-500/30 transition-all shadow-sm w-fit"
           >
             <MdDoneAll className="text-base sm:text-lg md:text-xl flex-shrink-0" />
             <span>Mark all as read</span>
@@ -255,7 +255,7 @@ const Notifications = () => {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="py-12 sm:py-14 md:py-16 lg:py-20 flex flex-col items-center justify-center text-center bg-white rounded-2xl sm:rounded-3xl border-2 border-dashed border-gray-100"
+              className="py-12 sm:py-14 md:py-16 lg:py-20 flex flex-col items-center justify-center text-center bg-[var(--bg-card)] rounded-2xl sm:rounded-3xl border-2 border-dashed border-[var(--border-main)]"
             >
               <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-32 lg:h-32 bg-[var(--bg-app)] rounded-full flex items-center justify-center mb-4 sm:mb-5 md:mb-6 shadow-inner border border-[var(--border-main)]">
                 <MdNotifications className="text-4xl sm:text-4xl md:text-5xl lg:text-6xl text-[var(--text-muted)]" />

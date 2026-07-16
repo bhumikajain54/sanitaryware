@@ -43,9 +43,9 @@ const FilterDropdown = ({ label, activeCount, children }) => {
       <div className="relative flex-shrink-0" ref={dropdownRef}>
          <button
             onClick={() => setIsOpen(!isOpen)}
-            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2 bg-white border rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap ${isOpen || activeCount > 0
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2 bg-[var(--bg-card)] border rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap ${isOpen || activeCount > 0
                ? 'border-teal-500 text-teal-700 shadow-sm'
-               : 'border-slate-200 text-slate-600 hover:border-slate-300'
+               : 'border-[var(--border-main)] text-[var(--text-muted)] hover:border-[var(--border-main)]'
                }`}
          >
             <span>{label}</span>
@@ -62,7 +62,7 @@ const FilterDropdown = ({ label, activeCount, children }) => {
                   initial={{ opacity: 0, y: 10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  className="absolute top-full mt-2 left-0 w-56 sm:w-64 bg-white rounded-xl shadow-xl border border-slate-100 z-50 p-3 sm:p-4 max-h-[320px] sm:max-h-[400px] overflow-y-auto"
+                  className="absolute top-full mt-2 left-0 w-56 sm:w-64 bg-[var(--bg-card)] rounded-xl shadow-xl border border-[var(--border-subtle)] z-50 p-3 sm:p-4 max-h-[320px] sm:max-h-[400px] overflow-y-auto"
                >
                   {children}
                </motion.div>
@@ -85,15 +85,15 @@ const CompactProductCard = ({ product, addToCart, toggleWishlist, isInWishlist, 
          initial={{ opacity: 0 }}
          animate={{ opacity: 1 }}
          exit={{ opacity: 0 }}
-         className="group bg-white rounded-xl overflow-hidden border border-slate-100 hover:border-teal-500 hover:shadow-xl transition-all duration-300 relative flex flex-col"
+         className="group bg-[var(--bg-card)] rounded-xl overflow-hidden border border-[var(--border-subtle)] hover:border-teal-500 hover:shadow-xl transition-all duration-300 relative flex flex-col"
       >
          {/* Image */}
-         <div className="relative aspect-square overflow-hidden bg-slate-50 flex items-center justify-center">
+         <div className="relative aspect-square overflow-hidden bg-[var(--bg-app)] flex items-center justify-center">
             <Link to={`/product/${product.id}`} className="w-full h-full block">
                <SafeImage
                   src={product.image}
                   alt={product.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 bg-slate-50"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 bg-[var(--bg-app)]"
                   onErrorCapture={(e) => {
                      e.currentTarget.src = '/Logo2.png';
                   }}
@@ -120,7 +120,7 @@ const CompactProductCard = ({ product, addToCart, toggleWishlist, isInWishlist, 
                   onClick={(e) => { e.stopPropagation(); toggleComparison(product); }}
                   className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-[7px] sm:text-[9px] font-black uppercase tracking-widest backdrop-blur-md shadow-lg transition-all border ${isInComparison(product.id)
                         ? 'bg-teal-500 text-white border-teal-400'
-                        : 'bg-white/80 text-slate-800 border-white/50 hover:bg-white'
+                        : 'bg-[var(--bg-card)]/80 text-[var(--text-main)] border-[var(--border-subtle)]/50 hover:bg-[var(--bg-card)]'
                      }`}
                >
                   <MdCompareArrows size={10} className="sm:hidden" />
@@ -133,7 +133,7 @@ const CompactProductCard = ({ product, addToCart, toggleWishlist, isInWishlist, 
             <div className="absolute bottom-1.5 sm:bottom-2 right-1.5 sm:right-2 flex gap-1.5 sm:gap-2 sm:translate-y-12 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100 transition-all duration-300">
                <button
                   onClick={(e) => { e.stopPropagation(); toggleWishlist(product); }}
-                  className={`w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg shadow-lg transition-transform hover:scale-110 active:scale-95 ${isInWishlist(product.id) ? 'bg-red-500 text-white' : 'bg-white text-slate-400 hover:text-red-500'
+                  className={`w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg shadow-lg transition-transform hover:scale-110 active:scale-95 ${isInWishlist(product.id) ? 'bg-red-500 text-white' : 'bg-[var(--bg-card)] text-[var(--text-muted)] hover:text-red-500'
                      }`}
                >
                   <MdFavorite size={14} className="sm:hidden" />
@@ -149,19 +149,19 @@ const CompactProductCard = ({ product, addToCart, toggleWishlist, isInWishlist, 
 
          {/* Content */}
          <div className="p-2 sm:p-3 flex flex-col flex-1 gap-0.5 sm:gap-1">
-            <div className="flex items-center justify-between text-[8px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+            <div className="flex items-center justify-between text-[8px] sm:text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-wider">
                <span className="truncate">{product.brand}</span>
                <span className="text-teal-600 truncate max-w-[45%] sm:max-w-[50%] text-right">{product.category}</span>
             </div>
             <Link to={`/product/${product.id}`} className="block">
-               <h3 className="font-bold text-slate-800 text-[11px] sm:text-sm leading-tight truncate group-hover:text-teal-600 transition-colors" title={product.name}>
+               <h3 className="font-bold text-[var(--text-main)] text-[11px] sm:text-sm leading-tight truncate group-hover:text-teal-600 transition-colors" title={product.name}>
                   {product.name}
                </h3>
             </Link>
             <div className="mt-auto pt-1.5 sm:pt-2 flex items-baseline gap-1.5 sm:gap-2">
-               <span className="text-sm sm:text-base font-black text-slate-900">₹{product.price.toLocaleString()}</span>
+               <span className="text-sm sm:text-base font-black text-[var(--text-main)]">₹{product.price.toLocaleString()}</span>
                {product.originalPrice > product.price && (
-                  <span className="text-[9px] sm:text-[10px] text-slate-400 line-through decoration-slate-300">
+                  <span className="text-[9px] sm:text-[10px] text-[var(--text-muted)] line-through decoration-slate-300">
                      ₹{product.originalPrice.toLocaleString()}
                   </span>
                )}
@@ -280,10 +280,10 @@ const Products = () => {
    const hasActiveFilters = !selectedCategories.includes('all') || !selectedBrands.includes('all') || priceRange < maxProductPrice || searchQuery;
 
    return (
-      <div className="min-h-screen bg-slate-50 font-sans text-slate-800">
+      <div className="min-h-screen bg-[var(--bg-app)] font-sans text-[var(--text-main)] transition-colors duration-300">
 
          {/* ─── Sticky Top Header ─── */}
-         <div className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+         <div className="bg-[var(--bg-card)] border-b border-[var(--border-main)] sticky top-0 z-40 shadow-sm transition-colors duration-300">
             <div className="max-w-[1920px] mx-auto px-3 sm:px-5 md:px-6 lg:px-8 py-3 sm:py-4 flex flex-col gap-2.5 sm:gap-3 md:gap-4">
 
                {/* Row 1: Brand + Search + Sort */}
@@ -291,7 +291,7 @@ const Products = () => {
 
                   {/* Brand name */}
                   <div className="flex items-center gap-0.5 flex-shrink-0">
-                     <span className="text-base sm:text-lg md:text-xl font-black tracking-tight text-slate-900 uppercase">Sanitary</span>
+                     <span className="text-base sm:text-lg md:text-xl font-black tracking-tight text-[var(--text-main)] uppercase">Sanitary</span>
                      <span className="text-base sm:text-lg md:text-xl font-light tracking-tight text-teal-600">Store</span>
                   </div>
 
@@ -303,14 +303,14 @@ const Products = () => {
                         placeholder="Search catalog..."
                         value={searchQuery}
                         onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-                        className="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs sm:text-sm font-medium focus:ring-2 focus:ring-teal-500 focus:bg-white transition-all outline-none"
+                        className="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 bg-[var(--bg-app)] border border-[var(--border-main)] rounded-lg text-xs sm:text-sm font-medium text-[var(--text-main)] placeholder:text-[var(--text-muted)] focus:ring-2 focus:ring-teal-500 focus:bg-[var(--bg-card)] transition-all outline-none"
                      />
                   </div>
 
                   {/* Mobile filter trigger */}
                   <button
                      onClick={() => setIsSidebarOpen(true)}
-                     className="sm:hidden flex items-center gap-1.5 px-3 py-2 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 uppercase tracking-wider flex-shrink-0 bg-white"
+                     className="sm:hidden flex items-center gap-1.5 px-3 py-2 border border-[var(--border-main)] rounded-lg text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider flex-shrink-0 bg-[var(--bg-card)]"
                   >
                      <MdFilterList className="text-base" />
                      Filters
@@ -318,11 +318,11 @@ const Products = () => {
 
                   {/* Sort select */}
                   <div className="hidden sm:flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
-                     <span className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider hidden md:inline">Sort:</span>
+                     <span className="text-[10px] sm:text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider hidden md:inline">Sort:</span>
                      <select
                         value={sortBy}
                         onChange={(e) => setSortBy(e.target.value)}
-                        className="bg-white border border-slate-200 text-slate-700 text-[10px] sm:text-xs font-bold uppercase tracking-wider rounded-lg px-2 sm:px-3 py-2 sm:py-2.5 focus:outline-none focus:border-teal-500 cursor-pointer"
+                        className="bg-[var(--bg-card)] border border-[var(--border-main)] text-[var(--text-main)] text-[10px] sm:text-xs font-bold uppercase tracking-wider rounded-lg px-2 sm:px-3 py-2 sm:py-2.5 focus:outline-none focus:border-teal-500 cursor-pointer"
                      >
                         <option value="popularity">Popularity</option>
                         <option value="newest">Newest</option>
@@ -339,8 +339,8 @@ const Products = () => {
                   <FilterDropdown label="Category" activeCount={selectedCategories.includes('all') ? 0 : selectedCategories.length}>
                      <div className="space-y-1">
                         {categories.map(cat => (
-                           <label key={cat.value} className="flex items-center gap-2.5 sm:gap-3 cursor-pointer py-1 sm:py-1.5 hover:bg-slate-50 rounded px-1">
-                              <input type="checkbox" className="accent-teal-600 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-sm"
+                           <label key={cat.value} className="flex items-center gap-2.5 sm:gap-3 cursor-pointer py-1 sm:py-1.5 hover:bg-[var(--bg-app)] rounded px-1">
+                              <input type="checkbox" className="accent-teal-600 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-sm bg-[var(--bg-app)]"
                                  checked={selectedCategories.includes(cat.value)}
                                  onChange={() => {
                                     if (cat.value === 'all') { setSelectedCategories(['all']); }
@@ -354,7 +354,7 @@ const Products = () => {
                                     setCurrentPage(1);
                                  }}
                               />
-                              <span className={`text-[10px] sm:text-xs font-bold ${selectedCategories.includes(cat.value) ? 'text-teal-700' : 'text-slate-600'}`}>{cat.label}</span>
+                              <span className={`text-[10px] sm:text-xs font-bold ${selectedCategories.includes(cat.value) ? 'text-teal-700' : 'text-[var(--text-muted)]'}`}>{cat.label}</span>
                            </label>
                         ))}
                      </div>
@@ -363,8 +363,8 @@ const Products = () => {
                   <FilterDropdown label="Brand" activeCount={selectedBrands.includes('all') ? 0 : selectedBrands.length}>
                      <div className="space-y-1">
                         {brands.map(brand => (
-                           <label key={brand.value} className="flex items-center gap-2.5 sm:gap-3 cursor-pointer py-1 sm:py-1.5 hover:bg-slate-50 rounded px-1">
-                              <input type="checkbox" className="accent-teal-600 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-sm"
+                           <label key={brand.value} className="flex items-center gap-2.5 sm:gap-3 cursor-pointer py-1 sm:py-1.5 hover:bg-[var(--bg-app)] rounded px-1">
+                              <input type="checkbox" className="accent-teal-600 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-sm bg-[var(--bg-app)]"
                                  checked={selectedBrands.includes(brand.value)}
                                  onChange={() => {
                                     if (brand.value === 'all') { setSelectedBrands(['all']); }
@@ -378,7 +378,7 @@ const Products = () => {
                                     setCurrentPage(1);
                                  }}
                               />
-                              <span className={`text-[10px] sm:text-xs font-bold ${selectedBrands.includes(brand.value) ? 'text-teal-700' : 'text-slate-600'}`}>{brand.label}</span>
+                              <span className={`text-[10px] sm:text-xs font-bold ${selectedBrands.includes(brand.value) ? 'text-teal-700' : 'text-[var(--text-muted)]'}`}>{brand.label}</span>
                            </label>
                         ))}
                      </div>
@@ -386,15 +386,15 @@ const Products = () => {
 
                   <FilterDropdown label="Price" activeCount={priceRange < maxProductPrice ? 1 : 0}>
                      <div className="px-1 sm:px-2 py-2">
-                        <div className="flex justify-between text-xs font-bold text-slate-800 mb-3 sm:mb-4">
+                        <div className="flex justify-between text-xs font-bold text-[var(--text-main)] mb-3 sm:mb-4">
                            <span>Max Price:</span>
                            <span>₹{priceRange.toLocaleString()}</span>
                         </div>
                         <input type="range" min="0" max={maxProductPrice} value={priceRange}
                            onChange={(e) => setPriceRange(Number(e.target.value))}
-                           className="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-teal-600 mb-2"
+                           className="w-full h-1 bg-[var(--bg-app)] rounded-lg appearance-none cursor-pointer accent-teal-600 mb-2"
                         />
-                        <div className="flex justify-between text-[9px] sm:text-[10px] font-bold text-slate-400">
+                        <div className="flex justify-between text-[9px] sm:text-[10px] font-bold text-[var(--text-muted)]">
                            <span>₹0</span>
                            <span>₹{maxProductPrice.toLocaleString()}</span>
                         </div>
@@ -417,14 +417,14 @@ const Products = () => {
          <div className="max-w-[1920px] mx-auto px-3 sm:px-5 md:px-6 lg:px-8 py-4 sm:py-5 md:py-6">
 
             {/* Results bar */}
-            <div className="mb-3 sm:mb-4 md:mb-6 flex items-center justify-between text-[9px] sm:text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-wider">
+            <div className="mb-3 sm:mb-4 md:mb-6 flex items-center justify-between text-[9px] sm:text-[10px] md:text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">
                <span>{sortedProducts.length} Results</span>
                <div className="flex items-center gap-2 sm:gap-3">
                   {/* Mobile sort */}
                   <select
                      value={sortBy}
                      onChange={(e) => setSortBy(e.target.value)}
-                     className="sm:hidden bg-white border border-slate-200 text-slate-700 text-[10px] font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-teal-500 cursor-pointer"
+                     className="sm:hidden bg-[var(--bg-card)] border border-[var(--border-main)] text-[var(--text-main)] text-[10px] font-bold rounded-lg px-2 py-1.5 focus:outline-none focus:border-teal-500 cursor-pointer"
                   >
                      <option value="popularity">Popularity</option>
                      <option value="newest">Newest</option>
@@ -434,10 +434,10 @@ const Products = () => {
 
                   {/* View mode toggles — tablet+ */}
                   <div className="hidden sm:flex gap-1">
-                     <button onClick={() => setViewMode('grid')} className={`p-1 sm:p-1.5 rounded ${viewMode === 'grid' ? 'text-slate-900 bg-slate-200' : 'hover:bg-slate-100'}`}>
+                     <button onClick={() => setViewMode('grid')} className={`p-1 sm:p-1.5 rounded ${viewMode === 'grid' ? 'text-[var(--text-main)] bg-[var(--border-main)]' : 'hover:bg-[var(--bg-app)]'}`}>
                         <MdGridView className="text-base sm:text-lg" />
                      </button>
-                     <button onClick={() => setViewMode('list')} className={`p-1 sm:p-1.5 rounded ${viewMode === 'list' ? 'text-slate-900 bg-slate-200' : 'hover:bg-slate-100'}`}>
+                     <button onClick={() => setViewMode('list')} className={`p-1 sm:p-1.5 rounded ${viewMode === 'list' ? 'text-[var(--text-main)] bg-[var(--border-main)]' : 'hover:bg-[var(--bg-app)]'}`}>
                         <MdViewList className="text-base sm:text-lg" />
                      </button>
                   </div>
@@ -448,7 +448,7 @@ const Products = () => {
             {loading ? (
                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5 sm:gap-3 md:gap-4">
                   {[...Array(12)].map((_, i) => (
-                     <div key={i} className="bg-white rounded-xl h-48 sm:h-56 md:h-64 animate-pulse border border-slate-100" />
+                     <div key={i} className="bg-[var(--bg-card)] rounded-xl h-48 sm:h-56 md:h-64 animate-pulse border border-[var(--border-subtle)]" />
                   ))}
                </div>
             ) : currentProducts.length > 0 ? (
@@ -469,20 +469,20 @@ const Products = () => {
                         />
                      ) : (
                         /* List view */
-                        <div key={product.id} className="bg-white rounded-xl p-3 sm:p-4 border border-slate-100 flex gap-3 sm:gap-4 hover:border-teal-500 transition-all shadow-sm">
-                           <Link to={`/product/${product.id}`} className="w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 bg-slate-50 rounded-lg overflow-hidden flex-shrink-0 group/img">
+                        <div key={product.id} className="bg-[var(--bg-card)] rounded-xl p-3 sm:p-4 border border-[var(--border-subtle)] flex gap-3 sm:gap-4 hover:border-teal-500 transition-all shadow-sm">
+                           <Link to={`/product/${product.id}`} className="w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 bg-[var(--bg-app)] rounded-lg overflow-hidden flex-shrink-0 group/img">
                               <SafeImage
                                  src={product.image}
                                  alt={product.name}
-                                 className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-500"
+                                 className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-500 bg-[var(--bg-app)]"
                               />
                            </Link>
                            <div className="flex-1 min-w-0 flex items-center justify-between gap-3">
                               <div className="min-w-0">
                                  <Link to={`/product/${product.id}`} className="hover:text-teal-600 transition-colors">
-                                    <h3 className="font-bold text-slate-900 text-xs sm:text-sm mb-0.5 sm:mb-1 truncate">{product.name}</h3>
+                                    <h3 className="font-bold text-[var(--text-main)] text-xs sm:text-sm mb-0.5 sm:mb-1 truncate">{product.name}</h3>
                                  </Link>
-                                 <p className="text-[8px] sm:text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                                 <p className="text-[8px] sm:text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-wider">
                                     {product.brand} • {product.category}
                                  </p>
                               </div>
@@ -499,9 +499,9 @@ const Products = () => {
                   ))}
                </div>
             ) : (
-               <div className="py-16 sm:py-20 md:py-24 text-center bg-white rounded-xl sm:rounded-2xl border border-dashed border-slate-200">
-                  <MdSearch className="text-3xl sm:text-4xl text-slate-300 mx-auto mb-3 sm:mb-4" />
-                  <h3 className="text-base sm:text-lg font-black text-slate-900 uppercase tracking-tight">No Products Found</h3>
+               <div className="py-16 sm:py-20 md:py-24 text-center bg-[var(--bg-card)] rounded-xl sm:rounded-2xl border border-dashed border-[var(--border-main)]">
+                  <MdSearch className="text-3xl sm:text-4xl text-[var(--text-muted)] mx-auto mb-3 sm:mb-4" />
+                  <h3 className="text-base sm:text-lg font-black text-[var(--text-main)] uppercase tracking-tight">No Products Found</h3>
                </div>
             )}
 
@@ -511,7 +511,7 @@ const Products = () => {
                   <button
                      onClick={() => handlePageChange(currentPage - 1)}
                      disabled={currentPage === 1}
-                     className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 flex items-center justify-center rounded-lg border border-slate-200 text-slate-600 disabled:opacity-40 hover:border-teal-500 hover:text-teal-600 transition-colors"
+                     className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 flex items-center justify-center rounded-lg border border-[var(--border-main)] text-[var(--text-muted)] disabled:opacity-40 hover:border-teal-500 hover:text-teal-600 transition-colors"
                   >
                      <MdKeyboardArrowLeft size={18} />
                   </button>
@@ -526,8 +526,8 @@ const Products = () => {
                               key={p}
                               onClick={() => handlePageChange(p)}
                               className={`w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 flex items-center justify-center rounded-lg font-bold text-xs sm:text-sm transition-all ${currentPage === p
-                                 ? 'bg-slate-900 text-white shadow-lg'
-                                 : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-400'
+                                 ? 'bg-[var(--text-main)] text-[var(--bg-app)] shadow-lg'
+                                 : 'bg-[var(--bg-card)] text-[var(--text-muted)] border border-[var(--border-main)] hover:border-teal-500'
                                  }`}
                            >
                               {p}
@@ -539,7 +539,7 @@ const Products = () => {
                   <button
                      onClick={() => handlePageChange(currentPage + 1)}
                      disabled={currentPage === totalPages}
-                     className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 flex items-center justify-center rounded-lg border border-slate-200 text-slate-600 disabled:opacity-40 hover:border-teal-500 hover:text-teal-600 transition-colors"
+                     className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 flex items-center justify-center rounded-lg border border-[var(--border-main)] text-[var(--text-muted)] disabled:opacity-40 hover:border-teal-500 hover:text-teal-600 transition-colors"
                   >
                      <MdKeyboardArrowRight size={18} />
                   </button>
@@ -559,22 +559,22 @@ const Products = () => {
                   <motion.div
                      initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }}
                      transition={{ type: 'tween', duration: 0.25 }}
-                     className="fixed inset-y-0 left-0 w-[85vw] max-w-xs sm:max-w-sm bg-white z-[60] shadow-2xl overflow-y-auto"
+                     className="fixed inset-y-0 left-0 w-[85vw] max-w-xs sm:max-w-sm bg-[var(--bg-card)] z-[60] shadow-2xl overflow-y-auto"
                   >
-                     <div className="flex justify-between items-center p-4 sm:p-5 border-b border-slate-100 sticky top-0 bg-white z-10">
-                        <h2 className="text-base sm:text-xl font-black uppercase tracking-tight">Filters</h2>
-                        <button onClick={() => setIsSidebarOpen(false)} className="p-1.5 sm:p-2 bg-slate-100 rounded-lg">
+                     <div className="flex justify-between items-center p-4 sm:p-5 border-b border-[var(--border-subtle)] sticky top-0 bg-[var(--bg-card)] z-10">
+                        <h2 className="text-base sm:text-xl font-black uppercase tracking-tight text-[var(--text-main)]">Filters</h2>
+                        <button onClick={() => setIsSidebarOpen(false)} className="p-1.5 sm:p-2 bg-[var(--bg-app)] text-[var(--text-main)] rounded-lg">
                            <MdClose className="text-base sm:text-lg" />
                         </button>
                      </div>
 
                      {/* Mobile sort inside drawer */}
-                     <div className="px-4 sm:px-5 py-3 sm:py-4 border-b border-slate-100">
-                        <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Sort By</p>
+                     <div className="px-4 sm:px-5 py-3 sm:py-4 border-b border-[var(--border-subtle)]">
+                        <p className="text-[9px] sm:text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-2">Sort By</p>
                         <select
                            value={sortBy}
                            onChange={(e) => setSortBy(e.target.value)}
-                           className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold rounded-lg px-3 py-2 focus:outline-none focus:border-teal-500"
+                           className="w-full bg-[var(--bg-app)] border border-[var(--border-main)] text-[var(--text-main)] text-xs font-bold rounded-lg px-3 py-2 focus:outline-none focus:border-teal-500"
                         >
                            <option value="popularity">Popularity</option>
                            <option value="newest">Newest</option>
@@ -596,7 +596,7 @@ const Products = () => {
                      </div>
 
                      {/* Apply button */}
-                     <div className="sticky bottom-0 bg-white border-t border-slate-100 p-4 sm:p-5">
+                     <div className="sticky bottom-0 bg-[var(--bg-card)] border-t border-[var(--border-subtle)] p-4 sm:p-5">
                         <button
                            onClick={() => setIsSidebarOpen(false)}
                            className="w-full py-3 bg-teal-600 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-xl shadow-teal-500/20 hover:bg-teal-700 transition-colors"

@@ -232,13 +232,13 @@ const Reviews = () => {
                       onClick={() => !done && setSelectedProduct(product)}
                       className={`p-3 rounded-xl border transition-all flex items-center gap-3 ${
                         done
-                          ? 'opacity-60 cursor-default bg-slate-50 dark:bg-slate-900 border-[var(--border-subtle)]'
+                          ? 'opacity-60 cursor-default bg-[var(--bg-app)] border-[var(--border-subtle)]'
                           : selectedProduct?.id === product.id
-                            ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-500 shadow-lg shadow-yellow-500/10 cursor-pointer'
-                            : 'bg-white dark:bg-slate-900 border-[var(--border-main)] hover:border-yellow-400 cursor-pointer'
+                            ? 'bg-yellow-500/10 border-yellow-500 shadow-lg shadow-yellow-500/10 cursor-pointer text-yellow-500'
+                            : 'bg-[var(--bg-card)] border-[var(--border-main)] hover:border-yellow-400 cursor-pointer'
                       }`}
                     >
-                      <div className="w-12 h-12 bg-slate-50 dark:bg-slate-800 rounded-lg overflow-hidden border border-[var(--border-main)] shrink-0">
+                      <div className="w-12 h-12 bg-[var(--bg-app)] rounded-lg overflow-hidden border border-[var(--border-main)] shrink-0">
                         <SafeImage src={product.mainImage} className="w-full h-full object-cover" />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -265,8 +265,8 @@ const Reviews = () => {
                   animate={{ opacity: 1 }}
                   className="text-center py-10 px-4 flex flex-col items-center gap-3"
                 >
-                  <div className="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center shadow-inner">
-                    <MdShoppingBag className="text-3xl text-slate-200" />
+                  <div className="w-16 h-16 rounded-2xl bg-[var(--bg-app)] border border-[var(--border-subtle)] flex items-center justify-center shadow-inner">
+                    <MdShoppingBag className="text-3xl text-[var(--text-muted)]" />
                   </div>
                   <h4 className="text-xs font-black text-[var(--text-main)] uppercase tracking-widest">No Purchases Yet</h4>
                   <p className="text-[10px] font-medium text-[var(--text-muted)] leading-relaxed max-w-[180px]">
@@ -288,13 +288,13 @@ const Reviews = () => {
                 <Card className="p-6 sm:p-8 border-yellow-500/20 shadow-2xl relative">
                   <button
                     onClick={() => setSelectedProduct(null)}
-                    className="absolute top-4 right-4 p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all"
+                    className="absolute top-4 right-4 p-2 hover:bg-[var(--bg-app)] rounded-full transition-all"
                   >
                     <MdClose className="text-xl text-[var(--text-muted)]" />
                   </button>
 
                   <div className="flex flex-col sm:flex-row gap-6 mb-8">
-                    <div className="w-28 h-28 sm:w-36 sm:h-36 bg-slate-50 dark:bg-slate-800 rounded-2xl overflow-hidden border border-[var(--border-main)] shrink-0">
+                    <div className="w-28 h-28 sm:w-36 sm:h-36 bg-[var(--bg-app)] rounded-2xl overflow-hidden border border-[var(--border-main)] shrink-0">
                       <SafeImage src={selectedProduct.mainImage} className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1 space-y-4">
@@ -323,7 +323,7 @@ const Reviews = () => {
                         value={comment}
                         onChange={(e) => setComment(e.target.value)}
                         placeholder="What did you like or dislike about this product? How's the quality and durability?"
-                        className="w-full min-h-[130px] p-4 bg-slate-50 dark:bg-slate-900 border-2 border-[var(--border-subtle)] rounded-2xl text-sm font-medium focus:ring-4 focus:ring-yellow-500/10 focus:border-yellow-500 outline-none transition-all resize-none dark:text-white"
+                        className="w-full min-h-[130px] p-4 bg-[var(--bg-app)] text-[var(--text-main)] placeholder:text-[var(--text-muted)] border-2 border-[var(--border-subtle)] rounded-2xl text-sm font-medium focus:ring-4 focus:ring-yellow-500/10 focus:border-yellow-500 outline-none transition-all resize-none"
                         required
                         minLength={10}
                       />
@@ -365,7 +365,7 @@ const Reviews = () => {
                 <Card className="p-6 sm:p-8 border-teal-500/20 shadow-2xl relative">
                   <button
                     onClick={() => setEditingReview(null)}
-                    className="absolute top-4 right-4 p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all"
+                    className="absolute top-4 right-4 p-2 hover:bg-[var(--bg-app)] rounded-full transition-all"
                   >
                     <MdClose className="text-xl text-[var(--text-muted)]" />
                   </button>
@@ -386,7 +386,7 @@ const Reviews = () => {
                       <textarea
                         value={editingReview.comment}
                         onChange={(e) => setEditingReview(r => ({ ...r, comment: e.target.value }))}
-                        className="w-full min-h-[120px] p-4 bg-slate-50 dark:bg-slate-900 border-2 border-[var(--border-subtle)] rounded-2xl text-sm font-medium focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all resize-none dark:text-white"
+                        className="w-full min-h-[120px] p-4 bg-[var(--bg-app)] text-[var(--text-main)] placeholder:text-[var(--text-muted)] border-2 border-[var(--border-subtle)] rounded-2xl text-sm font-medium focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all resize-none"
                         required
                       />
                     </div>
@@ -417,7 +417,7 @@ const Reviews = () => {
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
                     <h3 className="text-sm font-black text-[var(--text-main)] uppercase tracking-[0.2em]">Your Feedback History</h3>
-                    <Badge className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-none">
+                    <Badge className="bg-[var(--bg-app)] text-[var(--text-muted)] border-none">
                       {myReviews.length} Total
                     </Badge>
                   </div>
@@ -431,7 +431,7 @@ const Reviews = () => {
                           <Card className="p-5 border-l-4 border-l-yellow-400 group hover:shadow-lg transition-all">
                             <div className="flex gap-4">
                               {/* Product image */}
-                              <div className="w-14 h-14 bg-slate-50 dark:bg-slate-800 rounded-xl overflow-hidden border border-[var(--border-main)] shrink-0 grayscale group-hover:grayscale-0 transition-all">
+                              <div className="w-14 h-14 bg-[var(--bg-app)] rounded-xl overflow-hidden border border-[var(--border-main)] shrink-0 grayscale group-hover:grayscale-0 transition-all">
                                 <SafeImage
                                   src={rev.product?.mainImage || rev.product?.images?.[0]}
                                   className="w-full h-full object-cover"
@@ -479,14 +479,14 @@ const Reviews = () => {
                                     {/* Edit / Delete actions */}
                                     <button
                                       onClick={() => setEditingReview({ id: rev.id, rating: rev.rating, comment: rev.comment })}
-                                      className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-teal-600 transition-all"
+                                      className="p-1.5 rounded-lg hover:bg-[var(--bg-app)] text-[var(--text-muted)] hover:text-teal-600 transition-all"
                                       title="Edit review"
                                     >
                                       <MdEdit className="text-sm" />
                                     </button>
                                     <button
                                       onClick={() => handleDelete(rev.id)}
-                                      className="p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-900/20 text-slate-400 hover:text-rose-500 transition-all"
+                                      className="p-1.5 rounded-lg hover:bg-rose-500/10 text-[var(--text-muted)] hover:text-rose-500 transition-all"
                                       title="Delete review"
                                     >
                                       <MdDelete className="text-sm" />
@@ -516,12 +516,12 @@ const Reviews = () => {
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ delay: i * 0.07, type: 'spring' }}
                             >
-                              <MdStar className="text-3xl text-slate-100 dark:text-slate-800" />
+                              <MdStar className="text-3xl text-[var(--border-subtle)]" />
                             </motion.div>
                           ))}
                         </div>
 
-                        <div className="w-20 h-20 bg-gradient-to-br from-yellow-50 to-orange-50 border border-yellow-100 rounded-[1.5rem] flex items-center justify-center mb-5 shadow-lg relative">
+                        <div className="w-20 h-20 bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border border-yellow-500/20 rounded-[1.5rem] flex items-center justify-center mb-5 shadow-lg relative">
                           <MdOutlineRateReview className="text-4xl text-yellow-300" />
                           <div className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center shadow-md">
                             <span className="text-[9px] font-black text-slate-900">0</span>

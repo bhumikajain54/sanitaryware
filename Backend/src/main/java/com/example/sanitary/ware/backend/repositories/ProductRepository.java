@@ -47,4 +47,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
         int updateAllStockQuantity(@Param("quantity") Integer quantity);
 
     long countByStockQuantityLessThan(Integer threshold);
+
+    java.util.List<Product> findByStockQuantityLessThan(Integer threshold);
 }

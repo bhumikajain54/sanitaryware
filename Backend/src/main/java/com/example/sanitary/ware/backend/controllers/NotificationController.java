@@ -8,6 +8,7 @@ import com.example.sanitary.ware.backend.enums.OrderStatus;
 import com.example.sanitary.ware.backend.services.OrderService;
 import com.example.sanitary.ware.backend.repositories.ProductRepository;
 import com.example.sanitary.ware.backend.repositories.ContactRepository;
+import com.example.sanitary.ware.backend.repositories.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -29,6 +30,9 @@ public class NotificationController {
 
     @Autowired
     private OrderService orderService;
+
+    @Autowired
+    private OrderRepository orderRepository;
 
     @Autowired
     private ProductRepository productRepository;
@@ -144,7 +148,7 @@ public class NotificationController {
 
         // 1. Order Notifications
         try {
-            List<Order> orders = orderService.getAllOrders();
+            List<Order> orders = orderRepository.findTop100ByOrderByCreatedAtDesc();
             if (orders != null) {
                 for (Order order : orders) {
                     String orderIdStr = "admin_order_" + order.getId();
@@ -169,25 +173,23 @@ public class NotificationController {
 
         // 2. Low Stock Alerts
         try {
-            List<Product> products = productRepository.findAll();
+            List<Product> products = productRepository.findByStockQuantityLessThan(10);
             if (products != null) {
                 for (Product product : products) {
                     int stock = product.getStockQuantity() != null ? product.getStockQuantity() : 0;
-                    if (stock < 10) {
-                        String stockIdStr = "admin_stock_" + product.getId();
-                        String timeStr = product.getUpdatedAt() != null ? product.getUpdatedAt().format(formatter) : "Now";
+                    String stockIdStr = "admin_stock_" + product.getId();
+                    String timeStr = product.getUpdatedAt() != null ? product.getUpdatedAt().format(formatter) : "Now";
 
-                        Map<String, Object> notif = new HashMap<>();
-                        notif.put("id", stockIdStr);
-                        notif.put("title", "Low Stock Alert: " + product.getName());
-                        notif.put("message", "Only " + stock + " items left in stock. Please reorder soon to avoid running out of stock.");
-                        notif.put("type", "alert");
-                        
-                        boolean isUnread = !readNotificationIds.contains(stockIdStr);
-                        notif.put("unread", isUnread);
-                        notif.put("time", timeStr);
-                        list.add(notif);
-                    }
+                    Map<String, Object> notif = new HashMap<>();
+                    notif.put("id", stockIdStr);
+                    notif.put("title", "Low Stock Alert: " + product.getName());
+                    notif.put("message", "Only " + stock + " items left in stock. Please reorder soon to avoid running out of stock.");
+                    notif.put("type", "alert");
+                    
+                    boolean isUnread = !readNotificationIds.contains(stockIdStr);
+                    notif.put("unread", isUnread);
+                    notif.put("time", timeStr);
+                    list.add(notif);
                 }
             }
         } catch (Exception e) {
@@ -196,7 +198,7 @@ public class NotificationController {
 
         // 3. Customer Inquiry Notifications
         try {
-            List<ContactMessage> messages = contactRepository.findAll();
+            List<ContactMessage> messages = contactRepository.findTop100ByOrderByCreatedAtDesc();
             if (messages != null) {
                 for (ContactMessage message : messages) {
                     String queryIdStr = "admin_query_" + message.getId();
@@ -230,7 +232,7 @@ public class NotificationController {
     @PostMapping("/mark-all-read")
     public ResponseEntity<Void> markAllRead() {
         try {
-            List<ContactMessage> messages = contactRepository.findAll();
+            List<ContactMessage> messages = contactRepository.findTop100ByOrderByCreatedAtDesc();
             if (messages != null) {
                 for (ContactMessage m : messages) {
                     if (!m.isRead()) {
@@ -244,19 +246,19 @@ public class NotificationController {
         }
 
         try {
-            List<Order> orders = orderService.getAllOrders();
+            List<Order> orders = orderRepository.findTop100ByOrderByCreatedAtDesc();
             if (orders != null) {
                 for (Order o : orders) {
                     readNotificationIds.add("admin_order_" + o.getId());
                 }
             }
-            List<Product> products = productRepository.findAll();
+            List<Product> products = productRepository.findByStockQuantityLessThan(10);
             if (products != null) {
                 for (Product p : products) {
                     readNotificationIds.add("admin_stock_" + p.getId());
                 }
             }
-            List<ContactMessage> messages = contactRepository.findAll();
+            List<ContactMessage> messages = contactRepository.findTop100ByOrderByCreatedAtDesc();
             if (messages != null) {
                 for (ContactMessage m : messages) {
                     readNotificationIds.add("admin_query_" + m.getId());

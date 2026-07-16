@@ -38,7 +38,8 @@ const MagneticButton = ({ children }) => {
 // ─── Input Field ─────────────────────────────────────────────────────────────
 const InputField = ({
   icon: Icon, type, name, placeholder, value, onChange,
-  showPasswordToggle, showPassword, onTogglePassword, accent
+  showPasswordToggle, showPassword, onTogglePassword, accent,
+  autoComplete
 }) => {
   const isAmber = accent === 'amber';
   return (
@@ -53,6 +54,7 @@ const InputField = ({
         onChange={onChange}
         required
         placeholder={placeholder}
+        autoComplete={autoComplete}
         className={`w-full pl-9 md:pl-11 lg:pl-14 pr-9 md:pr-10 lg:pr-12 py-2.5 md:py-3 lg:py-4 bg-white/5 border border-white/5 rounded-xl md:rounded-xl lg:rounded-2xl outline-none transition-all text-white font-bold tracking-wide placeholder:text-gray-700 placeholder:font-medium text-xs md:text-sm ${isAmber ? 'focus:border-amber-500/30 focus:bg-amber-500/5' : 'focus:border-teal-500/30 focus:bg-white/10'}`}
       />
       {showPasswordToggle && (
@@ -408,21 +410,21 @@ const CustomerLogin = () => {
                     )}
                   </header>
 
-                  <form onSubmit={handleSubmit} className="space-y-2.5">
+                  <form onSubmit={handleSubmit} className="space-y-2.5" autoComplete="off">
                     {isRegister && (
                       <div className="grid grid-cols-2 gap-2">
-                        <InputField icon={MdPerson} type="text" name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleChange} accent={adminExists === false ? 'amber' : undefined} />
-                        <InputField icon={MdPerson} type="text" name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleChange} accent={adminExists === false ? 'amber' : undefined} />
+                        <InputField icon={MdPerson} type="text" name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleChange} accent={adminExists === false ? 'amber' : undefined} autoComplete="off" />
+                        <InputField icon={MdPerson} type="text" name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleChange} accent={adminExists === false ? 'amber' : undefined} autoComplete="off" />
                       </div>
                     )}
-                    <InputField icon={MdEmail} type="email" name="email" placeholder={isRegister && adminExists === false ? 'Admin Email' : 'Email Address'} value={formData.email} onChange={handleChange} accent={isRegister && adminExists === false ? 'amber' : undefined} />
+                    <InputField icon={MdEmail} type="email" name="email" placeholder={isRegister && adminExists === false ? 'Admin Email' : 'Email Address'} value={formData.email} onChange={handleChange} accent={isRegister && adminExists === false ? 'amber' : undefined} autoComplete="new-username" />
                     {isRegister && (
-                      <InputField icon={MdPhone} type="tel" name="phone" placeholder="Contact Number" value={formData.phone} onChange={handleChange} accent={adminExists === false ? 'amber' : undefined} />
+                      <InputField icon={MdPhone} type="tel" name="phone" placeholder="Contact Number" value={formData.phone} onChange={handleChange} accent={adminExists === false ? 'amber' : undefined} autoComplete="off" />
                     )}
-                    <InputField icon={MdLock} type={showPassword ? 'text' : 'password'} name="password" placeholder={isRegister && adminExists === false ? 'Admin Passphrase' : 'Password'} value={formData.password} onChange={handleChange} showPasswordToggle showPassword={showPassword} onTogglePassword={() => setShowPassword(!showPassword)} accent={isRegister && adminExists === false ? 'amber' : undefined} />
+                    <InputField icon={MdLock} type={showPassword ? 'text' : 'password'} name="password" placeholder={isRegister && adminExists === false ? 'Admin Passphrase' : 'Password'} value={formData.password} onChange={handleChange} showPasswordToggle showPassword={showPassword} onTogglePassword={() => setShowPassword(!showPassword)} accent={isRegister && adminExists === false ? 'amber' : undefined} autoComplete="new-password" />
                     {formData.password && <PasswordStrength strength={strength} rules={rules} currentStrength={currentStrength} password={formData.password} />}
                     {isRegister && (
-                      <InputField icon={MdLock} type={showConfirmPassword ? 'text' : 'password'} name="confirmPassword" placeholder="Confirm Password" value={formData.confirmPassword} onChange={handleChange} showPasswordToggle showPassword={showConfirmPassword} onTogglePassword={() => setShowConfirmPassword(!showConfirmPassword)} accent={adminExists === false ? 'amber' : undefined} />
+                      <InputField icon={MdLock} type={showConfirmPassword ? 'text' : 'password'} name="confirmPassword" placeholder="Confirm Password" value={formData.confirmPassword} onChange={handleChange} showPasswordToggle showPassword={showConfirmPassword} onTogglePassword={() => setShowConfirmPassword(!showConfirmPassword)} accent={adminExists === false ? 'amber' : undefined} autoComplete="new-password" />
                     )}
                     {isLogin && (
                       <div className="flex justify-end">
@@ -463,9 +465,9 @@ const CustomerLogin = () => {
                     <p className="text-xs text-gray-400 font-medium tracking-wide border-l-2 border-teal-500/50 pl-4">Digital Concierge Access</p>
                   </motion.div>
                 </header>
-                <form onSubmit={handleSubmit} className="space-y-3 lg:space-y-4">
-                  <InputField icon={MdEmail} type="email" name="email" placeholder="Identifier (Email)" value={formData.email} onChange={handleChange} />
-                  <InputField icon={MdLock} type={showPassword ? 'text' : 'password'} name="password" placeholder="Access Key" value={formData.password} onChange={handleChange} showPasswordToggle showPassword={showPassword} onTogglePassword={() => setShowPassword(!showPassword)} />
+                <form onSubmit={handleSubmit} className="space-y-3 lg:space-y-4" autoComplete="off">
+                  <InputField icon={MdEmail} type="email" name="email" placeholder="Identifier (Email)" value={formData.email} onChange={handleChange} autoComplete="new-username" />
+                  <InputField icon={MdLock} type={showPassword ? 'text' : 'password'} name="password" placeholder="Access Key" value={formData.password} onChange={handleChange} showPasswordToggle showPassword={showPassword} onTogglePassword={() => setShowPassword(!showPassword)} autoComplete="new-password" />
                   {formData.password && <PasswordStrength strength={strength} rules={rules} currentStrength={currentStrength} password={formData.password} />}
                   <div className="flex justify-end">
                     <button type="button" onClick={() => alert('Password reset link sent!')} className="text-[9px] lg:text-[10px] font-bold text-gray-500 hover:text-teal-400 transition-all uppercase tracking-widest">FORGOT?</button>
@@ -503,16 +505,16 @@ const CustomerLogin = () => {
                     )}
                   </motion.div>
                 </header>
-                <form onSubmit={handleSubmit} className="space-y-2.5 lg:space-y-3">
+                <form onSubmit={handleSubmit} className="space-y-2.5 lg:space-y-3" autoComplete="off">
                   <div className="grid grid-cols-2 gap-2 lg:gap-3">
-                    <InputField icon={MdPerson} type="text" name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleChange} accent={adminExists === false ? 'amber' : undefined} />
-                    <InputField icon={MdPerson} type="text" name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleChange} accent={adminExists === false ? 'amber' : undefined} />
+                    <InputField icon={MdPerson} type="text" name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleChange} accent={adminExists === false ? 'amber' : undefined} autoComplete="off" />
+                    <InputField icon={MdPerson} type="text" name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleChange} accent={adminExists === false ? 'amber' : undefined} autoComplete="off" />
                   </div>
-                  <InputField icon={MdEmail} type="email" name="email" placeholder={adminExists === false ? 'Admin Email' : 'Email Address'} value={formData.email} onChange={handleChange} accent={adminExists === false ? 'amber' : undefined} />
-                  <InputField icon={MdPhone} type="tel" name="phone" placeholder="Contact Number" value={formData.phone} onChange={handleChange} accent={adminExists === false ? 'amber' : undefined} />
-                  <InputField icon={MdLock} type={showPassword ? 'text' : 'password'} name="password" placeholder={adminExists === false ? 'Admin passphrase' : 'Password'} value={formData.password} onChange={handleChange} showPasswordToggle showPassword={showPassword} onTogglePassword={() => setShowPassword(!showPassword)} accent={adminExists === false ? 'amber' : undefined} />
+                  <InputField icon={MdEmail} type="email" name="email" placeholder={adminExists === false ? 'Admin Email' : 'Email Address'} value={formData.email} onChange={handleChange} accent={adminExists === false ? 'amber' : undefined} autoComplete="new-username" />
+                  <InputField icon={MdPhone} type="tel" name="phone" placeholder="Contact Number" value={formData.phone} onChange={handleChange} accent={adminExists === false ? 'amber' : undefined} autoComplete="off" />
+                  <InputField icon={MdLock} type={showPassword ? 'text' : 'password'} name="password" placeholder={adminExists === false ? 'Admin passphrase' : 'Password'} value={formData.password} onChange={handleChange} showPasswordToggle showPassword={showPassword} onTogglePassword={() => setShowPassword(!showPassword)} accent={adminExists === false ? 'amber' : undefined} autoComplete="new-password" />
                   {formData.password && <PasswordStrength strength={strength} rules={rules} currentStrength={currentStrength} password={formData.password} />}
-                  <InputField icon={MdLock} type={showConfirmPassword ? 'text' : 'password'} name="confirmPassword" placeholder="Confirm Password" value={formData.confirmPassword} onChange={handleChange} showPasswordToggle showPassword={showConfirmPassword} onTogglePassword={() => setShowConfirmPassword(!showConfirmPassword)} accent={adminExists === false ? 'amber' : undefined} />
+                  <InputField icon={MdLock} type={showConfirmPassword ? 'text' : 'password'} name="confirmPassword" placeholder="Confirm Password" value={formData.confirmPassword} onChange={handleChange} showPasswordToggle showPassword={showConfirmPassword} onTogglePassword={() => setShowConfirmPassword(!showConfirmPassword)} accent={adminExists === false ? 'amber' : undefined} autoComplete="new-password" />
                   <MagneticButton>
                     <button type="submit" className={`w-full relative overflow-hidden py-3 lg:py-3.5 rounded-xl font-black text-xs group active:scale-95 transition-all shadow-xl ${adminExists === false ? 'bg-gradient-to-r from-amber-500 to-yellow-600 text-[#0a0f16]' : 'bg-gradient-to-r from-teal-500 to-cyan-600 text-white'}`}>
                       <span className="relative z-10 uppercase tracking-widest">{adminExists === false ? 'Create Admin' : 'Confirm'}</span>

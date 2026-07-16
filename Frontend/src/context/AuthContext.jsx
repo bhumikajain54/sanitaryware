@@ -98,10 +98,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setIsAuthenticated(false);
     setIsAdmin(false);
-    localStorage.removeItem('user');
-    localStorage.removeItem('userToken');
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('userId');
+    authService.logout().catch(err => console.warn('authService logout failed:', err));
   };
 
   const changePassword = async (oldPassword, newPassword) => {

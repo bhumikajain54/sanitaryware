@@ -21,4 +21,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     java.util.List<Order> findAllByOrderByCreatedAtDesc();
 
     java.util.List<Order> findTop500ByOrderByCreatedAtDesc();
+
+    java.util.List<Order> findTop100ByOrderByCreatedAtDesc();
 }

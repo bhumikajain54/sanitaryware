@@ -1,4 +1,7 @@
 {
-  "java.project.sourcePaths": ["Backend/src/main/java"],
-  "java.configuration.updateBuildConfiguration": "automatic"
+  "java.project.sourcePaths": [
+    "Backend/src/main/java"
+  ],
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "java.compile.nullAnalysis.mode": "automatic"
 }

@@ -56,6 +56,28 @@ export const ProductProvider = ({ children }) => {
 
   useEffect(() => {
     fetchProducts();
+    
+    // Background prefetching to warm up the cache for catalog-heavy endpoints
+    const prefetchCatalogData = async () => {
+      try {
+        // Run parallel background queries without blocking initial render thread
+        Promise.all([
+          customerService.getCategories(),
+          customerService.getBrands(),
+          customerService.getLandingData(),
+          customerService.getBanners(),
+          customerService.getFeaturedProducts()
+        ]).catch(err => {
+          console.warn('Background prefetch failed:', err);
+        });
+      } catch (error) {
+        console.warn('Background prefetch setup error:', error);
+      }
+    };
+    
+    // 1-second delay to prioritize the immediate layout rendering
+    const prefetchTimer = setTimeout(prefetchCatalogData, 1000);
+    return () => clearTimeout(prefetchTimer);
   }, []);
 
   const getProductById = async (id) => {

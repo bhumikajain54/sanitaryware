@@ -13,39 +13,153 @@ const api = axios.create({
 // ─── Global Query Cache Wrapper ──────────────────────────────────────────────
 const apiCache = new Map();
 
+// Verify sessionStorage accessibility
+const isSessionStorageAvailable = () => {
+    try {
+        const testKey = '__storage_test__';
+        sessionStorage.setItem(testKey, testKey);
+        sessionStorage.removeItem(testKey);
+        return true;
+    } catch (e) {
+        return false;
+    }
+};
+const hasSessionStorage = isSessionStorageAvailable();
+
+// Determine cache TTL (Time To Live) based on API URL
+const getCacheTTL = (url) => {
+    if (!url) return 30000;
+    const cleanUrl = url.toLowerCase();
+    
+    // 1. Highly volatile user-specific data (5 seconds TTL)
+    if (
+        cleanUrl.includes('/cart') || 
+        cleanUrl.includes('/wishlist') || 
+        cleanUrl.includes('/orders') || 
+        cleanUrl.includes('/notifications') || 
+        cleanUrl.includes('/profile') ||
+        cleanUrl.includes('/addresses') ||
+        cleanUrl.includes('/activity-logs') ||
+        cleanUrl.includes('/wallet') ||
+        cleanUrl.includes('/payment-methods')
+    ) {
+        return 5000; 
+    }
+    
+    // 2. Product details and reviews (5 minutes TTL)
+    if (cleanUrl.includes('/products/') || cleanUrl.includes('/reviews/product/')) {
+        return 300000;
+    }
+    
+    // 3. Static metadata and catalog listings (10 minutes TTL)
+    if (
+        cleanUrl.endsWith('/products') || 
+        cleanUrl.includes('/categories') || 
+        cleanUrl.includes('/brands') || 
+        cleanUrl.includes('/content/') || 
+        cleanUrl.includes('/banners') || 
+        cleanUrl.includes('/testimonials') || 
+        cleanUrl.includes('/landing') ||
+        cleanUrl.includes('/featured') ||
+        cleanUrl.includes('/search')
+    ) {
+        return 600000;
+    }
+    
+    // Default TTL: 30 seconds
+    return 30000;
+};
+
+// Clear both in-memory and sessionStorage caches on mutating operations
+const clearAllCache = () => {
+    apiCache.clear();
+    if (hasSessionStorage) {
+        try {
+            const keysToRemove = [];
+            for (let i = 0; i < sessionStorage.length; i++) {
+                const key = sessionStorage.key(i);
+                if (key && key.startsWith('api_cache_')) {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach(k => sessionStorage.removeItem(k));
+        } catch (e) {
+            console.error('Failed to clear sessionStorage cache:', e);
+        }
+    }
+};
+
 // Save the original request method
 const originalRequest = api.request.bind(api);
 
-// Override request to inject SWR cache
+// Override request to inject cache layer
 api.request = async (config) => {
     const isGet = (config.method || 'get').toLowerCase() === 'get';
 
     if (!isGet) {
-        apiCache.clear();
+        clearAllCache();
         return originalRequest(config);
     }
 
     // Build a unique cache key based on URL and params
-    const cacheKey = `${config.url}?${new URLSearchParams(config.params || {}).toString()}`;
-    const cachedEntry = apiCache.get(cacheKey);
+    const cacheKey = `api_cache_${config.url}?${new URLSearchParams(config.params || {}).toString()}`;
     const now = Date.now();
+    const ttl = getCacheTTL(config.url);
 
-    // Cache hit within 15 seconds TTL
-    if (cachedEntry && (now - cachedEntry.timestamp < 15000)) {
-        return cachedEntry.promise;
+    // 1. Check active in-memory cache (for collapsing concurrent requests / fast navigation)
+    const inMemoryEntry = apiCache.get(cacheKey);
+    if (inMemoryEntry && (now - inMemoryEntry.timestamp < ttl)) {
+        return inMemoryEntry.promise;
     }
 
-    // Cache miss: execute request and cache the promise (collapsing concurrent requests)
+    // 2. Check persistent sessionStorage cache to survive page refreshes
+    if (hasSessionStorage) {
+        try {
+            const sessionCached = sessionStorage.getItem(cacheKey);
+            if (sessionCached) {
+                const parsed = JSON.parse(sessionCached);
+                if (parsed && (now - parsed.timestamp < ttl)) {
+                    const resolvedPromise = Promise.resolve(parsed.data);
+                    apiCache.set(cacheKey, {
+                        timestamp: now,
+                        promise: resolvedPromise
+                    });
+                    return resolvedPromise;
+                }
+            }
+        } catch (e) {
+            console.warn('Session cache read error:', e);
+        }
+    }
+
+    // 3. Cache miss: execute request and cache the promise (collapsing concurrent requests)
     const promise = originalRequest(config);
 
     apiCache.set(cacheKey, {
-        timestamp: Date.now(),
+        timestamp: now,
         promise: promise
     });
 
-    // Invalidate cache entry if the request fails
-    promise.catch(() => {
+    // Save to sessionStorage upon successful completion
+    promise.then((resolvedData) => {
+        if (hasSessionStorage) {
+            try {
+                sessionStorage.setItem(cacheKey, JSON.stringify({
+                    timestamp: Date.now(),
+                    data: resolvedData
+                }));
+            } catch (e) {
+                console.warn('Session cache write error:', e);
+            }
+        }
+    }).catch(() => {
+        // Invalidate cache if the request fails
         apiCache.delete(cacheKey);
+        if (hasSessionStorage) {
+            try {
+                sessionStorage.removeItem(cacheKey);
+            } catch (e) {}
+        }
     });
 
     return promise;

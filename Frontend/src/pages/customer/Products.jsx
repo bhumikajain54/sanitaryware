@@ -86,6 +86,13 @@ const CompactProductCard = ({ product, addToCart, toggleWishlist, isInWishlist, 
          animate={{ opacity: 1 }}
          exit={{ opacity: 0 }}
          className="group bg-[var(--bg-card)] rounded-xl overflow-hidden border border-[var(--border-subtle)] hover:border-teal-500 hover:shadow-xl transition-all duration-300 relative flex flex-col"
+         onMouseEnter={() => {
+            if (product && product.id) {
+               // Prefetch product details and reviews silently into the cache
+               customerService.getProductById(product.id).catch(() => {});
+               customerService.getReviewsByProduct(product.id).catch(() => {});
+            }
+         }}
       >
          {/* Image */}
          <div className="relative aspect-square overflow-hidden bg-[var(--bg-app)] flex items-center justify-center">

@@ -607,6 +607,13 @@ const ProductDetail = () => {
               key={item.id}
               whileHover={{ y: -15 }}
               className="group bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 p-2 overflow-hidden hover:shadow-2xl hover:shadow-slate-200/50 dark:hover:shadow-none transition-all duration-500"
+              onMouseEnter={() => {
+                if (item && item.id) {
+                  // Prefetch related product details and reviews silently
+                  customerService.getProductById(item.id).catch(() => {});
+                  customerService.getReviewsByProduct(item.id).catch(() => {});
+                }
+              }}
             >
               <div className="aspect-square bg-slate-50 dark:bg-slate-800 rounded-[1.75rem] overflow-hidden mb-5 p-6 relative">
                 <Link to={`/product/${item.id}`}>

@@ -211,7 +211,7 @@ const AdminDashboardNew = () => {
 
       {/* ─── Stats Grid ─── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5 lg:gap-6 mb-4 sm:mb-6 md:mb-8">
-        {loading ? (
+        {summaryLoading || statsLoading ? (
           [0, 1, 2, 3].map(i => <StatCardSkeleton key={i} />)
         ) : (
           stats.map((stat, index) => (

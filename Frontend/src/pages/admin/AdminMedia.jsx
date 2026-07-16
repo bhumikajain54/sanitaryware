@@ -54,14 +54,34 @@ const AdminMedia = () => {
       return item;
     });
 
-    // Filter out duplicates based on ID or URL
+    // Helper to get clean original filename without random prefixes/UUIDs
+    const getCleanName = (fileName) => {
+      if (!fileName) return '';
+      let cleaned = fileName;
+      const uuidWithUnderscoreRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}_/;
+      if (uuidWithUnderscoreRegex.test(cleaned)) {
+        cleaned = cleaned.replace(uuidWithUnderscoreRegex, '');
+      } else {
+        const fallbackRegex = /^[0-9a-fA-F]{8}_/;
+        if (fallbackRegex.test(cleaned)) {
+          cleaned = cleaned.replace(fallbackRegex, '');
+        }
+      }
+      const brandRegex = /^brand_[0-9a-fA-F]{8}\./i;
+      if (brandRegex.test(cleaned)) {
+        cleaned = 'brand.' + cleaned.split('.').pop();
+      }
+      return cleaned.toLowerCase();
+    };
+
+    // Filter out duplicates based on clean filenames
     const uniqueFiles = [];
-    const seen = new Set();
+    const seenCleanNames = new Set();
     
     normalized.forEach(file => {
-      const identifier = file.id || file.url || file.fileName;
-      if (!seen.has(identifier)) {
-        seen.add(identifier);
+      const cleanName = getCleanName(file.fileName);
+      if (!seenCleanNames.has(cleanName)) {
+        seenCleanNames.add(cleanName);
         uniqueFiles.push(file);
       }
     });

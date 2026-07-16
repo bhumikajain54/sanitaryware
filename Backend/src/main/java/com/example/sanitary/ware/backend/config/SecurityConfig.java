@@ -71,12 +71,12 @@ public class SecurityConfig {
                                                                 "/api/search", "/api/search/**",
                                                                 "/api/media", "/api/media/**",
                                                                 "/api/notifications", "/api/notifications/**",
-                                                                "/api/testimonials", "/api/testimonials/**",
                                                                 "/api/contact", "/api/contact/**",
                                                                 "/api/content/**",
                                                                 "/api/debug", "/api/debug/**",
-                                                                "/api/admin/tally/status",
+                                                                 "/api/admin/tally/status",
                                                                 "/api/admin/tally/test-connection",
+                                                                "/api/reviews/all",
                                                                 "/uploads/**")
                                                 .permitAll()
 

@@ -53,21 +53,56 @@ export const useCustomerToast = () => {
     return { success, error, info };
 };
 
-// ============================================
-// useCustomerFetch - Data fetching with loading states
-// ============================================
+// Global customer fetch cache backed by sessionStorage
+const customerFetchCache = {
+    get: (key) => {
+        try {
+            const val = sessionStorage.getItem('customer_cache_' + key);
+            return val ? JSON.parse(val) : null;
+        } catch { return null; }
+    },
+    set: (key, value) => {
+        try {
+            sessionStorage.setItem('customer_cache_' + key, JSON.stringify(value));
+        } catch (e) {
+            console.warn('Failed to set sessionStorage cache', e);
+        }
+    },
+    has: (key) => {
+        try {
+            return sessionStorage.getItem('customer_cache_' + key) !== null;
+        } catch { return false; }
+    },
+    delete: (key) => {
+        try {
+            sessionStorage.removeItem('customer_cache_' + key);
+        } catch {}
+    }
+};
 
 export const useCustomerFetch = (fetchFunction, dependencies = []) => {
-    const [data, setData] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const cacheKey = useMemo(() => {
+        return fetchFunction.toString() + '_' + JSON.stringify(dependencies);
+    }, [fetchFunction, JSON.stringify(dependencies)]);
+
+    const [data, setData] = useState(() => {
+        return customerFetchCache.get(cacheKey) || null;
+    });
+    const [loading, setLoading] = useState(() => {
+        return !customerFetchCache.has(cacheKey);
+    });
     const [error, setError] = useState(null);
 
     const fetchData = useCallback(async () => {
-        setLoading(true);
+        const hasCached = customerFetchCache.has(cacheKey);
+        if (!hasCached) {
+            setLoading(true);
+        }
         setError(null);
 
         try {
             const result = await fetchFunction();
+            customerFetchCache.set(cacheKey, result);
             setData(result);
         } catch (err) {
             setError(err.message || 'An error occurred');
@@ -75,15 +110,16 @@ export const useCustomerFetch = (fetchFunction, dependencies = []) => {
         } finally {
             setLoading(false);
         }
-    }, [fetchFunction]);
+    }, [fetchFunction, cacheKey]);
 
     useEffect(() => {
         fetchData();
     }, [fetchData, JSON.stringify(dependencies)]);
 
     const refetch = useCallback(() => {
-        fetchData();
-    }, [fetchData]);
+        customerFetchCache.delete(cacheKey);
+        return fetchData();
+    }, [fetchData, cacheKey]);
 
     return { data, loading, error, refetch };
 };

@@ -10,6 +10,48 @@ const api = axios.create({
     // Note: Do not set a global Content-Type here to allow Axios to handle FormData automatically
 });
 
+// ─── Global Query Cache Wrapper ──────────────────────────────────────────────
+const apiCache = new Map();
+
+// Save the original request method
+const originalRequest = api.request.bind(api);
+
+// Override request to inject SWR cache
+api.request = async (config) => {
+    const isGet = (config.method || 'get').toLowerCase() === 'get';
+
+    if (!isGet) {
+        apiCache.clear();
+        return originalRequest(config);
+    }
+
+    // Build a unique cache key based on URL and params
+    const cacheKey = `${config.url}?${new URLSearchParams(config.params || {}).toString()}`;
+    const cachedEntry = apiCache.get(cacheKey);
+    const now = Date.now();
+
+    // Cache hit within 15 seconds TTL
+    if (cachedEntry && (now - cachedEntry.timestamp < 15000)) {
+        return cachedEntry.promise;
+    }
+
+    // Cache miss: execute request and cache the promise (collapsing concurrent requests)
+    const promise = originalRequest(config);
+
+    apiCache.set(cacheKey, {
+        timestamp: Date.now(),
+        promise: promise
+    });
+
+    // Invalidate cache entry if the request fails
+    promise.catch(() => {
+        apiCache.delete(cacheKey);
+    });
+
+    return promise;
+};
+
+
 /**
  * Request Interceptor: Attach JWT Token and Headers
  */

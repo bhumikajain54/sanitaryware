@@ -41,6 +41,118 @@ const ProductSkeleton = () => (
   </div>
 );
 
+// ─── Testimonial Carousel ──────────────────────────────────────────────────────
+const TestimonialCarousel = ({ tList, colors }) => {
+  const [active, setActive] = useState(0);
+
+  useEffect(() => {
+    if (tList.length <= 1) return;
+    const timer = setInterval(() => setActive(i => (i + 1) % tList.length), 4000);
+    return () => clearInterval(timer);
+  }, [tList.length]);
+
+  const t = tList[active];
+  const sideLeft  = tList.filter((_, i) => i !== active).slice(0, 3);
+  const sideRight = tList.filter((_, i) => i !== active).slice(3, 6);
+
+  const Avatar = ({ item, idx, onClick, size = 'md' }) => {
+    const bg = colors[(tList.indexOf(item) ?? idx) % colors.length];
+    const sz = size === 'lg'
+      ? 'w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 text-xl sm:text-2xl md:text-3xl'
+      : 'w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 text-base sm:text-lg md:text-xl';
+    return (
+      <button
+        onClick={onClick}
+        className={`${sz} ${bg} rounded-full flex items-center justify-center font-black text-white shadow-lg hover:scale-110 transition-transform duration-200 border-2 border-white`}
+      >
+        {item.name ? item.name.charAt(0).toUpperCase() : 'C'}
+      </button>
+    );
+  };
+
+  return (
+    <section className="py-12 sm:py-16 md:py-20 lg:py-24 bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        {/* Section heading */}
+        <div className="text-center mb-10 sm:mb-14 md:mb-16">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-950 tracking-tight">
+            What Our <span className="text-teal-600 italic">Clients Say</span>
+          </h2>
+        </div>
+
+        {/* Carousel layout: left avatars | center card | right avatars */}
+        <div className="flex items-center justify-center gap-4 sm:gap-6 md:gap-10 lg:gap-16">
+
+          {/* Left floating avatars */}
+          <div className="hidden sm:flex flex-col gap-4 sm:gap-5 md:gap-7 items-center">
+            {sideLeft.map((item, idx) => (
+              <Avatar
+                key={idx}
+                item={item}
+                idx={idx}
+                onClick={() => setActive(tList.indexOf(item))}
+              />
+            ))}
+          </div>
+
+          {/* Center active card */}
+          <div className="flex-1 max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg">
+            <div className="bg-white border border-slate-100 rounded-2xl sm:rounded-3xl shadow-xl p-6 sm:p-8 md:p-10 flex flex-col items-center text-center transition-all duration-300">
+              {/* Large avatar */}
+              <Avatar
+                item={t}
+                idx={active}
+                onClick={() => {}}
+                size="lg"
+              />
+
+              {/* Stars */}
+              <div className="flex gap-1 text-yellow-400 mt-4 mb-3">
+                {[...Array(t.rating || 5)].map((_, i) => <MdStar key={i} className="text-lg sm:text-xl md:text-2xl" />)}
+              </div>
+
+              {/* Comment */}
+              <p className="text-slate-600 italic text-sm sm:text-base md:text-lg leading-relaxed mb-5">
+                &ldquo;{t.comment}&rdquo;
+              </p>
+
+              {/* Name & role */}
+              <h4 className="font-extrabold text-slate-950 text-base sm:text-lg uppercase tracking-tight">{t.name || 'Verified Customer'}</h4>
+              <p className="text-teal-600 text-xs sm:text-sm font-semibold mt-0.5">{t.role || 'Verified Purchase'}</p>
+
+              {/* Dots */}
+              {tList.length > 1 && (
+                <div className="flex gap-2 mt-5">
+                  {tList.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setActive(i)}
+                      className={`w-2 h-2 rounded-full transition-all duration-200 ${i === active ? 'bg-teal-600 w-5' : 'bg-slate-300'}`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right floating avatars */}
+          <div className="hidden sm:flex flex-col gap-4 sm:gap-5 md:gap-7 items-center">
+            {sideRight.map((item, idx) => (
+              <Avatar
+                key={idx}
+                item={item}
+                idx={idx + 3}
+                onClick={() => setActive(tList.indexOf(item))}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 const LandingPage = () => {
   const location = useLocation();
@@ -55,16 +167,60 @@ const LandingPage = () => {
     }
   }, [location]);
 
-  const [banners, setBanners] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [brands, setBrands] = useState([]);
-  const [testimonials, setTestimonials] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [stats, setStats] = useState([]);
-  const [features, setFeatures] = useState([]);
-  const [aboutPage, setAboutPage] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [sectionsLoaded, setSectionsLoaded] = useState({ banners: false, products: false, stats: false, features: false });
+  const [banners, setBanners] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('cached_banners') || '[]');
+    } catch { return []; }
+  });
+  const [categories, setCategories] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('cached_categories') || '[]');
+    } catch { return []; }
+  });
+  const [brands, setBrands] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('cached_brands') || '[]');
+    } catch { return []; }
+  });
+  const [testimonials, setTestimonials] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('cached_testimonials') || '[]'); } catch { return []; }
+  });
+  const [products, setProducts] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('cached_products') || '[]');
+    } catch { return []; }
+  });
+  const [stats, setStats] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('cached_stats') || '[]');
+    } catch { return []; }
+  });
+  const [features, setFeatures] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('cached_features') || '[]');
+    } catch { return []; }
+  });
+  const [aboutPage, setAboutPage] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('cached_aboutPage') || 'null');
+    } catch { return null; }
+  });
+
+  const [loading, setLoading] = useState(() => {
+    try {
+      const hasCached = localStorage.getItem('cached_products') !== null;
+      return !hasCached;
+    } catch { return true; }
+  });
+
+  const [sectionsLoaded, setSectionsLoaded] = useState(() => {
+    try {
+      const hasCached = localStorage.getItem('cached_products') !== null;
+      return { banners: hasCached, products: hasCached, stats: hasCached, features: hasCached };
+    } catch {
+      return { banners: false, products: false, stats: false, features: false };
+    }
+  });
 
   // ─── Dynamic Icon Mapping ──────────────────────────────────────────────────
   const iconMap = {
@@ -80,6 +236,7 @@ const LandingPage = () => {
     MdPhone: <MdPhone />,
     MdEmail: <MdEmail />
   };
+
   const getIcon = (iconName, defaultIcon = <MdStar />) => {
     if (!iconName) return defaultIcon;
     // Check if the iconName is actually an image URL (http/https) or an HTML img tag
@@ -98,46 +255,54 @@ const LandingPage = () => {
 
   useEffect(() => {
     const loadHomeData = async () => {
-      const safeFetch = async (promise, fallback) => {
-        try { return await promise; } catch (e) { console.warn('Section load failed', e); return fallback; }
-      };
       try {
-        setLoading(true);
-        const bannersData = await safeFetch(customerService.getBanners(), []);
-        setBanners(Array.isArray(bannersData) ? bannersData : []);
-        setSectionsLoaded(prev => ({ ...prev, banners: true }));
+        const hasCached = localStorage.getItem('cached_products') !== null;
+        if (!hasCached) {
+          setLoading(true);
+        }
+        const data = await customerService.getLandingData();
 
-        const [categoriesData, brandsData, testimonialsData, productsData, aboutData, statsData, featuresData] = await Promise.all([
-          safeFetch(customerService.getCategories(), []),
-          safeFetch(customerService.getBrands(), []),
-          safeFetch(customerService.getTestimonials(), []),
-          safeFetch(customerService.getProducts(), []),
-          safeFetch(customerService.getPageBySlug('about-us').catch(() => customerService.getPageBySlug('about')), null),
-          safeFetch(customerService.getStats(), []),
-          safeFetch(customerService.getFeatures(), [])
-        ]);
+        if (data) {
+          const fetchedBanners = Array.isArray(data.banners) ? data.banners : [];
+          const fetchedCategories = Array.isArray(data.categories) ? data.categories.slice(0, 4) : [];
+          const fetchedBrands = Array.isArray(data.brands) ? data.brands : [];
+          const fetchedTestimonials = Array.isArray(data.testimonials) ? data.testimonials.slice(0, 6) : [];
+          const fetchedStats = Array.isArray(data.stats) ? data.stats : [];
+          const fetchedFeatures = Array.isArray(data.features) ? data.features : [];
+          const fetchedAboutPage = data.aboutPage && !data.aboutPage.error ? data.aboutPage : null;
 
-        setCategories(Array.isArray(categoriesData) ? categoriesData.slice(0, 4) : []);
-        setBrands(Array.isArray(brandsData) ? brandsData : []);
-        setTestimonials(Array.isArray(testimonialsData) ? testimonialsData.slice(0, 2) : []);
-        setStats(Array.isArray(statsData) ? statsData : []);
-        setFeatures(Array.isArray(featuresData) ? featuresData : []);
-        setSectionsLoaded(prev => ({ ...prev, stats: true, features: true }));
-        if (aboutData && !aboutData.error) setAboutPage(aboutData);
+          const rawProducts = Array.isArray(data.products) ? data.products : [];
+          const normalizedProducts = rawProducts.map(p => ({
+            ...p,
+            id: p.id || p.productId,
+            brand: p.brand && typeof p.brand === 'object' ? p.brand.name : (p.brand || 'No Brand'),
+            category: p.category && typeof p.category === 'object' ? p.category.name : (p.category || 'No Category'),
+            image: (Array.isArray(p.images) && p.images.length) ? p.images[0] : (p.mainImage || p.image || '/Logo2.png'),
+          })).slice(0, 4);
 
-        const rawProducts = Array.isArray(productsData)
-          ? productsData
-          : (productsData?.content || productsData?.data || []);
-        const normalizedProducts = rawProducts.map(p => ({
-          ...p,
-          id: p.id || p.productId,
-          brand: p.brand && typeof p.brand === 'object' ? p.brand.name : (p.brand || 'No Brand'),
-          category: p.category && typeof p.category === 'object' ? p.category.name : (p.category || 'No Category'),
-          image: (Array.isArray(p.images) && p.images.length) ? p.images[0] : (p.mainImage || p.image || '/Logo2.png'),
-        })).slice(0, 4);
+          setBanners(fetchedBanners);
+          setCategories(fetchedCategories);
+          setBrands(fetchedBrands);
+          setTestimonials(fetchedTestimonials);
+          setStats(fetchedStats);
+          setFeatures(fetchedFeatures);
+          setAboutPage(fetchedAboutPage);
+          setProducts(normalizedProducts);
 
-        setProducts(normalizedProducts);
-        setSectionsLoaded(prev => ({ ...prev, products: true }));
+          setSectionsLoaded({ banners: true, products: true, stats: true, features: true });
+
+          // Save to localStorage cache
+          localStorage.setItem('cached_banners', JSON.stringify(fetchedBanners));
+          localStorage.setItem('cached_categories', JSON.stringify(fetchedCategories));
+          localStorage.setItem('cached_brands', JSON.stringify(fetchedBrands));
+          localStorage.setItem('cached_testimonials', JSON.stringify(fetchedTestimonials));
+          localStorage.setItem('cached_stats', JSON.stringify(fetchedStats));
+          localStorage.setItem('cached_features', JSON.stringify(fetchedFeatures));
+          if (fetchedAboutPage) {
+            localStorage.setItem('cached_aboutPage', JSON.stringify(fetchedAboutPage));
+          }
+          localStorage.setItem('cached_products', JSON.stringify(normalizedProducts));
+        }
       } catch (error) {
         console.error('Critical failure loading home data:', error);
       } finally {
@@ -430,47 +595,16 @@ const LandingPage = () => {
       )}
 
       {/* ── Testimonials ──────────────────────────────────────────────────────── */}
-      {testimonials && testimonials.length > 0 && (
-        <section className="py-10 sm:py-14 md:py-20 lg:py-24 bg-slate-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Stack on mobile, side-by-side on md+ */}
-            <div className="flex flex-col md:grid md:grid-cols-3 gap-6 md:gap-8 lg:gap-12 items-start md:items-center">
+      {(() => {
+        const COLORS = ['bg-teal-600','bg-slate-700','bg-teal-700','bg-slate-600','bg-teal-500','bg-slate-800'];
+        const tList = testimonials && testimonials.length > 0 ? testimonials : [
+          { name: 'Singhai Traders', role: 'Balaghat, M.P.', rating: 5, comment: 'Be the first to share your experience with us. Your review helps others make better choices.' }
+        ];
+        return (
+          <TestimonialCarousel tList={tList} colors={COLORS} />
+        );
+      })()}
 
-              {/* Label */}
-              <div className="md:col-span-1">
-                <h3 className="text-teal-600 text-xs sm:text-sm md:text-base font-black tracking-widest uppercase mb-1 sm:mb-2 md:mb-4">Reviews</h3>
-                <h2 className="text-2xl sm:text-3xl md:text-3xl lg:text-4xl font-black text-slate-950 mb-2 md:mb-4 lg:mb-6 leading-tight uppercase tracking-tighter">
-                  Client <span className="text-teal-600 italic">Intel.</span>
-                </h2>
-                <p className="text-slate-600 text-sm sm:text-base md:text-base lg:text-lg leading-relaxed">
-                  Excellence is not an act, but a habit. Read how we've helped shape high-end architectural projects.
-                </p>
-              </div>
-
-              {/* Cards */}
-              <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6 lg:gap-8 w-full">
-                {testimonials.map((t, idx) => (
-                  <div key={idx} className="bg-white p-5 sm:p-6 md:p-7 lg:p-10 rounded-2xl sm:rounded-3xl shadow-lg border border-slate-100 flex flex-col h-full">
-                    <div className="flex gap-0.5 sm:gap-1 text-yellow-400 mb-3 md:mb-4 lg:mb-6">
-                      {[...Array(t.rating || 5)].map((_, i) => <MdStar key={i} className="text-base sm:text-lg md:text-[20px]" />)}
-                    </div>
-                    <p className="text-slate-600 italic text-sm sm:text-sm md:text-base lg:text-lg mb-4 md:mb-6 lg:mb-8 leading-relaxed line-clamp-4">
-                      "{t.comment}"
-                    </p>
-                    <div className="flex items-center gap-3 md:gap-4 mt-auto">
-                      <div className="w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-slate-200 rounded-full shrink-0" />
-                      <div className="min-w-0">
-                        <h4 className="font-extrabold text-slate-950 text-sm sm:text-base truncate uppercase tracking-tighter">{t.name}</h4>
-                        <p className="text-xs sm:text-sm text-slate-500 font-medium truncate uppercase">{t.role}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* ── CTA ───────────────────────────────────────────────────────────────── */}
       <section className="py-6 sm:py-8 md:py-10 px-3 sm:px-4 md:px-6 lg:px-8">

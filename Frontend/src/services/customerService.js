@@ -146,6 +146,8 @@ export const setDefaultAddress = (id) => apiCall(`/customer/addresses/${id}/defa
 export const getPageBySlug = (slug) => apiCall(`/content/pages/${slug}`);
 export const getStats = () => apiCall('/content/pages/stats');
 export const getFeatures = () => apiCall('/content/pages/features');
+export const getLandingData = () => apiCall('/content/pages/landing');
+export const getPublicReviews = () => apiCall('/reviews/all');
 
 // ============================================
 // MISC SERVICES (Testimonials, Contact, Payment)
@@ -269,6 +271,7 @@ export default {
     updatePreferences,
     getPageBySlug,
     getStats,
+    getLandingData,
     getNotifications,
     markNotificationAsRead,
     deleteNotification,

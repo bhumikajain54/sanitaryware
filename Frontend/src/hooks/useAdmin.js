@@ -67,21 +67,56 @@ export const useAdminToast = () => {
 };
 
 // ============================================
-// useAdminFetch - Data fetching with loading states
-// ============================================
+// Global admin fetch cache backed by sessionStorage
+const adminFetchCache = {
+    get: (key) => {
+        try {
+            const val = sessionStorage.getItem('admin_cache_' + key);
+            return val ? JSON.parse(val) : null;
+        } catch { return null; }
+    },
+    set: (key, value) => {
+        try {
+            sessionStorage.setItem('admin_cache_' + key, JSON.stringify(value));
+        } catch (e) {
+            console.warn('Failed to set sessionStorage cache', e);
+        }
+    },
+    has: (key) => {
+        try {
+            return sessionStorage.getItem('admin_cache_' + key) !== null;
+        } catch { return false; }
+    },
+    delete: (key) => {
+        try {
+            sessionStorage.removeItem('admin_cache_' + key);
+        } catch {}
+    }
+};
 
 export const useAdminFetch = (fetchFunction, dependencies = []) => {
-    const [data, setData] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const cacheKey = useMemo(() => {
+        return fetchFunction.toString() + '_' + JSON.stringify(dependencies);
+    }, [fetchFunction, JSON.stringify(dependencies)]);
+
+    const [data, setData] = useState(() => {
+        return adminFetchCache.get(cacheKey) || null;
+    });
+    const [loading, setLoading] = useState(() => {
+        return !adminFetchCache.has(cacheKey);
+    });
     const [error, setError] = useState(null);
 
     const fetchData = useCallback(async () => {
-        setLoading(true);
+        const hasCached = adminFetchCache.has(cacheKey);
+        if (!hasCached) {
+            setLoading(true);
+        }
         setError(null);
 
         try {
             const result = await fetchFunction();
-            console.log('useAdminFetch raw data:', result); // DEBUG LOG
+            adminFetchCache.set(cacheKey, result);
             setData(result);
         } catch (err) {
             setError(err.message || 'An error occurred');
@@ -89,7 +124,7 @@ export const useAdminFetch = (fetchFunction, dependencies = []) => {
         } finally {
             setLoading(false);
         }
-    }, [fetchFunction]);
+    }, [fetchFunction, cacheKey]);
 
     // Use a ref to store the stringified dependencies to avoid infinite loops from unmemoized arrays
     const dependenciesRef = useRef(JSON.stringify(dependencies));
@@ -103,8 +138,9 @@ export const useAdminFetch = (fetchFunction, dependencies = []) => {
     }, [fetchData, JSON.stringify(dependencies)]);
 
     const refetch = useCallback(() => {
+        adminFetchCache.delete(cacheKey);
         return fetchData();
-    }, [fetchData]);
+    }, [fetchData, cacheKey]);
 
     return { data, loading, error, refetch };
 };

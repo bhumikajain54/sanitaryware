@@ -231,10 +231,8 @@ function App() {
                   }
                 />
                 {/* Login Routes */}
-                <Route path="/customer/login" element={<CustomerLogin />} />
-                <Route path="/admin/login" element={<Navigate to="/customer/login" replace />} />
-                {/* Legacy login route - redirect to customer login */}
-                <Route path="/login" element={<Navigate to="/customer/login" replace />} />
+                <Route path="/login" element={<CustomerLogin />} />
+                <Route path="/admin/login" element={<Navigate to="/login" replace />} />
 
                 {/* Customer Home (Protected - After Login) - REMOVED, using Dashboard instead */}
                 {/* <Route

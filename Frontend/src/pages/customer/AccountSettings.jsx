@@ -362,7 +362,7 @@ const AccountSettings = () => {
         title={dangerModal === 'delete' ? 'Close Account?' : 'Sign Out?'}
         description={dangerModal === 'delete' ? 'This action is permanent and will delete all your orders, addresses, and saved data from Singhai Traders. This cannot be undone.' : 'Are you sure you want to exit your current session? You will need to log in again to access your account.'}
         confirmText={dangerModal === 'delete' ? 'Delete Permanently' : 'Yes, Sign Out'}
-        onConfirm={dangerModal === 'delete' ? () => { setDangerModal(null); toast('Deletion request filed.', { icon: '⚠️' }); } : () => { setDangerModal(null); logout(); navigate('/customer/login'); }}
+        onConfirm={dangerModal === 'delete' ? () => { setDangerModal(null); toast('Deletion request filed.', { icon: '⚠️' }); } : () => { setDangerModal(null); logout(); navigate('/login'); }}
       />
     </motion.div>
   );

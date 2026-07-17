@@ -96,7 +96,7 @@ const LoginModal = ({ isOpen, onClose }) => {
 
               {/* Customer Login Card */}
               <Link
-                to="/customer/login"
+                to="/login"
                 onClick={onClose}
                 className="group relative bg-gradient-to-br from-teal-600 to-cyan-600 rounded-2xl p-8 border-2 border-teal-500 hover:border-teal-300 transition-all duration-300 overflow-hidden"
               >

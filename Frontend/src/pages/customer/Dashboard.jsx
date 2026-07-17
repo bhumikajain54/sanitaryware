@@ -413,7 +413,7 @@ const Dashboard = () => {
                         {selectedOrder.paymentMethod || 'Online Payment'}
                       </p>
                       <Badge
-                        variant={selectedOrder.paymentStatus?.toLowerCase() === 'paid' ? 'success' : 'warning'}
+                        variant={['paid', 'completed', 'success'].includes(selectedOrder.paymentStatus?.toLowerCase()) ? 'success' : 'warning'}
                         className="text-[7px] sm:text-[8px] md:text-[9px] uppercase tracking-widest"
                       >
                         {selectedOrder.paymentStatus || 'Pending'}

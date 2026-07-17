@@ -124,7 +124,7 @@ const SocialLogins = () => {
           toast.success('Access Granted!', { id: toastId });
           if (checkIsAdmin(result.user?.role)) navigate('/admin', { replace: true });
           else {
-            const dest = (from === '/customer/login' || from === '/login') ? '/customer/dashboard' : from;
+            const dest = (from === '/login') ? '/customer/dashboard' : from;
             navigate(dest, { replace: true });
           }
         } else {
@@ -265,7 +265,7 @@ const CustomerLogin = () => {
       if (result.success) {
         if (checkIsAdmin(result.user?.role)) navigate('/admin', { replace: true });
         else {
-          const dest = from === '/customer/login' || from === '/login' ? '/customer/dashboard' : from;
+          const dest = from === '/login' ? '/customer/dashboard' : from;
           navigate(dest, { replace: true });
         }
       } else { alert(result.message || 'Login failed'); }

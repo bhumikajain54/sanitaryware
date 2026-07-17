@@ -84,14 +84,27 @@ public class Order {
     @Column(name = "tracking_url")
     private String trackingUrl;
 
+    public PaymentStatus getPaymentStatus() {
+        if ("COD".equalsIgnoreCase(this.paymentMethod)) {
+            return this.status == OrderStatus.DELIVERED ? PaymentStatus.COMPLETED : PaymentStatus.PENDING;
+        }
+        return this.paymentStatus;
+    }
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
+        if ("COD".equalsIgnoreCase(paymentMethod)) {
+            paymentStatus = status == OrderStatus.DELIVERED ? PaymentStatus.COMPLETED : PaymentStatus.PENDING;
+        }
     }
 
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+        if ("COD".equalsIgnoreCase(paymentMethod)) {
+            paymentStatus = status == OrderStatus.DELIVERED ? PaymentStatus.COMPLETED : PaymentStatus.PENDING;
+        }
     }
 }

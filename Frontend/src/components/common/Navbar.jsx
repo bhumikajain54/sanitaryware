@@ -75,7 +75,7 @@ const Navbar = () => {
             <div className="flex items-center gap-2">
               {/* Wishlist */}
               <Link 
-                to={isAuthenticated ? "/customer/wishlist" : "/customer/login"}
+                to={isAuthenticated ? "/customer/wishlist" : "/login"}
                 className="relative p-2 hover:bg-gray-100 rounded-lg text-gray-600 transition-all group"
               >
                 <MdFavorite className={`text-2xl ${wishlistCount > 0 && isAuthenticated ? 'text-red-500' : 'group-hover:text-red-500'}`} />
@@ -108,7 +108,7 @@ const Navbar = () => {
                 </button>
               </div>
             ) : (
-              <NavLink to="/customer/login" className="btn-primary px-5 py-2">
+              <NavLink to="/login" className="btn-primary px-5 py-2">
                 Login
               </NavLink>
             )}
@@ -163,7 +163,7 @@ const Navbar = () => {
               ))}
 
               <Link 
-                to={isAuthenticated ? "/customer/wishlist" : "/customer/login"}
+                to={isAuthenticated ? "/customer/wishlist" : "/login"}
                 onClick={() => setIsMenuOpen(false)}
                 className="flex items-center gap-2 py-2 text-gray-700 font-medium hover:text-teal-600"
               >
@@ -182,7 +182,7 @@ const Navbar = () => {
                   </button>
                 </>
               ) : (
-                <NavLink to="/customer/login" className="btn-primary text-center">
+                <NavLink to="/login" className="btn-primary text-center">
                   Login
                 </NavLink>
               )}

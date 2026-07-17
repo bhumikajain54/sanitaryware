@@ -80,7 +80,7 @@ const LandingNavbar = () => {
 
             {/* Wishlist Icon */}
             <Link
-              to={isAuthenticated ? "/customer/wishlist" : "/customer/login"}
+              to={isAuthenticated ? "/customer/wishlist" : "/login"}
               className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors group"
             >
               <MdFavorite className={`text-xl sm:text-2xl ${wishlistCount > 0 && isAuthenticated ? 'text-red-500' : 'text-gray-700'}`} />
@@ -109,7 +109,7 @@ const LandingNavbar = () => {
                 <div className="w-20 h-8 bg-gray-100 animate-pulse rounded-lg" />
               ) : !isAuthenticated ? (
                 <Link
-                  to="/customer/login"
+                  to="/login"
                   className="px-4 md:px-5 py-2 text-xs md:text-base bg-teal-600 hover:bg-teal-700 text-white rounded-lg font-semibold transition-colors whitespace-nowrap"
                 >
                   Login
@@ -177,7 +177,7 @@ const LandingNavbar = () => {
                  <div className="w-full h-12 bg-gray-50 animate-pulse rounded-xl" />
                ) : !isAuthenticated ? (
                   <Link
-                    to="/customer/login"
+                    to="/login"
                     onClick={() => setIsMenuOpen(false)}
                     className="w-full px-4 py-3 bg-teal-600 text-white rounded-xl font-bold text-center text-sm"
                   >

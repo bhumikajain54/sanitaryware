@@ -48,7 +48,19 @@ const AdminOrders = () => {
       },
       total: order.totalAmount || order.total || 0,
       status: (order.status || 'pending').toLowerCase(),
-      paymentStatus: (order.paymentStatus || (['confirmed', 'shipped', 'delivered'].includes((order.status || '').toLowerCase()) ? 'paid' : 'pending')).toLowerCase(),
+      paymentStatus: (() => {
+        const pStatus = (order.paymentStatus || '').toLowerCase();
+        if (pStatus === 'paid' || pStatus === 'completed' || pStatus === 'success') {
+          return 'paid';
+        }
+        // Fallback for non-COD orders that are confirmed/shipped/delivered but have no explicit payment status
+        const status = (order.status || '').toLowerCase();
+        const method = (order.paymentMethod || '').toUpperCase();
+        if (method !== 'COD' && ['confirmed', 'shipped', 'delivered'].includes(status)) {
+          return 'paid';
+        }
+        return 'pending';
+      })(),
       paymentMethod: order.paymentMethod || 'N/A',
       date: order.createdAt ? new Date(order.createdAt).toLocaleDateString() : (order.date || 'N/A'),
       items: (order.items || []).map(item => ({

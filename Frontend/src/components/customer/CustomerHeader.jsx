@@ -319,7 +319,7 @@ const CustomerHeader = ({ onMenuClick }) => {
               </button>
             ) : (
               <Link
-                to="/customer/login"
+                to="/login"
                 className="bg-teal-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-teal-500/10 hover:bg-teal-700 transition-all"
               >
                 Sign In
